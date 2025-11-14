@@ -1,0 +1,28 @@
+{
+  "name": "online-auction-platform-web-dev-final-project-",
+  "version": "1.0.0",
+  "description": "MNGo - Online Auction Platform (Web Dev Final Project) This is the final project for the Web Development (PTUDW) course, built by Minh and Nam. MNGo is a full-featured Online Auction Platform.  The project simulates a complete auction marketplace supporting four user roles:  Guest, Bidder, Seller , and Administrator.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MinhHCMUSsv/Online-Auction-Platform-Web-Dev-Final-Project-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MinhHCMUSsv/Online-Auction-Platform-Web-Dev-Final-Project-/issues"
+  },
+  "homepage": "https://github.com/MinhHCMUSsv/Online-Auction-Platform-Web-Dev-Final-Project-#readme",
+  "dependencies": {
+    "express": "^5.1.0",
+    "express-handlebars": "^8.0.3",
+    "express-session": "^1.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
