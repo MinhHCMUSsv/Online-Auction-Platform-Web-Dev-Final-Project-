@@ -30,8 +30,29 @@ router.get('/signin', function(req, res) {
     });
 });
 
-router.post('/signin', function(req, res) {
-    res.redirect('/');
+router.post('/signin', async function(req, res) {
+    const email = req.body.email;
+    const user = await userService.findByEmail(email);
+    if (!user) {
+        return res.render('accounts/signin', {
+            err_message: 'Invalid email or password.'
+        });
+    }
+
+    const password = req.body.password;
+    const result = bcrypt.compareSync(password, user.password_hash);
+    if (!result) {
+        return res.render('accounts/signin', {
+            err_message: 'Invalid email or password.'
+        });
+    }
+
+    req.session.isAuthenticated = true;
+    req.session.authUser = user;
+    const retUrl = req.session.retUrl || '/';
+    delete req.session.retUrl;
+    
+    res.redirect(retUrl);
 });
 
 export default router;
