@@ -84,4 +84,4 @@ The application will be running on `http://localhost:3000`.
 ## Authors
 
 * **Nhật Minh - 23127425**
-* **Hoàng Nam - 23127430** 
+* **Hoàng Nam - 23127430**  
