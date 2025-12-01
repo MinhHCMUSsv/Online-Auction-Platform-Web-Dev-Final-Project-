@@ -1,0 +1,224 @@
+{{#section 'css'}}
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <link href="https://releases.transloadit.com/uppy/v3.23.0/uppy.min.css" rel="stylesheet">
+
+  <style>
+    /* --- MÀU SẮC CHỦ ĐẠO --- */
+    :root {
+      --color-orange-bg: rgba(255, 140, 0, 0.6);
+      --color-green: #198754;
+      --color-red: #DC3545;
+      --color-blue: #0D6EFD;
+    }
+
+    /* --- BANNER --- */
+    .account-banner {
+      background-color: var(--color-orange-bg);
+      height: 180px;
+      display: flex;
+      align-items: flex-end;
+      padding-bottom: 20px;
+    }
+    .account-banner h1 {
+      font-weight: 800; color: white; text-transform: uppercase; font-size: 3rem; margin: 0;
+    }
+
+    /* --- SIDEBAR --- */
+    .avatar-circle {
+      width: 80px; height: 80px; background-color: #e9ecef; border-radius: 50%;
+      display: flex; justify-content: center; align-items: center;
+      font-size: 2.5rem; font-weight: bold; color: #495057;
+    }
+    .seller-badge {
+      background-color: var(--color-green); color: white; padding: 3px 12px;
+      border-radius: 20px; font-size: 0.85rem; font-weight: 600;
+    }
+    .logout-link { color: var(--color-red); font-weight: 700; text-decoration: none; font-size: 1.1rem; }
+    
+    .profile-nav .nav-link { color: #212529; font-weight: 600; padding: 12px 0; font-size: 1.1rem; }
+    .profile-nav .nav-link:hover { color: var(--color-blue); }
+    /* Active Link Style */
+    .profile-nav .nav-link.active-custom { color: var(--color-blue); font-weight: 800; }
+
+    /* --- FORM STYLES --- */
+    .form-label-custom {
+      font-family: "Times New Roman", Times, serif; font-weight: 700; font-size: 1.3rem;
+    }
+    .required-star { color: var(--color-red); margin-left: 3px; font-weight: bold; }
+    .form-control-lg-custom {
+      border-radius: 10px; border: 1px solid #ced4da; padding: 12px; font-size: 1rem;
+    }
+    .btn-upload {
+      background-color: var(--color-blue); color: white; font-weight: 700;
+      padding: 12px 50px; border: none; border-radius: 6px; font-size: 1.1rem;
+    }
+    .btn-upload:hover { background-color: #0b5ed7; }
+
+    /* Quill Editor Fix */
+    #editor-container { height: 200px; font-size: 1rem; background: white; }
+    .ql-toolbar { border-radius: 10px 10px 0 0; }
+    .ql-container { border-radius: 0 0 10px 10px; }
+  </style>
+{{/section}}
+
+<div class="container-fluid p-0 mb-5">
+  <div class="account-banner">
+    <div class="container">
+      <h1>My Account</h1>
+    </div>
+  </div>
+</div>
+
+<div class="container mb-5">
+  <div class="row">
+    
+    <div class="col-md-3">
+      <div class="d-flex align-items-center mb-4">
+        <div class="avatar-circle me-3">{{#if authUser.full_name}}{{authUser.full_name.[0]}}{{else}}U{{/if}}</div>
+        <div>
+          <h4 class="mb-1 fw-bold">{{authUser.full_name}}</h4>
+          <div class="mb-2">
+            <span class="seller-badge">Seller</span>
+            <span class="text-muted ms-1 fw-bold">Points: 10</span>
+          </div>
+          <a href="/account/signout" class="logout-link">Logout</a>
+        </div>
+      </div>
+
+      <nav class="nav flex-column profile-nav">
+        <a class="nav-link active-custom" href="/account/profile/create">Create Auction</a>
+        <a class="nav-link" href="#">Active Auctions</a>
+        <a class="nav-link" href="#">Finished auctions</a>
+        
+        <hr class="my-3 text-secondary">
+        
+        <a class="nav-link" href="/account/profile">Account Settings</a>
+        <a class="nav-link" href="#">My Ratings</a>
+        
+        <hr class="my-3 text-secondary">
+        
+        <a class="nav-link" href="#">Watchlist</a>
+        <a class="nav-link" href="#">Active Bids</a>
+        <a class="nav-link" href="#">Won items</a>
+      </nav>
+    </div>
+
+    <div class="col-md-9">
+       <form id="createAuctionForm" action="/account/profile/create" method="POST">
+          
+          <div class="row mb-4">
+            <div class="col-md-12">
+              <label class="form-label-custom mb-2">Product Images (At least 3)<span class="required-star">*</span></label>
+              <div id="uppy-dashboard"></div>
+              <input type="hidden" name="uploadedImages" id="uploadedImages">
+            </div>
+          </div>
+
+          <div class="row mb-4">
+              <div class="col-md-6">
+                <label for="proName" class="form-label-custom">Product's name<span class="required-star">*</span></label>
+                <input type="text" class="form-control form-control-lg-custom" id="proName" name="proName" required>
+              </div>
+              <div class="col-md-6">
+                <label for="startPrice" class="form-label-custom">Starting price<span class="required-star">*</span></label>
+                <input type="number" class="form-control form-control-lg-custom" id="startPrice" name="startPrice" required>
+              </div>
+          </div>
+
+          <div class="row mb-4">
+              <div class="col-md-6">
+                <label for="stepPrice" class="form-label-custom">Bid increment<span class="required-star">*</span></label>
+                <input type="number" class="form-control form-control-lg-custom" id="stepPrice" name="stepPrice" required>
+              </div>
+              <div class="col-md-6">
+                <label for="buyNowPrice" class="form-label-custom">Buy it now price</label>
+                <input type="number" class="form-control form-control-lg-custom" id="buyNowPrice" name="buyNowPrice">
+              </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label-custom">Description<span class="required-star">*</span></label>
+            <div id="editor-container"></div>
+            <textarea name="description" id="description" style="display:none"></textarea>
+          </div>
+
+          <div class="mb-3">
+            <div class="form-check d-flex align-items-center">
+              <input class="form-check-input bg-primary border-0" type="checkbox" id="allowAll" checked style="width: 1.3em; height: 1.3em; margin-right: 10px;">
+              <label class="form-check-label fw-bold" for="allowAll" style="font-size: 1.1rem;">
+                Allow every bidders to participate in
+              </label>
+            </div>
+          </div>
+
+          <div class="mb-5">
+            <div class="form-check d-flex align-items-center">
+              <input class="form-check-input" type="checkbox" id="requireFeedback" disabled style="width: 1.3em; height: 1.3em; margin-right: 10px; background-color: #e9ecef; border-color: #ced4da;">
+              <label class="form-check-label fw-bold text-muted" for="requireFeedback" style="font-size: 1.1rem;">
+                Requires 80%+ positive feedback
+              </label>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end">
+            <button type="submit" class="btn-upload">Upload</button>
+          </div>
+       </form>
+    </div>
+  </div>
+</div>
+
+{{#section 'js'}}
+  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+  <script src="https://releases.transloadit.com/uppy/v3.23.0/uppy.min.js"></script>
+
+  <script>
+    // 1. Khởi tạo Quill
+    var quill = new Quill('#editor-container', {
+      theme: 'snow',
+      placeholder: 'Write detailed description about your product...'
+    });
+
+    // 2. Khởi tạo Uppy
+    const uppy = new Uppy.Uppy({
+      restrictions: {
+        maxNumberOfFiles: 10,
+        minNumberOfFiles: 3,
+        allowedFileTypes: ['image/*']
+      }
+    })
+    .use(Uppy.Dashboard, {
+      inline: true,
+      target: '#uppy-dashboard',
+      height: 300,
+      width: '100%',
+      hideUploadButton: true 
+    })
+    .use(Uppy.XHRUpload, {
+      endpoint: '/account/upload/temp', // API backend
+      fieldName: 'imgs',
+    });
+
+    // Sự kiện Uppy
+    uppy.on('file-added', (file) => { uppy.upload(); });
+
+    let tempFiles = [];
+    uppy.on('upload-success', (file, response) => {
+        // Server trả về { filename: '...' }
+        tempFiles.push(response.body.filename);
+        document.getElementById('uploadedImages').value = JSON.stringify(tempFiles);
+    });
+
+    // 3. Xử lý Submit Form
+    document.getElementById('createAuctionForm').addEventListener('submit', function(e) {
+        // Chuyển nội dung Quill vào textarea ẩn
+        document.querySelector('#description').value = quill.root.innerHTML;
+        
+        // Validate ảnh
+        if (tempFiles.length < 3) {
+            e.preventDefault();
+            alert('Please upload at least 3 images!');
+        }
+    });
+  </script>
+{{/section}}
