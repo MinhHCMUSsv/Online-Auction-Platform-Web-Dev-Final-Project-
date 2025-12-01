@@ -75,7 +75,7 @@ router.get('/profile', function(req, res) {
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = './static/uploads';
+    const dir = './src/static/uploads';
     fs.ensureDirSync(dir); 
     cb(null, dir);
   },
