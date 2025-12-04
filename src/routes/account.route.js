@@ -116,7 +116,7 @@ router.post('/profile/create', async function (req, res) {
     console.log(user);
     
     const newProduct = {
-        category_id: 1,
+        category_id: 10,
         name: req.body.proName,
         start_price: req.body.startPrice,
         description_html: req.body.description, 
@@ -125,17 +125,19 @@ router.post('/profile/create', async function (req, res) {
         seller_id: user.user_id,
     };
     
-    const [productId] = await productService.add(newProduct); 
+    const ret = await productService.add(newProduct); 
+    const productId = ret[0].product_id;
+    console.log('New Product ID:', productId);
 
     const uploadedImages = JSON.parse(req.body.uploadedImages || '[]'); 
     
     if (uploadedImages.length > 0) {
-        const userId = user.id;
-        const targetDir = `./static/images/${userId}/${productId}`;
+        const userId = user.user_id;
+        const targetDir = `./src/static/images/${userId}/${productId}`;
         await fs.ensureDir(targetDir);
 
         for (const fileName of uploadedImages) {
-            const oldPath = `./static/uploads/${fileName}`;
+            const oldPath = `./src/static/uploads/${fileName}`;
             
             const newPath = path.join(targetDir, fileName);
             
