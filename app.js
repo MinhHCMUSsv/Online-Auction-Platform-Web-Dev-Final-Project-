@@ -5,7 +5,7 @@ import expressHandlebarsSections from 'express-handlebars-sections';
 import session from 'express-session';
 
 import accountRouter from './src/routes/account.route.js';
-import db from './src/utils/db.js';
+import productRouter from './src/routes/product.route.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -51,6 +51,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/account', accountRouter);
+app.use('/products', productRouter);
 
 app.listen(PORT, function() {
     console.log('Server is running on http://localhost:' + PORT);
