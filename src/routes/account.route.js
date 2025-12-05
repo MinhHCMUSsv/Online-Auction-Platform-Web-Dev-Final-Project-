@@ -11,7 +11,7 @@ import expressHandlebarsSections from 'express-handlebars-sections';
 const router = express.Router();
 
 router.get('/signup', function(req, res) {
-    res.render('accounts/signup', {
+    res.render('vwAccounts/signup', {
         title: 'Sign Up',
         activeNav: 'Sign Up'
     });
@@ -30,7 +30,7 @@ router.post('/signup', async function(req, res) {
 });
 
 router.get('/signin', function(req, res) {
-    res.render('accounts/signin', {
+    res.render('vwAccounts/signin', {
         title: 'Sign In',
         activeNav: 'Sign In'
     });
@@ -40,7 +40,7 @@ router.post('/signin', async function(req, res) {
     const email = req.body.email;
     const user = await userService.findByEmail(email);
     if (!user) {
-        return res.render('accounts/signin', {
+        return res.render('vwAccounts/signin', {
             err_message: 'Invalid email or password.'
         });
     }
@@ -48,7 +48,7 @@ router.post('/signin', async function(req, res) {
     const password = req.body.password;
     const result = bcrypt.compareSync(password, user.password_hash);
     if (!result) {
-        return res.render('accounts/signin', {
+        return res.render('vwAccounts/signin', {
             err_message: 'Invalid email or password.'
         });
     }
@@ -66,7 +66,7 @@ router.get('/profile', function(req, res) {
         req.session.retUrl = '/account/profile';
         return res.redirect('/account/signin');
     }
-    res.render('accounts/profile', {
+    res.render('vwAccounts/profile', {
         title: 'Account Settings',
         activeNav: 'Account',      
         showSettings: true,         
@@ -101,7 +101,7 @@ router.get('/profile/create', function(req, res) {
         return res.redirect('/account/profile'); 
     }
 
-    res.render('accounts/create', { 
+    res.render('vwAccounts/create', { 
         title: 'Create Auction',
         activeNav: 'Account',
         authUser: req.session.authUser

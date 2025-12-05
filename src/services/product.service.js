@@ -30,10 +30,10 @@ export function countByCat(catId) {
     .count('product_id as count').first();
 }
 
-
-// Function to get details
 export function getById(productId) {
     return db('product').where('product_id', productId).first();
+}
+
 export function add(product) {
     return db('product').insert(product).returning('product_id');
 }
