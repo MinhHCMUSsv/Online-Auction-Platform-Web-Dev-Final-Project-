@@ -6,6 +6,7 @@ import path from 'path';
 
 import * as userService from '../services/user.service.js';
 import * as productService from '../services/product.service.js';
+import expressHandlebarsSections from 'express-handlebars-sections';
 
 const router = express.Router();
 
@@ -135,15 +136,25 @@ router.post('/profile/create', async function (req, res) {
         const userId = user.user_id;
         const targetDir = `./src/static/images/${userId}/${productId}`;
         await fs.ensureDir(targetDir);
+        let i = 0;
 
         for (const fileName of uploadedImages) {
             const oldPath = `./src/static/uploads/${fileName}`;
             
-            const newPath = path.join(targetDir, fileName);
-            
-            if (await fs.pathExists(oldPath)) {
-                await fs.move(oldPath, newPath);
+            if (i === 0) {
+                const mainPath = path.join(targetDir, 'main.jpg');
+                const thumbsPath = path.join(targetDir, 'main_thumbs.jpg');
+                fs.copyFileSync(oldPath, mainPath);
+                fs.copyFileSync(oldPath, thumbsPath);
+            } else {
+                const subPath = path.join(targetDir, `${i}.jpg`);
+                const subThumbsPath = path.join(targetDir, `${i}_thumbs.jpg`);
+                fs.copyFileSync(oldPath, subPath);
+                fs.copyFileSync(oldPath, subThumbsPath);
             }
+            fs.unlinkSync(oldPath);
+
+            i++;
         }
     }
 

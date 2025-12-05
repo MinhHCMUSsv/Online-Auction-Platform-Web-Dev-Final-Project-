@@ -108,7 +108,7 @@
           
           <div class="row mb-4">
             <div class="col-md-12">
-              <label class="form-label-custom mb-2">Product Images (At least 3)<span class="required-star">*</span></label>
+              <label class="form-label-custom mb-2">Product Images (Only 4 images)<span class="required-star">*</span></label>
               <div id="uppy-dashboard"></div>
               <input type="hidden" name="uploadedImages" id="uploadedImages">
             </div>
@@ -215,9 +215,9 @@
         document.querySelector('#description').value = quill.root.innerHTML;
         
         // Validate ảnh
-        if (tempFiles.length < 3) {
+        if (tempFiles.length !== 4) {
             e.preventDefault();
-            alert('Please upload at least 3 images!');
+            alert('Please upload only 4 images!');
         }
     });
   </script>
