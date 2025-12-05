@@ -1,6 +1,8 @@
 import express from 'express';
 import { engine } from 'express-handlebars';
 import hbs_helpers from 'handlebars-helpers';
+import expressHandlebarsSections from 'express-handlebars-sections';
+import session from 'express-session';
 
 import accountRouter from './src/routes/account.route.js';
 import productRouter from './src/routes/product.route.js';
@@ -9,22 +11,46 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const helpers = hbs_helpers();
 
-app.engine('handlebars', engine({ helpers: helpers }));
+app.set('trust proxy', 1) // trust first proxy
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    secure: false
+  }
+}))
+
+app.engine('handlebars', engine({ 
+    helpers: {
+        helpers,
+        section: expressHandlebarsSections()
+    }
+     
+}));
 app.set('view engine', 'handlebars');
 app.set('views', './src/views');
+
+app.use('/static', express.static('static'));
+app.use(express.urlencoded({
+    extended: true
+}));
+
+app.use(function (req, res, next) {
+    res.locals.isAuthenticated = req.session.isAuthenticated;
+    res.locals.authUser = req.session.authUser;
+    console.log('Auth User:', res.locals.authUser);
+    next();
+});
 
 app.get('/', (req, res) => {
     res.render('home', {
         title: 'Home',
         activeNav: 'Home'
     });
-});``
+});
 
-app.use(express.urlencoded({
-    extended: true
-}));
-
-app.use('/accounts', accountRouter);
+app.use('/account', accountRouter);
 app.use('/products', productRouter);
 
 app.listen(PORT, function() {
