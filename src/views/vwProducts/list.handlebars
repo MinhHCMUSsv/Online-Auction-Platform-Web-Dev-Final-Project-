@@ -81,7 +81,6 @@
 
           <p class="mb-1">
             <span class="fw-semibold">Name of the bidder</span><br>
-            
           </p>
 
           <p class="product-meta mb-1">
@@ -89,11 +88,13 @@
             <span>Listed: </span><br>
             <span>Time left: </span><br>
             <span>Bids: </span>
+            <span>Detail</span>
+            <a href="/products/detail?id={{this.product_id}}"> Details </a>
           </p>
+          
         </div>
         
-        <a href="/products/detail?id={{this.product_id}}" class="stretched-link"> Details </a>
-
+      
       </div>
     </div>
     {{/each}}

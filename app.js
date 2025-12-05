@@ -18,7 +18,7 @@ app.get('/', (req, res) => {
         title: 'Home',
         activeNav: 'Home'
     });
-});
+});``
 
 app.use(express.urlencoded({
     extended: true
