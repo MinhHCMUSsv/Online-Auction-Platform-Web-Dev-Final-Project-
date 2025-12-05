@@ -1,0 +1,124 @@
+<div class="bg-white border-bottom">
+  <div class="container-fluid px-4 py-3">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-3">
+        <li class="breadcrumb-item"><a href="#">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Menu</li>
+      </ol>
+    </nav>
+
+    <!-- Filter + Search -->
+    <div class="d-flex align-items-center gap-3">
+
+      <!-- Filter dropdown -->
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle" 
+                type="button" 
+                data-bs-toggle="dropdown" 
+                aria-expanded="false">
+          <i class="bi bi-funnel"></i>
+          Filter
+        </button>
+
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="/products">All</a></li>
+
+          {{#each categories}}
+          <li>
+            <a class="dropdown-item" href="/products/byCat?catID={{this.category_id}}">
+              {{this.name}}
+            </a>
+          </li>
+          {{/each}}
+        </ul>
+      </div>
+
+      <form class="flex-grow-1">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Search...">
+          <button class="btn btn-primary px-4" type="submit">
+            <i class="bi bi-search me-1"></i> Search
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- PRODUCT GRID -->
+<div class="container-fluid px-4 py-4">
+  <div class="row g-3">
+
+    {{!-- Lặp qua danh sách sản phẩm --}}
+    {{#each products}}
+    <div class="col-5 col-sm-6 col-md-5 col-lg-3">
+      <div class="product-card">
+
+        <!-- Wishlist icon -->
+        <button class="wishlist-icon border-0">
+          <i class="bi bi-heart"></i>
+        </button>
+
+        <!-- Image -->
+        <div class="product-image-placeholder">
+          Image
+        </div>
+
+        <!-- Text body -->
+        <div class="product-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <h5 class="product-title mb-1">
+              {{this.name}}
+            </h5>
+            <div class="product-price">
+              
+            </div>
+          </div>
+
+          <p class="mb-1">
+            <span class="fw-semibold">Name of the bidder</span><br>
+            
+          </p>
+
+          <p class="product-meta mb-1">
+            <span>Buy it now: <span class="fw-bold text-primary">${{this.start_price}}</span></span><br>
+            <span>Listed: </span><br>
+            <span>Time left: </span><br>
+            <span>Bids: </span>
+          </p>
+        </div>
+        
+        <a href="/products/detail?id={{this.product_id}}" class="stretched-link"> Details </a>
+
+      </div>
+    </div>
+    {{/each}}
+
+    <nav aria-label="...">
+      <ul class="pagination">
+        <li class="page-item disabled">
+          <a class="page-link">Previous</a>
+        </li>
+        {{#each pageNumbers}}
+        {{#if isCurrent}}
+        <li class="page-item active">
+          <a class="page-link" href="javascript:;">{{value}}</a>
+        </li>
+        {{else}}
+        <li class="page-item">
+          <a class="page-link" href="/products?page={{value}}">{{value}}</a>
+        </li>
+        {{/if}}
+        {{/each}}
+        <li class="page-item">
+          <a class="page-link" href="#">Next</a>
+        </li>
+      </ul>
+    </nav>
+
+  </div>
+</div>
