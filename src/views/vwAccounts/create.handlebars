@@ -81,8 +81,9 @@
             <span class="seller-badge">Seller</span>
             <span class="text-muted ms-1 fw-bold">Points: 10</span>
           </div>
-          <a href="/account/signout" class="logout-link">Logout</a>
+          <a href="javascript: document.querySelector('#frmSignOut').submit();" class="logout-link">Logout</a>
         </div>
+        <form method="POST" action="/account/signout" id="frmSignOut"></form>
       </div>
 
       <nav class="nav flex-column profile-nav">
@@ -97,7 +98,7 @@
         
         <hr class="my-3 text-secondary">
         
-        <a class="nav-link" href="#">Watchlist</a>
+        <a class="nav-link" href="/account/profile/watchlist">Watchlist</a>
         <a class="nav-link" href="#">Active Bids</a>
         <a class="nav-link" href="#">Won items</a>
       </nav>

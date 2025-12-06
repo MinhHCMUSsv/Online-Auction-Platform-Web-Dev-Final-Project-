@@ -6,6 +6,7 @@ import path from 'path';
 
 import * as userService from '../services/user.service.js';
 import * as productService from '../services/product.service.js';
+import * as watchlistService from '../services/watchlist.service.js';
 import expressHandlebarsSections from 'express-handlebars-sections';
 
 const router = express.Router();
@@ -22,7 +23,9 @@ router.post('/signup', async function(req, res) {
     const user = {
         full_name: req.body.fullName,
         email: req.body.email,
-        password_hash: hashPassword
+        address: req.body.address,
+        password_hash: hashPassword,
+        points: 0
     }
     
     await userService.add(user);
@@ -59,6 +62,14 @@ router.post('/signin', async function(req, res) {
     delete req.session.retUrl;
     
     res.redirect(retUrl);
+});
+
+router.post('/signout', function(req, res) {
+    req.session.isAuthenticated = false;
+    delete req.session.authUser;
+    const returnUrl = req.headers.referer || '/';
+
+    res.redirect(returnUrl);
 });
 
 router.get('/profile', function(req, res) {
@@ -159,6 +170,21 @@ router.post('/profile/create', async function (req, res) {
     }
 
     res.redirect('/account/profile'); 
+});
+
+router.get('/profile/watchlist', async function(req, res) {
+    if (!req.session.isAuthenticated) {
+        req.session.retUrl = '/account/profile/watchlist';
+        return res.redirect('/account/signin');
+    }
+    const user = req.session.authUser;
+    const watchlist = await watchlistService.findByUserId(user.user_id);
+    res.render('vwAccounts/watchlist', {
+        title: 'My Watchlist',
+        activeNav: 'Watchlist',
+        showWatchlist: true,
+        watchlist: watchlist
+    });
 });
 
 export default router;

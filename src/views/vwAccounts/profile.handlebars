@@ -86,10 +86,11 @@
             {{else}}
               <span class="bidder-badge">Bidder</span>
             {{/if}}
-            <span class="text-muted ms-1 fw-bold">Points: 10</span>
+            <span class="text-muted ms-1 fw-bold">Points: {{user.points}}</span>
           </div>
-          <a href="/account/signout" class="logout-link">Logout</a>
+          <a href="javascript: document.querySelector('#frmSignOut').submit();" class="logout-link">Logout</a>
         </div>
+        <form method="POST" action="/account/signout" id="frmSignOut"></form>
       </div>
 
       <nav class="nav flex-column profile-nav">
@@ -103,7 +104,7 @@
         <a class="nav-link {{#if showSettings}}active-custom{{/if}}" href="/account/profile">Account Settings</a>
         <a class="nav-link" href="#">My Ratings</a>
         <hr class="my-3 text-secondary">
-        <a class="nav-link" href="#">Watchlist</a>
+        <a class="nav-link" href="/account/profile/watchlist">Watchlist</a>
         <a class="nav-link" href="#">Active Bids</a>
         <a class="nav-link" href="#">Won items</a>
 
@@ -125,9 +126,16 @@
           </div>
 
           <div class="row mb-3">
-            <div class="col-sm-3 info-label">First name:</div>
+            <div class="col-sm-3 info-label">Full name:</div>
             <div class="col-sm-9 info-value">
                 {{user.full_name}} 
+                </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-sm-3 info-label">Address:</div>
+            <div class="col-sm-9 info-value">
+                {{user.address}} 
                 </div>
           </div>
 

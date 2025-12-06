@@ -32,7 +32,7 @@
             <a class="nav-link {{#if (eq activeNav 'Menu')}}active{{/if}}" href="/products">Menu</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {{#if (eq activeNav 'Watchlist')}}active{{/if}}" href="#">Watchlist</a>
+            <a class="nav-link {{#if (eq activeNav 'Watchlist')}}active{{/if}}" href="/account/profile/watchlist">Watchlist</a>
           </li>
           <li class="nav-item">
             <a class="nav-link {{#if (eq activeNav 'Account')}}active{{/if}}" href="/account/profile">Account</a>
@@ -48,7 +48,7 @@
                 </div>
                 
                 <div class="d-flex align-items-center justify-content-end" style="font-size: 0.9rem;">
-                  <span class="text-muted me-2">Points: 10</span> {{#if (eq authUser.role 1)}}
+                  <span class="text-muted me-2">Points: {{authUser.points}}</span> {{#if (eq authUser.role 1)}}
                     <span class="badge rounded-pill bg-success">Seller</span>
                   {{else}}
                     <span class="badge rounded-pill bg-success">Bidder</span>
@@ -90,6 +90,7 @@
 
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   {{{_sections.js}}}
 </body>
 </html>

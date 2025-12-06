@@ -1,0 +1,168 @@
+{{#section 'css'}}
+<style>
+  /* --- COPY CSS TỪ PROFILE.HANDLEBARS --- */
+  :root {
+    --color-orange-bg: rgba(255, 140, 0, 0.6);
+    --color-orange-text: #FF8C00;
+    --color-green: #198754;
+    --color-red: #DC3545;
+    --color-blue: #0D6EFD;
+  }
+
+  /* Banner & Layout */
+  .account-banner { background-color: var(--color-orange-bg); height: 180px; display: flex; align-items: flex-end; padding-bottom: 20px; }
+  .account-banner h1 { font-weight: 800; color: white; text-transform: uppercase; font-size: 3rem; margin: 0; }
+  
+  /* Sidebar User Info */
+  .avatar-circle { width: 80px; height: 80px; background-color: #e9ecef; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: bold; color: #495057; }
+  .seller-badge { background-color: var(--color-green); color: white; padding: 3px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+  .bidder-badge { background-color: #198754; color: white; padding: 3px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+  .logout-link { color: var(--color-red); font-weight: 700; text-decoration: none; font-size: 1.1rem; }
+  
+  /* Navigation */
+  .profile-nav .nav-link { color: #212529; font-weight: 600; padding: 12px 0; font-size: 1.1rem; }
+  .profile-nav .nav-link:hover { color: var(--color-blue); }
+  .profile-nav .nav-link.active-custom { color: var(--color-blue); font-weight: 800; }
+  
+  /* Upgrade Button */
+  .btn-upgrade { background-color: var(--color-green); color: white; font-weight: 700; padding: 10px 20px; border-radius: 20px; border: none; text-decoration: none; display: inline-block; margin-top: 15px; }
+
+  /* Product Card Customization (nếu cần override CSS của list) */
+  .product-card {
+      transition: transform 0.2s;
+  }
+  .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+</style>
+{{/section}}
+
+<div class="container-fluid p-0 mb-5">
+  <div class="account-banner">
+    <div class="container">
+      <h1>My Account</h1>
+    </div>
+  </div>
+</div>
+
+<div class="container mb-5">
+  <div class="row">
+    
+    <div class="col-md-3">
+      <div class="d-flex align-items-center mb-4">
+        <div class="avatar-circle me-3">{{#if authUser.full_name}}{{authUser.full_name.[0]}}{{else}}U{{/if}}</div>
+        <div>
+          <h4 class="mb-1 fw-bold">{{authUser.full_name}}</h4>
+          <div class="mb-2">
+            {{#if (eq authUser.role 1)}}
+              <span class="seller-badge">Seller</span>
+            {{else}}
+              <span class="bidder-badge">Bidder</span>
+            {{/if}}
+            <span class="text-muted ms-1 fw-bold">Points: 10</span>
+          </div>
+          <a href="javascript: document.querySelector('#frmSignOut').submit();" class="logout-link">Logout</a>
+        </div>
+        <form method="POST" action="/account/signout" id="frmSignOut"></form>
+      </div>
+
+      <nav class="nav flex-column profile-nav">
+        {{#if (eq authUser.role 1)}}
+          <a class="nav-link" href="/account/profile/create">Create Auction</a>
+          <a class="nav-link" href="#">Active Auctions</a>
+          <a class="nav-link" href="#">Finished auctions</a>
+          <hr class="my-3 text-secondary">
+        {{/if}}
+        
+        <a class="nav-link" href="/account/profile">Account Settings</a>
+        <a class="nav-link" href="#">My Ratings</a>
+        
+        <a class="nav-link active-custom" href="/account/profile/watchlist">Watchlist</a>
+        
+        <hr class="my-3 text-secondary">
+        
+        <a class="nav-link" href="#">Active Bids</a>
+        <a class="nav-link" href="#">Won items</a>
+
+        {{#unless (eq authUser.role 1)}}
+          <div class="mt-3">
+            <a href="#" class="btn-upgrade">Upgrade to seller</a>
+          </div>
+        {{/unless}}
+      </nav>
+    </div>
+
+    <div class="col-md-9">
+      <h3 class="mb-4 fw-bold text-primary">Watchlist</h3>
+
+      {{#if watchlist.length}}
+      <div class="row g-3">
+        {{#each watchlist}}
+        <div class="col-sm-6 col-md-4">
+          <div class="product-card h-100 border rounded bg-white position-relative">
+
+            <button class="wishlist-icon border-0 position-absolute top-0 end-0 m-2 bg-transparent">
+              <i class="bi bi-heart-fill text-danger fs-5"></i>
+            </button>
+
+            <div class="product-image-placeholder bg-light d-flex align-items-center justify-content-center text-muted" style="height: 180px;">
+                Image
+            </div>
+
+            <div class="product-body p-3">
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="product-title mb-1 text-truncate" title="{{this.name}}">
+                  {{this.name}}
+                </h5>
+                <div class="product-price">
+                   </div>
+              </div>
+
+              <p class="mb-1 small">
+                <span class="fw-semibold">Bidder Name</span><br>
+              </p>
+
+              <p class="product-meta mb-1 small text-muted">
+                <span>Buy it now: <span class="fw-bold text-primary">${{this.buy_now_price}}</span></span><br>
+                <span>Listed: {{this.start_time}}</span><br> <span>Time left: {{this.end_time}}</span><br>
+                <span>Bids: 0</span>
+              </p>
+              
+              <div class="mt-2">
+                 <a href="/products/detail?id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">Details</a>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        {{/each}}
+      </div>
+
+      <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+          <li class="page-item disabled">
+            <a class="page-link">Previous</a>
+          </li>
+          {{#each pageNumbers}}
+            {{#if isCurrent}}
+            <li class="page-item active"><a class="page-link" href="javascript:;">{{value}}</a></li>
+            {{else}}
+            <li class="page-item"><a class="page-link" href="?page={{value}}">{{value}}</a></li>
+            {{/if}}
+          {{/each}}
+          <li class="page-item">
+            <a class="page-link" href="#">Next</a>
+          </li>
+        </ul>
+      </nav>
+
+      {{else}}
+        <div class="alert alert-info text-center">
+            Your watchlist is currently empty. <a href="/products" class="alert-link">Browse products</a> to add some!
+        </div>
+      {{/if}}
+      
+    </div>
+  </div>
+</div>
