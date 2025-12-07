@@ -42,7 +42,6 @@ router.get('/byCat', async function (req, res) {
 
     const total = await productService.countByCat(id);
 
-    console.log(total);
     const nPages = Math.ceil(+total.count / limit);
     const pageNumbers = [];
 

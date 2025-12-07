@@ -18,7 +18,7 @@ app.get('/', (req, res) => {
         title: 'Home',
         activeNav: 'Home'
     });
-});``
+});
 
 app.use(express.urlencoded({
     extended: true
@@ -26,6 +26,8 @@ app.use(express.urlencoded({
 
 app.use('/accounts', accountRouter);
 app.use('/products', productRouter);
+
+
 
 app.listen(PORT, function() {
     console.log('Server is running on http://localhost:' + PORT);
