@@ -37,7 +37,7 @@ router.get('/byCat', async function (req, res) {
 
     const id = req.query.catID;
     const page = req.query.page || 1;
-    const limit = 4;
+    const limit = 8;
     const offset = (page - 1) * limit;
 
     const total = await productService.countByCat(id);
@@ -63,12 +63,90 @@ router.get('/byCat', async function (req, res) {
 });
 
 router.get('/detail', async function (req, res) {
-    const productId = req.query.id;
-    const product = await productService.getById(productId);    
+    const product_id = req.query.product_id;
+    const product= await productService.getProductById(product_id);   
+
+    const seller = await productService.getSellerById(product.seller_id);
+    const bidder = await productService.getBidder(product_id);
+    const comments = await productService.getCommentsWithReplies(product_id);
+
+    const limit = 5;
+    const related_products = await productService.getRelatedProducts(product.category_id, limit);
 
     res.render('vwProducts/detail', {
-        product: product
+        product: product,
+        seller: seller,
+        bidder: bidder,
+        comments: comments,
+        related_products: related_products
     });
+
+});
+
+router.post('/place-bid', async function (req, res) {
+    try {
+        const productId = req.body.product_id;
+        const bidderId = req.body.bidder_id; // Đảm bảo chuyển về kiểu số hoặc khớp với DB
+        const inputMaxAutoBid = Number(req.body.max_auto_bid);
+
+        // BƯỚC 1: Lấy thông tin sản phẩm hiện tại từ DB
+        // (Giả sử bạn có hàm getDetail để lấy thông tin sản phẩm)
+        const product = await productService.getProductById(productId); 
+        
+        if (!product) {
+            return res.status(404).send('Sản phẩm không tồn tại');
+        }
+
+        let finalBidAmount = 0;
+        const currentPrice = Number(product.current_price);
+        const startPrice = Number(product.start_price);
+        const step = Number(product.bid_step);
+        const currentLeaderId = product.leader_id; // ID người đang thắng
+
+        // BƯỚC 2: LOGIC TÍNH GIÁ BID_AMOUNT ĐỂ LƯU VÀO LỊCH SỬ
+        
+        // Trường hợp A: Sản phẩm chưa có ai đấu giá
+        if (!currentLeaderId) {
+            finalBidAmount = startPrice;
+        } 
+        else {
+            // Trường hợp B: Đã có người đấu giá
+            
+            if (currentLeaderId == bidderId) {
+                // >>> QUAN TRỌNG: NGƯỜI DÙNG TỰ NÂNG CẤP (Self-Bidding) <<<
+                // Nếu mình đang thắng mà đặt tiếp -> Giữ nguyên giá hiện tại (chỉ update Max Bid ngầm)
+                // Để lịch sử hiện: 30.5tr (Max 40tr) thay vì nhảy lên 35tr
+                finalBidAmount = currentPrice;
+            } else {
+                // >>> QUAN TRỌNG: ĐẤU VỚI NGƯỜI KHÁC <<<
+                // Giá vào lệnh = Giá hiện tại + Bước giá
+                finalBidAmount = currentPrice + step;
+            }
+        }
+
+        // Validate nhẹ: Nếu Max Auto Bid người dùng nhập vào nhỏ hơn giá sàn định bid
+        if (inputMaxAutoBid < finalBidAmount) {
+             // Tùy logic bên bạn, có thể báo lỗi hoặc tự động set bằng finalBidAmount
+             // return res.send('Giá Auto Bid phải lớn hơn giá hiện tại + bước giá');
+        }
+
+        // BƯỚC 3: GỌI SERVICE ĐỂ INSERT VÀO DB
+        const placeBidData = {
+            product_id: productId,
+            bidder_id: bidderId,
+            bid_amount: finalBidAmount, // <--- Đã được tính toán chính xác
+            max_auto_bid: inputMaxAutoBid
+        };
+
+        await productService.placeBid(placeBidData);
+        
+        // Thành công -> Refresh trang
+        res.redirect('/products/detail?product_id=' + productId);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Lỗi server');
+    }
 });
 
 
