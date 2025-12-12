@@ -207,4 +207,20 @@ router.get('/profile/active', async function(req, res) {
     });
 });
 
+router.get('/profile/won', async function(req, res){
+    if (!req.session.isAuthenticated) {
+        req.session.retUrl = '/account/profile/won';
+        return res.redirect('/account/signin');
+    }
+
+    const userId = req.session.authUser.user_id;
+    const list = await productService.findWonItems(userId);
+
+    res.render('vwAccounts/wonitem', {
+        title: 'Won Items',
+        activeNav: 'Account',
+        wonItems: list
+    });
+});
+
 export default router;

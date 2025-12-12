@@ -3,6 +3,7 @@ import { engine } from 'express-handlebars';
 import hbs_helpers from 'handlebars-helpers';
 import expressHandlebarsSections from 'express-handlebars-sections';
 import session from 'express-session';
+import moment from 'moment';
 
 import accountRouter from './src/routes/account.route.js';
 import productRouter from './src/routes/product.route.js';
@@ -24,7 +25,10 @@ app.use(session({
 app.engine('handlebars', engine({ 
     helpers: {
         helpers,
-        section: expressHandlebarsSections()
+        section: expressHandlebarsSections(),
+        formatDate: function (date, format) {
+            return moment(date).format(format);
+        }
     }
      
 }));

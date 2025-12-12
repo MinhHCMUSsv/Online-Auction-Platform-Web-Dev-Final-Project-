@@ -1,6 +1,6 @@
 {{#section 'css'}}
 <style>
-  /* --- COPY CSS TỪ WATCHLIST.HANDLEBARS --- */
+  /* --- COPY CSS TỪ WATCHLIST/PROFILE --- */
   :root {
     --color-orange-bg: rgba(255, 140, 0, 0.6);
     --color-orange-text: #FF8C00;
@@ -9,27 +9,25 @@
     --color-blue: #0D6EFD;
   }
 
-  /* Banner & Layout */
+  /* Banner */
   .account-banner { background-color: var(--color-orange-bg); height: 180px; display: flex; align-items: flex-end; padding-bottom: 20px; }
   .account-banner h1 { font-weight: 800; color: white; text-transform: uppercase; font-size: 3rem; margin: 0; }
   
-  /* Sidebar User Info */
+  /* Sidebar */
   .avatar-circle { width: 80px; height: 80px; background-color: #e9ecef; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: bold; color: #495057; }
   .seller-badge { background-color: var(--color-green); color: white; padding: 3px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
   .bidder-badge { background-color: #198754; color: white; padding: 3px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
   .logout-link { color: var(--color-red); font-weight: 700; text-decoration: none; font-size: 1.1rem; }
   
-  /* Navigation */
+  /* Nav */
   .profile-nav .nav-link { color: #212529; font-weight: 600; padding: 12px 0; font-size: 1.1rem; }
   .profile-nav .nav-link:hover { color: var(--color-blue); }
   .profile-nav .nav-link.active-custom { color: var(--color-blue); font-weight: 800; }
   
-  /* Product Card */
-  .product-card { transition: transform 0.2s; }
-  .product-card:hover { transform: translateY(-5px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-  
-  /* Icon style */
-  .text-gold { color: #ffc107 !important; }
+  /* Table Styles */
+  .table-custom th { font-weight: 700; border-bottom: 2px solid #000; }
+  .table-custom td { vertical-align: middle; padding: 15px 10px; }
+  .price-text { font-weight: 700; font-size: 1.1rem; }
 </style>
 {{/section}}
 
@@ -55,7 +53,7 @@
             {{else}}
               <span class="bidder-badge">Bidder</span>
             {{/if}}
-            <span class="text-muted ms-1 fw-bold">Points: {{authUser.points}}</span>
+            <span class="text-muted ms-1 fw-bold">Points: 10</span>
           </div>
           <a href="javascript: document.querySelector('#frmSignOut').submit();" class="logout-link">Logout</a>
         </div>
@@ -76,8 +74,9 @@
         
         <hr class="my-3 text-secondary">
         
-        <a class="nav-link active-custom" href="/account/profile/active">Active Bids</a>
-        <a class="nav-link" href="/account/profile/won">Won items</a>
+        <a class="nav-link" href="/account/profile/active">Active Bids</a>
+        
+        <a class="nav-link active-custom" href="/account/profile/won">Won items</a>
 
         {{#unless (eq authUser.role 1)}}
           <div class="mt-3">
@@ -88,52 +87,47 @@
     </div>
 
     <div class="col-md-9">
-      <h3 class="mb-4 fw-bold text-primary">Active Bids</h3>
+      <h3 class="mb-4 fw-bold text-primary">Won Items</h3>
 
-      {{#if activeBids.length}}
-      <div class="row g-3">
-        {{#each activeBids}}
-        <div class="col-sm-6 col-md-4">
-          <div class="product-card h-100 border rounded bg-white position-relative">
-
-            <div class="position-absolute top-0 end-0 m-2 badge bg-primary">
-                Your Bid
-            </div>
-
-            <div class="product-image-placeholder bg-light d-flex align-items-center justify-content-center text-muted" style="height: 180px;">
-                <img src="/src/static/images/{{seller_id}}/{{product_id}}/main_thumbs.jpg" class="img-fluid" alt="{{this.name}}" 
-                     onerror="this.src='http://placehold.it/200x200'">
-            </div>
-
-            <div class="product-body p-3">
-              <div class="d-flex justify-content-between align-items-start">
-                <h5 class="product-title mb-1 text-truncate" title="{{this.name}}">
-                  {{this.name}}
-                </h5>
-              </div>
-
-              <p class="mb-1 small text-muted">
-                Seller: <span class="fw-semibold text-dark">User {{this.seller_id}}</span>
-              </p>
-
-              <p class="product-meta mb-1 small text-muted">
-                <span>Current Price: <span class="fw-bold text-danger">${{this.current_price}}</span></span><br>
-                <span>End Date: {{this.end_time}}</span><br>
-                </p>
-              
-              <div class="mt-2">
-                 <a href="/products/detail?id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">View Status</a>
-              </div>
-            </div>
-            
-          </div>
+      {{#if wonItems.length}}
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+          <table class="table table-hover table-custom mb-0 w-100">
+            <thead class="bg-light">
+              <tr>
+                <th scope="col" style="width: 15%">Auction ID</th>
+                <th scope="col" style="width: 30%">Date</th>
+                <th scope="col" style="width: 25%">Status</th>
+                <th scope="col" style="width: 20%">Total</th>
+                <th scope="col" style="width: 10%">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each wonItems}}
+              <tr>
+                <td class="fw-bold">#{{this.product_id}}</td>
+                
+                <td>{{formatDate this.end_time "DD/MM/YYYY HH:mm"}}</td>
+                
+                <td><span class="text-muted fst-italic">--</span></td>
+                
+                <td class="price-text">${{this.current_price}}</td>
+                
+                <td>
+                    <a href="/products/detail?id={{this.product_id}}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                </td>
+              </tr>
+              {{/each}}
+            </tbody>
+          </table>
         </div>
-        {{/each}}
       </div>
-      
+
       {{else}}
         <div class="alert alert-info text-center">
-            You haven't placed any bids yet. <a href="/products" class="alert-link">Explore auctions now!</a>
+            You haven't won any auctions yet. <a href="/products" class="alert-link">Keep bidding!</a>
         </div>
       {{/if}}
       

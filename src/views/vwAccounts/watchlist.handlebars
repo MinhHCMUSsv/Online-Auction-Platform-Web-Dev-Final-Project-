@@ -126,7 +126,7 @@
         <hr class="my-3 text-secondary">
         
         <a class="nav-link" href="/account/profile/active">Active Bids</a>
-        <a class="nav-link" href="#">Won items</a>
+        <a class="nav-link" href="/account/profile/won">Won items</a>
 
         {{#unless (eq authUser.role 1)}}
           <div class="mt-3">
@@ -168,7 +168,7 @@
 
               <p class="product-meta mb-1 small text-muted">
                 <span>Buy it now: <span class="fw-bold text-primary">{{#if this.buy_now_price}}${{this.buy_now_price}} {{else}} None {{/if}}</span></span><br>
-                <span>Listed: {{this.start_time}}</span><br> <span>Time left: {{this.end_time}}</span><br>
+                <span>Listed: {{formatDate this.start_time "DD/MM/YYYY HH:mm"}}</span><br> <span>Time left: {{formatDate this.end_time "DD/MM/YYYY HH:mm"}}</span><br>
                 <span>Bids: 0</span>
               </p>
               
