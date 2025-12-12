@@ -1,3 +1,37 @@
+{{#section 'js'}}
+<script>
+    $('.wishlist-icon').on('click', function(e) {
+        e.preventDefault();
+        const $btn = $(this);
+        const productId = $btn.data('id');
+        
+        // Tìm cái thẻ cha chứa sản phẩm này (để xóa khỏi giao diện)
+        const $cardColumn = $btn.closest('.watchlist-item'); 
+
+        $.post('/products/watchlist/toggle', { product_id: productId }, function(data) {
+            if (data.success) {
+                if (data.isAdded === false) {
+                    // Nếu kết quả trả về là đã XÓA (isAdded = false)
+                    // Ta xóa luôn cái card đó khỏi màn hình cho người dùng thấy hiệu ứng
+                    $cardColumn.fadeOut(300, function() { 
+                        $(this).remove(); 
+                        
+                        // Kiểm tra nếu xóa hết thì hiện thông báo empty 
+                        if($('.product-card').length === 0) {
+                            location.reload(); // Load lại để hiện thông báo "Empty"
+                        }
+                    });
+                }
+            } else {
+                alert('Something went wrong');
+            }
+        }).fail(function() {
+            alert('Cannot connect to server!');
+        });
+    });
+</script>
+{{/section}}
+
 {{#section 'css'}}
 <style>
   /* --- COPY CSS TỪ PROFILE.HANDLEBARS --- */
@@ -34,6 +68,15 @@
   .product-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+
+  /* Watch list icon*/
+  .text-gold {
+      color: #ffc107 !important;
+  }
+  .wishlist-icon:hover {
+      transform: scale(1.2);
+      transition: 0.2s;
   }
 </style>
 {{/section}}
@@ -82,7 +125,7 @@
         
         <hr class="my-3 text-secondary">
         
-        <a class="nav-link" href="#">Active Bids</a>
+        <a class="nav-link" href="/account/profile/active">Active Bids</a>
         <a class="nav-link" href="#">Won items</a>
 
         {{#unless (eq authUser.role 1)}}
@@ -99,15 +142,15 @@
       {{#if watchlist.length}}
       <div class="row g-3">
         {{#each watchlist}}
-        <div class="col-sm-6 col-md-4">
+        <div class="col-sm-6 col-md-4 watchlist-item">
           <div class="product-card h-100 border rounded bg-white position-relative">
 
-            <button class="wishlist-icon border-0 position-absolute top-0 end-0 m-2 bg-transparent">
-              <i class="bi bi-heart-fill text-danger fs-5"></i>
+            <button class="wishlist-icon border-0 position-absolute top-0 end-0 m-2 bg-transparent active" data-id="{{this.product_id}}">
+                <i class="bi bi-heart-fill text-gold fs-5"></i>
             </button>
 
             <div class="product-image-placeholder bg-light d-flex align-items-center justify-content-center text-muted" style="height: 180px;">
-                Image
+                <img src="/src/static/images/{{seller_id}}/{{product_id}}/main_thumbs.jpg" class="img-fluid">
             </div>
 
             <div class="product-body p-3">
@@ -124,7 +167,7 @@
               </p>
 
               <p class="product-meta mb-1 small text-muted">
-                <span>Buy it now: <span class="fw-bold text-primary">${{this.buy_now_price}}</span></span><br>
+                <span>Buy it now: <span class="fw-bold text-primary">{{#if this.buy_now_price}}${{this.buy_now_price}} {{else}} None {{/if}}</span></span><br>
                 <span>Listed: {{this.start_time}}</span><br> <span>Time left: {{this.end_time}}</span><br>
                 <span>Bids: 0</span>
               </p>

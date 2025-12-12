@@ -24,7 +24,22 @@ router.get('/', async function (req, res) {
         });
     }
 
-    const list = await productService.findPage(limit, offset);
+    let list = await productService.findPage(limit, offset);
+
+    if (req.session.isAuthenticated) {
+        const userId = req.session.authUser.user_id;
+        
+        const watchlist = await watchlistService.findByUserId(userId);
+        
+        const watchlistIds = watchlist.map(item => item.product_id);
+
+        list = list.map(item => {
+            if (watchlistIds.includes(item.product_id)) {
+                return { ...item, is_liked: true };
+            }
+            return item;
+        });
+    }
 
     res.render('vwProducts/list', {
         products: list,

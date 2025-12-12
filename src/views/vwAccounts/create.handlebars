@@ -99,7 +99,7 @@
         <hr class="my-3 text-secondary">
         
         <a class="nav-link" href="/account/profile/watchlist">Watchlist</a>
-        <a class="nav-link" href="#">Active Bids</a>
+        <a class="nav-link" href="/account/profile/active">Active Bids</a>
         <a class="nav-link" href="#">Won items</a>
       </nav>
     </div>
@@ -121,17 +121,26 @@
                 <input type="text" class="form-control form-control-lg-custom" id="proName" name="proName" required>
               </div>
               <div class="col-md-6">
-                <label for="startPrice" class="form-label-custom">Starting price<span class="required-star">*</span></label>
-                <input type="number" class="form-control form-control-lg-custom" id="startPrice" name="startPrice" required>
+                <label for="startPrice" class="form-label-custom">Category<span class="required-star">*</span></label>
+                <select class="form-select form-control-lg-custom" id="catId" name="catId" required>
+                  <option value="" disabled selected>Select a category...</option>
+                  {{#each categories}}
+                      <option value="{{this.category_id}}">{{this.name}}</option>
+                  {{/each}}
+                </select>
               </div>
           </div>
 
           <div class="row mb-4">
-              <div class="col-md-6">
+              <div class="col-md-4">
+                <label for="startPrice" class="form-label-custom">Starting price<span class="required-star">*</span></label>
+                <input type="number" class="form-control form-control-lg-custom" id="startPrice" name="startPrice" required>
+              </div>
+              <div class="col-md-4">
                 <label for="stepPrice" class="form-label-custom">Bid increment<span class="required-star">*</span></label>
                 <input type="number" class="form-control form-control-lg-custom" id="stepPrice" name="stepPrice" required>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <label for="buyNowPrice" class="form-label-custom">Buy it now price</label>
                 <input type="number" class="form-control form-control-lg-custom" id="buyNowPrice" name="buyNowPrice">
               </div>
@@ -143,10 +152,15 @@
             <textarea name="description" id="description" style="display:none"></textarea>
           </div>
 
+          <div class="mb-2">
+            <label class="form-label-custom">Bidder Permissions<span class="required-star">*</span></label>
+          </div>
+
           <div class="mb-3">
             <div class="form-check d-flex align-items-center">
-              <input class="form-check-input bg-primary border-0" type="checkbox" id="allowAll" checked style="width: 1.3em; height: 1.3em; margin-right: 10px;">
-              <label class="form-check-label fw-bold" for="allowAll" style="font-size: 1.1rem;">
+              <input class="form-check-input" type="radio" name="permission" id="allowAll" value="0" checked 
+                     style="width: 1.3em; height: 1.3em; margin-right: 10px; cursor: pointer;">
+              <label class="form-check-label fw-bold" for="allowAll" style="font-size: 1.1rem; cursor: pointer;">
                 Allow every bidders to participate in
               </label>
             </div>
@@ -154,9 +168,34 @@
 
           <div class="mb-5">
             <div class="form-check d-flex align-items-center">
-              <input class="form-check-input" type="checkbox" id="requireFeedback" disabled style="width: 1.3em; height: 1.3em; margin-right: 10px; background-color: #e9ecef; border-color: #ced4da;">
-              <label class="form-check-label fw-bold text-muted" for="requireFeedback" style="font-size: 1.1rem;">
+              <input class="form-check-input" type="radio" name="permission" id="requireFeedback" value="1" 
+                     style="width: 1.3em; height: 1.3em; margin-right: 10px; cursor: pointer;">
+              <label class="form-check-label fw-bold text-muted" for="requireFeedback" style="font-size: 1.1rem; cursor: pointer;">
                 Requires 80%+ positive feedback
+              </label>
+            </div>
+          </div>
+
+          <div class="mt-4 mb-2">
+            <label class="form-label-custom">Auto Extension<span class="required-star">*</span></label>
+          </div>
+
+          <div class="mb-3">
+            <div class="form-check d-flex">
+              <input class="form-check-input" type="radio" name="isAutoExtend" id="autoExtendYes" value="1" checked 
+                     style="width: 1.3em; height: 1.3em; margin-right: 10px; cursor: pointer; flex-shrink: 0; margin-top: 4px;">
+              <label class="form-check-label fw-bold" for="autoExtendYes" style="font-size: 1.1rem; cursor: pointer;">
+                Yes.
+              </label>
+            </div>
+          </div>
+
+          <div class="mb-5">
+            <div class="form-check d-flex align-items-center">
+              <input class="form-check-input" type="radio" name="isAutoExtend" id="autoExtendNo" value="0" 
+                     style="width: 1.3em; height: 1.3em; margin-right: 10px; cursor: pointer;">
+              <label class="form-check-label fw-bold text-muted" for="autoExtendNo" style="font-size: 1.1rem; cursor: pointer;">
+                No.
               </label>
             </div>
           </div>

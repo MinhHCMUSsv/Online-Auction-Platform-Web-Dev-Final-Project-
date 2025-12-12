@@ -31,7 +31,7 @@ app.engine('handlebars', engine({
 app.set('view engine', 'handlebars');
 app.set('views', './src/views');
 
-app.use('/static', express.static('static'));
+app.use('/src/static', express.static('src/static'));
 app.use(express.urlencoded({
     extended: true
 }));
@@ -39,7 +39,6 @@ app.use(express.urlencoded({
 app.use(function (req, res, next) {
     res.locals.isAuthenticated = req.session.isAuthenticated;
     res.locals.authUser = req.session.authUser;
-    console.log('Auth User:', res.locals.authUser);
     next();
 });
 

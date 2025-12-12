@@ -7,6 +7,7 @@ import path from 'path';
 import * as userService from '../services/user.service.js';
 import * as productService from '../services/product.service.js';
 import * as watchlistService from '../services/watchlist.service.js';
+import * as bidService from '../services/bid.service.js';
 import expressHandlebarsSections from 'express-handlebars-sections';
 
 const router = express.Router();
@@ -102,7 +103,7 @@ router.post('/upload/temp', upload.single('imgs'), function (req, res) {
     res.json({ filename: req.file.filename });
 });
 
-router.get('/profile/create', function(req, res) {
+router.get('/profile/create', async function(req, res) {
     if (!req.session.isAuthenticated) {
         req.session.retUrl = '/account/profile/create';
         return res.redirect('/account/signin');
@@ -112,10 +113,13 @@ router.get('/profile/create', function(req, res) {
         return res.redirect('/account/profile'); 
     }
 
+    const category = await productService.getAllCategories();
+
     res.render('vwAccounts/create', { 
         title: 'Create Auction',
         activeNav: 'Account',
-        authUser: req.session.authUser
+        authUser: req.session.authUser,
+        categories: category
     });
 });
 
@@ -128,13 +132,14 @@ router.post('/profile/create', async function (req, res) {
     console.log(user);
     
     const newProduct = {
-        category_id: 10,
+        category_id: req.body.catId,
         name: req.body.proName,
         start_price: req.body.startPrice,
         description_html: req.body.description, 
         bid_step: req.body.stepPrice,
         buy_now_price: req.body.buyNowPrice,
         seller_id: user.user_id,
+        is_auto_extend: req.body.isAutoExtend === '1'
     };
     
     const ret = await productService.add(newProduct); 
@@ -182,8 +187,23 @@ router.get('/profile/watchlist', async function(req, res) {
     res.render('vwAccounts/watchlist', {
         title: 'My Watchlist',
         activeNav: 'Watchlist',
-        showWatchlist: true,
         watchlist: watchlist
+    });
+});
+
+router.get('/profile/active', async function(req, res) {
+    if (!req.session.isAuthenticated) {
+        req.session.retUrl = '/account/profile/active';
+        return res.redirect('/account/signin');
+    }
+
+    const user = req.session.authUser;
+    const list = await bidService.findActiveBidsByUserId(user.user_id);
+
+    res.render('vwAccounts/activebid', {
+        title: 'Active Bids',
+        activeNav: 'Account', 
+        activeBids: list
     });
 });
 
