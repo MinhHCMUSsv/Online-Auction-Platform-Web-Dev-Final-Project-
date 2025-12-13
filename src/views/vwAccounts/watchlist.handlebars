@@ -52,6 +52,22 @@
     transform: scale(1.2);
     transition: 0.2s;
   }
+
+  .product-image-placeholder {
+    height: 220px;
+    /* Chiều cao cố định cho khung ảnh */
+    overflow: hidden;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .product-image-placeholder img {
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
+  }
 </style>
 {{/section}}
 
@@ -96,7 +112,7 @@
         </p>
 
         <div class="mt-2">
-          <a href="/products/detail?id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">Details</a>
+          <a href="/products/detail?product_id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">Details</a>
         </div>
       </div>
 

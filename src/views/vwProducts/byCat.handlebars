@@ -1,85 +1,48 @@
 {{#section 'css'}}
-
 <style>
-.product-card {
-  width: 100%;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.12);
-  transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
-}
+  /* 1. Style cho khung Card */
+  .product-card {
+    transition: transform 0.2s;
+  }
 
-.product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
-}
+  .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
 
-.product-img-wrapper {
-  width: 100%;
-  height: 220px;
-  overflow: hidden;
-  position: relative;
-  background: #f6f6f6;
-}
+  /* 2. Style cho ảnh */
+  .product-image-placeholder {
+    height: 220px;
+    /* Chiều cao cố định cho khung ảnh */
+    overflow: hidden;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-.product-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+  .product-image-placeholder img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+  }
 
-.wishlist-btn {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  border: 0;
-  background: rgba(255,255,255,0.9);
-  padding: 6px 8px;
-  border-radius: 50%;
-  cursor: pointer;
-}
+  /* 3. Style cho nút Tim */
+  .text-gold {
+    color: #ffc107 !important;
+  }
 
-.product-info {
-  padding: 14px 16px;
-}
+  .wishlist-icon {
+    z-index: 10;
+    /* Đảm bảo nút tim nổi lên trên ảnh */
+    cursor: pointer;
+  }
 
-.product-title {
-  font-size: 1.05rem;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.product-bidder {
-  font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 6px;
-}
-
-.product-buy-now {
-  margin-bottom: 10px;
-  font-size: 0.9rem;
-}
-
-.product-buy-now span {
-  color: #007bff;
-  font-weight: 600;
-}
-
-.product-detail {
-  font-size: 0.85rem;
-  color: #555;
-}
-
-.product-detail a {
-  color: #007bff;
-  text-decoration: none;
-}
-
+  .wishlist-icon:hover {
+    transform: scale(1.2);
+    transition: 0.2s;
+  }
 </style>
-
 {{/section}}
 
 <div class="bg-white border-bottom">
@@ -98,10 +61,8 @@
 
       <!-- Filter dropdown -->
       <div class="dropdown">
-        <button class="btn btn-outline-secondary dropdown-toggle" 
-                type="button" 
-                data-bs-toggle="dropdown" 
-                aria-expanded="false">
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+          aria-expanded="false">
           <i class="bi bi-funnel"></i>
           Filter
         </button>
@@ -136,39 +97,52 @@
 <!-- PRODUCT GRID -->
 <div class="container-fluid px-4 py-4">
   <div class="row g-3">
-
-    {{!-- Lặp qua danh sách sản phẩm --}}
     {{#each products}}
-    <div class="col-5 col-sm-6 col-md-5 col-lg-3">
-      <div class="product-card">
-        <div class="product-img-wrapper">
-          <img src="/src/static/images/1/{{product_id}}/main_thum.jpg" alt="{{name}}" class="product-img">
-          <button class="wishlist-btn">
-            <i class="bi bi-heart"></i>
-          </button>
+    <div class="col-sm-6 col-md-4 col-lg-3">
+      <div class="product-card h-100 border rounded bg-white position-relative">
+
+        <button
+          class="wishlist-icon border-0 position-absolute top-0 end-0 m-2 bg-transparent {{#if is_liked}}active{{/if}}"
+          data-id="{{this.product_id}}">
+          {{#if is_liked}}
+          <i class="bi bi-heart-fill text-gold fs-5"></i>
+          {{else}}
+          <i class="bi bi-heart fs-5 text-secondary"></i> {{/if}}
+        </button>
+
+        <div class="product-image-placeholder bg-light d-flex align-items-center justify-content-center text-muted"
+          style="height: 180px;">
+          <img src="/src/static/images/{{seller_id}}/{{product_id}}/main_thumbs.jpg" class="img-fluid">
         </div>
-      
-        <div class="product-info">
-          <h5 class="product-title">{{name}}</h5>
-      
-          <p class="product-bidder">Name of the bidder</p>
-      
-          <p class="product-buy-now">
-            Buy it now: <span>${{buy_now_price}}</span>
+
+        <div class="product-body p-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <h5 class="product-title mb-1 text-truncate" title="{{this.name}}">
+              {{this.name}}
+            </h5>
+          </div>
+
+          <p class="mb-1 small">
+            <span class="fw-semibold">Bidder Name</span><br>
           </p>
-      
-          <p class="product-detail">
-            Listed:<br>
-            Time left:<br>
-            Bids: <a href="#">Details</a>
+
+          <p class="product-meta mb-1 small text-muted">
+            <span>Buy it now: <span class="fw-bold text-primary">{{#if this.buy_now_price}}${{this.buy_now_price}}
+                {{else}}
+                None {{/if}}</span></span><br>
+            <span>Listed: {{formatDate this.start_time "DD/MM/YYYY HH:mm"}}</span><br> <span>Time left: {{formatDate
+              this.end_time "DD/MM/YYYY HH:mm"}}</span><br>
+            <span>Bids: 0</span>
           </p>
-        
+
+          <div class="mt-2">
+            <a href="/products/detail?id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">Details</a>
+          </div>
         </div>
-      
+
       </div>
     </div>
     {{/each}}
-
     <nav aria-label="...">
       <ul class="pagination">
         <li class="page-item disabled">
@@ -190,6 +164,44 @@
         </li>
       </ul>
     </nav>
-
   </div>
 </div>
+
+{{#section 'js'}}
+<script>
+  $('.wishlist-icon').on('click', function (e) {
+    e.preventDefault();
+
+    const $btn = $(this);
+    const productId = $btn.data('id');
+    const $icon = $btn.find('i');
+
+    // Gửi AJAX request lên server
+    $.post('/products/watchlist/toggle', { product_id: productId }, function (data) {
+      if (data.success) {
+        if (data.isAdded) {
+          $btn.addClass('active');
+          $icon.removeClass('bi-heart text-secondary').addClass('bi-heart-fill text-gold');
+        } else {
+          $btn.removeClass('active');
+          $icon.removeClass('bi-heart-fill text-gold').addClass('bi-heart text-secondary');
+        }
+      } else {
+        alert(data.message || 'Something went wrong!');
+        if (data.message === 'Please login first!') {
+          window.location.href = '/account/signin';
+        }
+      }
+    }).fail(function (jqXHR, textStatus, errorThrown) {
+      if (jqXHR.status === 401) {
+        const msg = jqXHR.responseJSON ? jqXHR.responseJSON.message : 'Please login first!';
+        alert(msg);
+
+        window.location.href = '/account/signin';
+      } else {
+        alert('Cannot connect to server!');
+      }
+    });
+  });
+</script>
+{{/section}}
