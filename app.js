@@ -36,6 +36,7 @@ app.engine('handlebars', engine({
         substr: (str, start, length) => {
             if (!str) return '';
             return str.substring(start, start + length);
+        },
         formatDate: function (date, format) {
             return moment(date).format(format);
         }
