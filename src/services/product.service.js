@@ -109,3 +109,10 @@ export function getRelatedProducts(category_id, limit) {
 export function placeBid(bidData) {
     return db('bid').insert(bidData);
 }
+
+export function findWonItems(userId) {
+    return db('product')
+        .where('status', 'end')
+        .andWhere('leader_id', userId)
+        .orderBy('end_time', 'desc'); 
+}

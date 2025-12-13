@@ -1,0 +1,64 @@
+{{#section 'css'}}
+<style>
+  /* Table Styles */
+  .table-custom th {
+    font-weight: 700;
+    border-bottom: 2px solid #000;
+  }
+
+  .table-custom td {
+    vertical-align: middle;
+    padding: 15px 10px;
+  }
+
+  .price-text {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+</style>
+{{/section}}
+
+
+<h3 class="mb-4 fw-bold text-primary">Won Items</h3>
+
+{{#if wonItems.length}}
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <table class="table table-hover table-custom mb-0 w-100">
+      <thead class="bg-light">
+        <tr>
+          <th scope="col" style="width: 15%">Auction ID</th>
+          <th scope="col" style="width: 30%">Date</th>
+          <th scope="col" style="width: 25%">Status</th>
+          <th scope="col" style="width: 20%">Total</th>
+          <th scope="col" style="width: 10%">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each wonItems}}
+        <tr>
+          <td class="fw-bold">#{{this.product_id}}</td>
+
+          <td>{{formatDate this.end_time "DD/MM/YYYY HH:mm"}}</td>
+
+          <td><span class="text-muted fst-italic">--</span></td>
+
+          <td class="price-text">${{this.current_price}}</td>
+
+          <td>
+            <a href="/products/detail?id={{this.product_id}}" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{{else}}
+<div class="alert alert-info text-center">
+  You haven't won any auctions yet. <a href="/products" class="alert-link">Keep bidding!</a>
+</div>
+{{/if}}
