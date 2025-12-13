@@ -1,3 +1,20 @@
+{{#section 'js'}}
+<script>
+  $(document).ready(function() {
+      $('#btnEdit').on('click', function() {
+          $('#viewMode').addClass('d-none'); 
+          $('#editMode').removeClass('d-none');
+      });
+
+      $('#btnCancel').on('click', function() {
+          $('#editMode').addClass('d-none');
+          $('#viewMode').removeClass('d-none');
+      });
+
+  });
+</script>
+{{/section}}
+
 {{#section 'css'}}
 <style>
   /* --- GIỮ NGUYÊN CÁC BIẾN MÀU CŨ --- */
@@ -120,38 +137,97 @@
       
       {{#if showSettings}}
         <div class="settings-card">
-          <div class="row mb-3">
-            <div class="col-sm-3 info-label">Email:</div>
-            <div class="col-sm-9 info-value">{{user.email}}</div>
-          </div>
+          <div id="viewMode">
+            <div class="row mb-3">
+              <div class="col-sm-3 info-label">Email:</div>
+              <div class="col-sm-9 info-value">{{user.email}}</div>
+            </div>
 
-          <div class="row mb-3">
-            <div class="col-sm-3 info-label">Full name:</div>
-            <div class="col-sm-9 info-value">
-                {{user.full_name}} 
+            <div class="row mb-3">
+              <div class="col-sm-3 info-label">Full name:</div>
+              <div class="col-sm-9 info-value">
+                  {{user.full_name}} 
+                  </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-sm-3 info-label">Address:</div>
+              <div class="col-sm-9 info-value">
+                  {{user.address}} 
+                  </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-sm-3 info-label">Date of Birth:</div>
+              <!--div class="col-sm-9 info-value">
+                {{#if user.dob}}
+                  {{formatDate user.dob "DD/MM/YYYY"}}
+                {{else}}
+                  <span class="text-muted fst-italic">Not updated yet</span>
+                {{/if}}
+              </div-->
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-sm-3 info-label">Password:</div>
+              <div class="col-sm-9 info-value password-dots">•••••••••••••</div>
+            </div>
+
+            <div class="text-end mt-3">
+              <button type="button" id="btnEdit" class="btn-edit">Edit</button>
+            </div>
+          </div>
+          <form id="editMode" class="d-none" action="/account/profile" method="POST">
+              
+              <div class="row mb-3">
+                <div class="col-sm-3 info-label align-self-center">Email:</div>
+                <div class="col-sm-9">
+                  <input type="email" class="form-control" name="email" value="{{user.email}}" required>
                 </div>
-          </div>
+              </div>
 
-          <div class="row mb-3">
-            <div class="col-sm-3 info-label">Address:</div>
-            <div class="col-sm-9 info-value">
-                {{user.address}} 
+              <div class="row mb-3">
+                <div class="col-sm-3 info-label align-self-center">Full name:</div>
+                <div class="col-sm-9">
+                  <input type="text" class="form-control" name="full_name" value="{{user.full_name}}" required>
                 </div>
-          </div>
+              </div>
 
-          <div class="row mb-3">
-            <div class="col-sm-3 info-label">Password:</div>
-            <div class="col-sm-9 info-value password-dots">•••••••••••••</div>
-          </div>
+              <div class="row mb-3">
+                <div class="col-sm-3 info-label align-self-center">Address:</div>
+                <div class="col-sm-9">
+                  <input type="text" class="form-control" name="address" value="{{user.address}}">
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-sm-3 info-label align-self-center">DOB:</div>
+                <div class="col-sm-9">
+                  <!--input type="date" class="form-control" name="dob" value="{{formatDate user.dob 'YYYY-MM-DD'}}"-->
+                </div>
+              </div>
+
+              <div class="row mb-4">
+                <div class="col-sm-3 info-label align-self-center">Password:</div>
+                <div class="col-sm-9">
+                  <a href="/account/change-password" class="btn btn-primary fw-bold text-white">
+                      <i class="bi bi-key-fill"></i> Change Password
+                  </a>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end gap-2 mt-4">
+                <button type="button" id="btnCancel" class="btn btn-secondary fw-bold">Cancel</button>
+                <button type="submit" class="btn btn-success fw-bold px-4">
+                  Save Changes
+                </button>
+              </div>
+          </form>
         </div>
-
-        <div class="text-end mt-3">
-          <a href="#" class="btn-edit text-decoration-none">Edit</a>
-        </div>
-
       {{else}}
-        <div class="alert alert-warning">Vui lòng chọn mục bên trái</div>
+        <div class="alert alert-warning">Please select an item from the menu.</div>
       {{/if}}
+    </div>
 
     </div>
   </div>

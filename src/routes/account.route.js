@@ -86,6 +86,32 @@ router.get('/profile', function(req, res) {
     });
 });
 
+router.post('/profile', async function(req, res) {
+    if (!req.session.isAuthenticated) {
+        return res.redirect('/account/signin');
+    }
+    
+    const entity = {
+        user_id: req.session.authUser.user_id,
+        email: req.body.email,
+        full_name: req.body.full_name,
+        address: req.body.address,
+        //dob: req.body.dob || null     
+    };
+
+    await userService.patch(entity);
+
+    req.session.authUser.full_name = entity.full_name;
+    req.session.authUser.address = entity.address;
+    req.session.authUser.dob = entity.dob;
+
+    res.redirect('/account/profile');
+});
+
+router.get('/change-password', function(req, res) {
+    res.send('Đây là trang đổi mật khẩu (Làm sau)');
+});
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const dir = './src/static/uploads';

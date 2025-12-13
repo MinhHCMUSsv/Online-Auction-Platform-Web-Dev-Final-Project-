@@ -167,8 +167,15 @@
                     window.location.href = '/account/signin';
                 }
             }
-        }).fail(function() {
-            alert('Cannot connect to server!');
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            if (jqXHR.status === 401) {
+                const msg = jqXHR.responseJSON ? jqXHR.responseJSON.message : 'Please login first!';
+                alert(msg);
+                
+                window.location.href = '/account/signin';
+            } else {
+                alert('Cannot connect to server!');
+            }
         });
     });
 </script>
