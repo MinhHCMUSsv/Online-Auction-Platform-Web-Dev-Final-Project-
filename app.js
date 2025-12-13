@@ -3,11 +3,16 @@ import { engine } from 'express-handlebars';
 import hbs_helpers from 'handlebars-helpers';
 import expressHandlebarsSections from 'express-handlebars-sections';
 import session from 'express-session';
+import { isAuth, isAdmin } from './src/middlewares/auth.mdw.js';
 import moment from 'moment';
 
 import accountRouter from './src/routes/account.route.js';
 import productRouter from './src/routes/product.route.js';
 import sellerRouter from './src/routes/seller.route.js';
+
+import adminCategoryRouter from './src/routes/admin-category.route.js';
+import adminProductRouter from './src/routes/admin-product.route.js';
+import adminUpgradeRouter from './src/routes/admin-upgrade.route.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,6 +32,10 @@ app.engine('handlebars', engine({
     helpers: {
         helpers,
         section: expressHandlebarsSections(),
+        eq: (a, b) => a === b,
+        substr: (str, start, length) => {
+            if (!str) return '';
+            return str.substring(start, start + length);
         formatDate: function (date, format) {
             return moment(date).format(format);
         }
@@ -57,6 +66,10 @@ app.get('/', (req, res) => {
 app.use('/account', accountRouter);
 app.use('/products', productRouter);
 app.use('/seller', sellerRouter);
+
+app.use('/admin/categories', adminCategoryRouter);
+app.use('/admin/products', adminProductRouter);
+app.use('/admin/upgrade-requests', adminUpgradeRouter);
 
 app.listen(PORT, function() {
     console.log('Server is running on http://localhost:' + PORT);

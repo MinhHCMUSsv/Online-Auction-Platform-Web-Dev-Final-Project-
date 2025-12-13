@@ -58,7 +58,20 @@ router.post('/signin', async function (req, res) {
 
     req.session.isAuthenticated = true;
     req.session.authUser = user;
-    const retUrl = req.session.retUrl || '/';
+
+    let url;
+
+    if (user.role === 2) {
+        url = '/admin/categories';
+        req.session.isAdmin = true;
+    }
+    else {
+        url = '/';
+    }
+
+    console.log(url);
+
+    const retUrl = req.session.retUrl || url;
     delete req.session.retUrl;
 
     res.redirect(retUrl);
@@ -156,8 +169,7 @@ router.post('/profile/create', async function (req, res) {
     }
 
     const user = req.session.authUser;
-    console.log(user);
-
+    
     const newProduct = {
         category_id: req.body.catId,
         name: req.body.proName,
@@ -171,7 +183,6 @@ router.post('/profile/create', async function (req, res) {
 
     const ret = await productService.add(newProduct);
     const productId = ret[0].product_id;
-    console.log('New Product ID:', productId);
 
     const uploadedImages = JSON.parse(req.body.uploadedImages || '[]');
 
