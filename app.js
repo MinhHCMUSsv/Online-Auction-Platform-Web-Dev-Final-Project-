@@ -8,6 +8,10 @@ import { isAuth, isAdmin } from './src/middlewares/auth.mdw.js';
 import accountRouter from './src/routes/account.route.js';
 import productRouter from './src/routes/product.route.js';
 
+import adminCategoryRouter from './src/routes/admin-category.route.js';
+import adminProductRouter from './src/routes/admin-product.route.js';
+import adminUpgradeRouter from './src/routes/admin-upgrade.route.js';
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const helpers = hbs_helpers();
@@ -45,6 +49,8 @@ app.use(express.urlencoded({
 app.use(function (req, res, next) {
     res.locals.isAuthenticated = req.session.isAuthenticated;
     res.locals.authUser = req.session.authUser;
+
+    res.locals.isAdmin = req.session.isAdmin ? true : false;
    // console.log('Auth User:', res.locals.authUser);
     next();
 });
@@ -59,7 +65,9 @@ app.get('/', (req, res) => {
 app.use('/account', accountRouter);
 app.use('/products', productRouter);
 
-
+app.use('/admin/categories', adminCategoryRouter);
+app.use('/admin/products', adminProductRouter);
+app.use('/admin/upgrade-requests', adminUpgradeRouter);
 
 app.listen(PORT, function() {
     console.log('Server is running on http://localhost:' + PORT);

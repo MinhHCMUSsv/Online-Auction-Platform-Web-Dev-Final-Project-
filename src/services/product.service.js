@@ -5,7 +5,7 @@ export function getAll() {
 }
 
 export function getAllCategories() {
-    return db('category').select();
+    return db('category');
 }
 
 export function getIDCategoryByName(categoryName) {

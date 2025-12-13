@@ -1,0 +1,177 @@
+{{#section 'css'}}
+<style>
+	:root {
+		--accent: #ff8c00;
+		--accent-dark: #d66f00;
+	}
+
+	.admin-chip {
+		background-color: rgba(255, 140, 0, 0.12);
+		color: #b35f00;
+		border: 1px solid rgba(255, 140, 0, 0.2);
+		font-weight: 600;
+		padding: 0.35rem 0.75rem;
+		border-radius: 999px;
+	}
+
+	.table thead th {
+		border-bottom: 2px solid #f1f1f1;
+		text-transform: uppercase;
+		font-size: 0.85rem;
+		letter-spacing: 0.02em;
+	}
+
+	.action-btn {
+		color: #212529;
+		border-color: #e6e6e6;
+	}
+
+	.action-btn:hover {
+		color: #000;
+		border-color: var(--accent);
+		background: rgba(255, 140, 0, 0.08);
+	}
+
+	.table-hover tbody tr:hover {
+		background-color: #fff6eb;
+	}
+</style>
+{{/section}}
+
+<div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
+	<div>
+		<h1 class="h3 fw-bold mb-2">Category Management</h1>
+		<div class="d-flex align-items-center gap-3">
+			<span class="admin-chip">Keep labels consistent with MNGo palette</span>
+			<span class="text-muted small">Last updated: today</span>
+		</div>
+	</div>
+	<div class="d-flex gap-2 flex-wrap">
+		<form class="d-flex" action="" method="get">
+			<input type="search" class="form-control" name="q" placeholder="Search category...">
+		</form>
+		<button class="btn btn-outline-dark">Export CSV</button>
+		<button class="btn btn-warning text-dark fw-semibold" data-bs-toggle="modal" data-bs-target="#modalAddCategory">
+			<i class="bi bi-plus-lg me-1"></i> New Category
+		</button>
+	</div>
+</div>
+
+<div class="card shadow-sm border-0">
+	<div class="card-body p-0">
+		<div class="table-responsive">
+			<table class="table table-hover align-middle mb-0">
+				<thead class="table-light">
+					<tr>
+						<th style="width: 72px;">#</th>
+						<th>Name</th>
+						<th style="width: 180px;">Products</th>
+						<th style="width: 220px;">Created</th>
+						<th style="width: 160px;" class="text-end">Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					{{#if categories}}
+						{{#each categories}}
+						<tr>
+							  <td class="fw-semibold text-muted">{{#if category_id}}{{category_id}}{{else}}#{{@index}}{{/if}}</td>
+							<td class="fw-semibold">{{name}}</td>
+							<td>
+								{{#if productCount}}
+									<span class="badge text-bg-light border">{{productCount}} listed</span>
+								{{else}}
+									<span class="text-muted">—</span>
+								{{/if}}
+							</td>
+							<td>
+								<div class="small text-muted">{{#if created_at}}{{created_at}}{{else}}Not provided{{/if}}</div>
+							</td>
+							<td>
+								<div class="d-flex justify-content-end gap-2">
+									<button class="btn btn-sm btn-outline-secondary action-btn" data-bs-toggle="modal" data-bs-target="#modalEditCategory" data-id="{{category_id}}" data-name="{{name}}">
+										<i class="bi bi-pencil-square me-1"></i>Edit
+									</button>
+									<form action="/admin/categories/delete" method="post" class="mb-0">
+										<input type="hidden" name="category_id" value="{{category_id}}">
+										<button type="submit" class="btn btn-sm btn-outline-danger action-btn">
+											<i class="bi bi-trash me-1"></i>Delete
+										</button>
+									</form>
+								</div>
+							</td>
+						</tr>
+						{{/each}}
+					{{else}}
+						<tr>
+							<td colspan="5" class="text-center p-5">
+								<div class="fw-semibold mb-1">No categories yet</div>
+								<div class="text-muted mb-3">Start by creating a category to keep your listings organized.</div>
+								<button class="btn btn-warning text-dark" data-bs-toggle="modal" data-bs-target="#modalAddCategory">Add category</button>
+							</td>
+						</tr>
+					{{/if}}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="modalAddCategory" tabindex="-1" aria-labelledby="modalAddCategoryLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<form class="modal-content" action="/admin/categories/add" method="post">
+			<div class="modal-header">
+				<h5 class="modal-title" id="modalAddCategoryLabel">Add Category</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body">
+				<div class="mb-3">
+					<label class="form-label">Name</label>
+					<input name="name" type="text" class="form-control" placeholder="e.g. Electronics" required>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+				<button type="submit" class="btn btn-warning text-dark fw-semibold">Save</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+<div class="modal fade" id="modalEditCategory" tabindex="-1" aria-labelledby="modalEditCategoryLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<form class="modal-content" action="/admin/categories/edit" method="post">
+			<div class="modal-header">
+				<h5 class="modal-title" id="modalEditCategoryLabel">Edit Category</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body">
+				<input type="hidden" name="category_id" id="editCategoryId">
+				<div class="mb-3">
+					<label class="form-label">Name</label>
+					<input name="name" id="editCategoryName" type="text" class="form-control" required>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+				<button type="submit" class="btn btn-warning text-dark fw-semibold">Update</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+{{#section 'js'}}
+<script>
+	const editModal = document.getElementById('modalEditCategory');
+	if (editModal) {
+		editModal.addEventListener('show.bs.modal', event => {
+			const button = event.relatedTarget;
+			const id = button?.getAttribute('data-id') || '';
+			const name = button?.getAttribute('data-name') || '';
+			const idInput = editModal.querySelector('#editCategoryId');
+			const nameInput = editModal.querySelector('#editCategoryName');
+			if (idInput) idInput.value = id;
+			if (nameInput) nameInput.value = name;
+		});
+	}
+</script>
+{{/section}}

@@ -6,7 +6,6 @@ import path from 'path';
 
 import * as userService from '../services/user.service.js';
 import * as productService from '../services/product.service.js';
-import expressHandlebarsSections from 'express-handlebars-sections';
 
 const router = express.Router();
 
@@ -55,7 +54,20 @@ router.post('/signin', async function(req, res) {
 
     req.session.isAuthenticated = true;
     req.session.authUser = user;
-    const retUrl = req.session.retUrl || '/';
+
+    let url;
+
+    if (user.role === 2) {
+        url = '/admin/categories';
+        req.session.isAdmin = true;
+    }
+    else {
+        url = '/';
+    }
+
+    console.log(url);
+
+    const retUrl = req.session.retUrl || url;
     delete req.session.retUrl;
     
     res.redirect(retUrl);
