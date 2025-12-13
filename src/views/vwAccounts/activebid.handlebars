@@ -1,0 +1,69 @@
+{{#section 'css'}}
+<style>
+  /* Product Card */
+  .product-card {
+    transition: transform 0.2s;
+  }
+
+  .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Icon style */
+  .text-gold {
+    color: #ffc107 !important;
+  }
+</style>
+{{/section}}
+
+
+<h3 class="mb-4 fw-bold text-primary">Active Bids</h3>
+
+{{#if activeBids.length}}
+<div class="row g-3">
+  {{#each activeBids}}
+  <div class="col-sm-6 col-md-4">
+    <div class="product-card h-100 border rounded bg-white position-relative">
+
+      <div class="position-absolute top-0 end-0 m-2 badge bg-primary">
+        Your Bid
+      </div>
+
+      <div class="product-image-placeholder bg-light d-flex align-items-center justify-content-center text-muted"
+        style="height: 180px;">
+        <img src="/src/static/images/{{seller_id}}/{{product_id}}/main_thumbs.jpg" class="img-fluid" alt="{{this.name}}"
+          onerror="this.src='http://placehold.it/200x200'">
+      </div>
+
+      <div class="product-body p-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <h5 class="product-title mb-1 text-truncate" title="{{this.name}}">
+            {{this.name}}
+          </h5>
+        </div>
+
+        <p class="mb-1 small text-muted">
+          Seller: <span class="fw-semibold text-dark">User {{this.seller_id}}</span>
+        </p>
+
+        <p class="product-meta mb-1 small text-muted">
+          <span>Current Price: <span class="fw-bold text-danger">${{this.current_price}}</span></span><br>
+          <span>End Date: {{this.end_time}}</span><br>
+        </p>
+
+        <div class="mt-2">
+          <a href="/products/detail?id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">View Status</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  {{/each}}
+</div>
+
+{{else}}
+<div class="alert alert-info text-center">
+  You haven't placed any bids yet. <a href="/products" class="alert-link">Explore auctions now!</a>
+</div>
+{{/if}}

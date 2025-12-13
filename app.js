@@ -3,9 +3,11 @@ import { engine } from 'express-handlebars';
 import hbs_helpers from 'handlebars-helpers';
 import expressHandlebarsSections from 'express-handlebars-sections';
 import session from 'express-session';
+import moment from 'moment';
 
 import accountRouter from './src/routes/account.route.js';
 import productRouter from './src/routes/product.route.js';
+import sellerRouter from './src/routes/seller.route.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,14 +26,17 @@ app.use(session({
 app.engine('handlebars', engine({ 
     helpers: {
         helpers,
-        section: expressHandlebarsSections()
+        section: expressHandlebarsSections(),
+        formatDate: function (date, format) {
+            return moment(date).format(format);
+        }
     }
      
 }));
 app.set('view engine', 'handlebars');
 app.set('views', './src/views');
 
-app.use('/static', express.static('static'));
+app.use('/src/static', express.static('src/static'));
 app.use(express.urlencoded({
     extended: true
 }));
@@ -39,7 +44,6 @@ app.use(express.urlencoded({
 app.use(function (req, res, next) {
     res.locals.isAuthenticated = req.session.isAuthenticated;
     res.locals.authUser = req.session.authUser;
-    console.log('Auth User:', res.locals.authUser);
     next();
 });
 
@@ -52,6 +56,7 @@ app.get('/', (req, res) => {
 
 app.use('/account', accountRouter);
 app.use('/products', productRouter);
+app.use('/seller', sellerRouter);
 
 app.listen(PORT, function() {
     console.log('Server is running on http://localhost:' + PORT);

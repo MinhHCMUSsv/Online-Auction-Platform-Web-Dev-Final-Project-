@@ -1,3 +1,17 @@
+{{#section 'css'}}
+<style>
+    .wishlist-icon.active i {
+        color: #ffc107 !important; 
+        font-weight: 900; 
+    }
+    
+    .wishlist-icon:hover i {
+        transform: scale(1.2);
+        transition: 0.2s;
+    }
+</style>
+{{/section}}
+
 <div class="bg-white border-bottom">
   <div class="container-fluid px-4 py-3">
 
@@ -59,8 +73,12 @@
       <div class="product-card">
 
         <!-- Wishlist icon -->
-        <button class="wishlist-icon border-0">
-          <i class="bi bi-heart"></i>
+        <button class="wishlist-icon border-0 bg-transparent {{#if is_liked}}active{{/if}}" data-id="{{this.product_id}}">
+          {{#if is_liked}}
+            <i class="bi bi-heart-fill"></i>
+          {{else}}
+            <i class="bi bi-heart"></i>
+          {{/if}}
         </button>
 
         <!-- Image -->
@@ -85,7 +103,7 @@
 
           <p class="product-meta mb-1">
             <span>Buy it now: <span class="fw-bold text-primary">${{this.start_price}}</span></span><br>
-            <span>Listed: </span><br>
+            <span>Listed: {{formatDate this.start_time "DD/MM/YYYY HH:mm"}} </span><br>
             <span>Time left: </span><br>
             <span>Bids: </span>
             <span>Detail</span>
@@ -123,3 +141,42 @@
 
   </div>
 </div>
+
+{{#section 'js'}}
+<script>
+    $('.wishlist-icon').on('click', function(e) {
+        e.preventDefault(); 
+        
+        const $btn = $(this);
+        const productId = $btn.data('id');
+        const $icon = $btn.find('i');
+
+        // Gửi AJAX request lên server
+        $.post('/products/watchlist/toggle', { product_id: productId }, function(data) {
+            if (data.success) {
+                if (data.isAdded) {
+                    $btn.addClass('active');
+                    $icon.removeClass('bi-heart').addClass('bi-heart-fill');
+                } else {
+                    $btn.removeClass('active');
+                    $icon.removeClass('bi-heart-fill').addClass('bi-heart');
+                }
+            } else {
+                alert(data.message || 'Something went wrong!');
+                if(data.message === 'Please login first!') {
+                    window.location.href = '/account/signin';
+                }
+            }
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            if (jqXHR.status === 401) {
+                const msg = jqXHR.responseJSON ? jqXHR.responseJSON.message : 'Please login first!';
+                alert(msg);
+                
+                window.location.href = '/account/signin';
+            } else {
+                alert('Cannot connect to server!');
+            }
+        });
+    });
+</script>
+{{/section}}

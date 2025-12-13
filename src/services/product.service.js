@@ -37,3 +37,10 @@ export function getById(productId) {
 export function add(product) {
     return db('product').insert(product).returning('product_id');
 }
+
+export function findWonItems(userId) {
+    return db('product')
+        .where('status', 'end')
+        .andWhere('leader_id', userId)
+        .orderBy('end_time', 'desc'); 
+}
