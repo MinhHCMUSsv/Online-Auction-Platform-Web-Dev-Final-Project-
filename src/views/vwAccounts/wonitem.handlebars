@@ -1,136 +1,64 @@
 {{#section 'css'}}
 <style>
-  /* --- COPY CSS TỪ WATCHLIST/PROFILE --- */
-  :root {
-    --color-orange-bg: rgba(255, 140, 0, 0.6);
-    --color-orange-text: #FF8C00;
-    --color-green: #198754;
-    --color-red: #DC3545;
-    --color-blue: #0D6EFD;
+  /* Table Styles */
+  .table-custom th {
+    font-weight: 700;
+    border-bottom: 2px solid #000;
   }
 
-  /* Banner */
-  .account-banner { background-color: var(--color-orange-bg); height: 180px; display: flex; align-items: flex-end; padding-bottom: 20px; }
-  .account-banner h1 { font-weight: 800; color: white; text-transform: uppercase; font-size: 3rem; margin: 0; }
-  
-  /* Sidebar */
-  .avatar-circle { width: 80px; height: 80px; background-color: #e9ecef; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: bold; color: #495057; }
-  .seller-badge { background-color: var(--color-green); color: white; padding: 3px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
-  .bidder-badge { background-color: #198754; color: white; padding: 3px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
-  .logout-link { color: var(--color-red); font-weight: 700; text-decoration: none; font-size: 1.1rem; }
-  
-  /* Nav */
-  .profile-nav .nav-link { color: #212529; font-weight: 600; padding: 12px 0; font-size: 1.1rem; }
-  .profile-nav .nav-link:hover { color: var(--color-blue); }
-  .profile-nav .nav-link.active-custom { color: var(--color-blue); font-weight: 800; }
-  
-  /* Table Styles */
-  .table-custom th { font-weight: 700; border-bottom: 2px solid #000; }
-  .table-custom td { vertical-align: middle; padding: 15px 10px; }
-  .price-text { font-weight: 700; font-size: 1.1rem; }
+  .table-custom td {
+    vertical-align: middle;
+    padding: 15px 10px;
+  }
+
+  .price-text {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
 </style>
 {{/section}}
 
-<div class="container-fluid p-0 mb-5">
-  <div class="account-banner">
-    <div class="container">
-      <h1>My Account</h1>
-    </div>
+
+<h3 class="mb-4 fw-bold text-primary">Won Items</h3>
+
+{{#if wonItems.length}}
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <table class="table table-hover table-custom mb-0 w-100">
+      <thead class="bg-light">
+        <tr>
+          <th scope="col" style="width: 15%">Auction ID</th>
+          <th scope="col" style="width: 30%">Date</th>
+          <th scope="col" style="width: 25%">Status</th>
+          <th scope="col" style="width: 20%">Total</th>
+          <th scope="col" style="width: 10%">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each wonItems}}
+        <tr>
+          <td class="fw-bold">#{{this.product_id}}</td>
+
+          <td>{{formatDate this.end_time "DD/MM/YYYY HH:mm"}}</td>
+
+          <td><span class="text-muted fst-italic">--</span></td>
+
+          <td class="price-text">${{this.current_price}}</td>
+
+          <td>
+            <a href="/products/detail?id={{this.product_id}}" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
   </div>
 </div>
 
-<div class="container mb-5">
-  <div class="row">
-    
-    <div class="col-md-3">
-      <div class="d-flex align-items-center mb-4">
-        <div class="avatar-circle me-3">{{#if authUser.full_name}}{{authUser.full_name.[0]}}{{else}}U{{/if}}</div>
-        <div>
-          <h4 class="mb-1 fw-bold">{{authUser.full_name}}</h4>
-          <div class="mb-2">
-            {{#if (eq authUser.role 1)}}
-              <span class="seller-badge">Seller</span>
-            {{else}}
-              <span class="bidder-badge">Bidder</span>
-            {{/if}}
-            <span class="text-muted ms-1 fw-bold">Points: 10</span>
-          </div>
-          <a href="javascript: document.querySelector('#frmSignOut').submit();" class="logout-link">Logout</a>
-        </div>
-        <form method="POST" action="/account/signout" id="frmSignOut"></form>
-      </div>
-
-      <nav class="nav flex-column profile-nav">
-        {{#if (eq authUser.role 1)}}
-          <a class="nav-link" href="/account/profile/create">Create Auction</a>
-          <a class="nav-link" href="#">Active Auctions</a>
-          <a class="nav-link" href="#">Finished auctions</a>
-          <hr class="my-3 text-secondary">
-        {{/if}}
-        
-        <a class="nav-link" href="/account/profile">Account Settings</a>
-        <a class="nav-link" href="#">My Ratings</a>
-        <a class="nav-link" href="/account/profile/watchlist">Watchlist</a>
-        
-        <hr class="my-3 text-secondary">
-        
-        <a class="nav-link" href="/account/profile/active">Active Bids</a>
-        
-        <a class="nav-link active-custom" href="/account/profile/won">Won items</a>
-
-        {{#unless (eq authUser.role 1)}}
-          <div class="mt-3">
-            <a href="#" class="btn-upgrade">Upgrade to seller</a>
-          </div>
-        {{/unless}}
-      </nav>
-    </div>
-
-    <div class="col-md-9">
-      <h3 class="mb-4 fw-bold text-primary">Won Items</h3>
-
-      {{#if wonItems.length}}
-      <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-          <table class="table table-hover table-custom mb-0 w-100">
-            <thead class="bg-light">
-              <tr>
-                <th scope="col" style="width: 15%">Auction ID</th>
-                <th scope="col" style="width: 30%">Date</th>
-                <th scope="col" style="width: 25%">Status</th>
-                <th scope="col" style="width: 20%">Total</th>
-                <th scope="col" style="width: 10%">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {{#each wonItems}}
-              <tr>
-                <td class="fw-bold">#{{this.product_id}}</td>
-                
-                <td>{{formatDate this.end_time "DD/MM/YYYY HH:mm"}}</td>
-                
-                <td><span class="text-muted fst-italic">--</span></td>
-                
-                <td class="price-text">${{this.current_price}}</td>
-                
-                <td>
-                    <a href="/products/detail?id={{this.product_id}}" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-eye"></i>
-                    </a>
-                </td>
-              </tr>
-              {{/each}}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {{else}}
-        <div class="alert alert-info text-center">
-            You haven't won any auctions yet. <a href="/products" class="alert-link">Keep bidding!</a>
-        </div>
-      {{/if}}
-      
-    </div>
-  </div>
+{{else}}
+<div class="alert alert-info text-center">
+  You haven't won any auctions yet. <a href="/products" class="alert-link">Keep bidding!</a>
 </div>
+{{/if}}

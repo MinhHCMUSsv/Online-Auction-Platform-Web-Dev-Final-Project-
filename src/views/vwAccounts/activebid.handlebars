@@ -1,142 +1,69 @@
 {{#section 'css'}}
 <style>
-  /* --- COPY CSS TỪ WATCHLIST.HANDLEBARS --- */
-  :root {
-    --color-orange-bg: rgba(255, 140, 0, 0.6);
-    --color-orange-text: #FF8C00;
-    --color-green: #198754;
-    --color-red: #DC3545;
-    --color-blue: #0D6EFD;
+  /* Product Card */
+  .product-card {
+    transition: transform 0.2s;
   }
 
-  /* Banner & Layout */
-  .account-banner { background-color: var(--color-orange-bg); height: 180px; display: flex; align-items: flex-end; padding-bottom: 20px; }
-  .account-banner h1 { font-weight: 800; color: white; text-transform: uppercase; font-size: 3rem; margin: 0; }
-  
-  /* Sidebar User Info */
-  .avatar-circle { width: 80px; height: 80px; background-color: #e9ecef; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: bold; color: #495057; }
-  .seller-badge { background-color: var(--color-green); color: white; padding: 3px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
-  .bidder-badge { background-color: #198754; color: white; padding: 3px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
-  .logout-link { color: var(--color-red); font-weight: 700; text-decoration: none; font-size: 1.1rem; }
-  
-  /* Navigation */
-  .profile-nav .nav-link { color: #212529; font-weight: 600; padding: 12px 0; font-size: 1.1rem; }
-  .profile-nav .nav-link:hover { color: var(--color-blue); }
-  .profile-nav .nav-link.active-custom { color: var(--color-blue); font-weight: 800; }
-  
-  /* Product Card */
-  .product-card { transition: transform 0.2s; }
-  .product-card:hover { transform: translateY(-5px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-  
+  .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+
   /* Icon style */
-  .text-gold { color: #ffc107 !important; }
+  .text-gold {
+    color: #ffc107 !important;
+  }
 </style>
 {{/section}}
 
-<div class="container-fluid p-0 mb-5">
-  <div class="account-banner">
-    <div class="container">
-      <h1>My Account</h1>
-    </div>
-  </div>
-</div>
 
-<div class="container mb-5">
-  <div class="row">
-    
-    <div class="col-md-3">
-      <div class="d-flex align-items-center mb-4">
-        <div class="avatar-circle me-3">{{#if authUser.full_name}}{{authUser.full_name.[0]}}{{else}}U{{/if}}</div>
-        <div>
-          <h4 class="mb-1 fw-bold">{{authUser.full_name}}</h4>
-          <div class="mb-2">
-            {{#if (eq authUser.role 1)}}
-              <span class="seller-badge">Seller</span>
-            {{else}}
-              <span class="bidder-badge">Bidder</span>
-            {{/if}}
-            <span class="text-muted ms-1 fw-bold">Points: {{authUser.points}}</span>
-          </div>
-          <a href="javascript: document.querySelector('#frmSignOut').submit();" class="logout-link">Logout</a>
-        </div>
-        <form method="POST" action="/account/signout" id="frmSignOut"></form>
+<h3 class="mb-4 fw-bold text-primary">Active Bids</h3>
+
+{{#if activeBids.length}}
+<div class="row g-3">
+  {{#each activeBids}}
+  <div class="col-sm-6 col-md-4">
+    <div class="product-card h-100 border rounded bg-white position-relative">
+
+      <div class="position-absolute top-0 end-0 m-2 badge bg-primary">
+        Your Bid
       </div>
 
-      <nav class="nav flex-column profile-nav">
-        {{#if (eq authUser.role 1)}}
-          <a class="nav-link" href="/account/profile/create">Create Auction</a>
-          <a class="nav-link" href="#">Active Auctions</a>
-          <a class="nav-link" href="#">Finished auctions</a>
-          <hr class="my-3 text-secondary">
-        {{/if}}
-        
-        <a class="nav-link" href="/account/profile">Account Settings</a>
-        <a class="nav-link" href="#">My Ratings</a>
-        <a class="nav-link" href="/account/profile/watchlist">Watchlist</a>
-        
-        <hr class="my-3 text-secondary">
-        
-        <a class="nav-link active-custom" href="/account/profile/active">Active Bids</a>
-        <a class="nav-link" href="/account/profile/won">Won items</a>
-
-        {{#unless (eq authUser.role 1)}}
-          <div class="mt-3">
-            <a href="#" class="btn-upgrade">Upgrade to seller</a>
-          </div>
-        {{/unless}}
-      </nav>
-    </div>
-
-    <div class="col-md-9">
-      <h3 class="mb-4 fw-bold text-primary">Active Bids</h3>
-
-      {{#if activeBids.length}}
-      <div class="row g-3">
-        {{#each activeBids}}
-        <div class="col-sm-6 col-md-4">
-          <div class="product-card h-100 border rounded bg-white position-relative">
-
-            <div class="position-absolute top-0 end-0 m-2 badge bg-primary">
-                Your Bid
-            </div>
-
-            <div class="product-image-placeholder bg-light d-flex align-items-center justify-content-center text-muted" style="height: 180px;">
-                <img src="/src/static/images/{{seller_id}}/{{product_id}}/main_thumbs.jpg" class="img-fluid" alt="{{this.name}}" 
-                     onerror="this.src='http://placehold.it/200x200'">
-            </div>
-
-            <div class="product-body p-3">
-              <div class="d-flex justify-content-between align-items-start">
-                <h5 class="product-title mb-1 text-truncate" title="{{this.name}}">
-                  {{this.name}}
-                </h5>
-              </div>
-
-              <p class="mb-1 small text-muted">
-                Seller: <span class="fw-semibold text-dark">User {{this.seller_id}}</span>
-              </p>
-
-              <p class="product-meta mb-1 small text-muted">
-                <span>Current Price: <span class="fw-bold text-danger">${{this.current_price}}</span></span><br>
-                <span>End Date: {{this.end_time}}</span><br>
-                </p>
-              
-              <div class="mt-2">
-                 <a href="/products/detail?id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">View Status</a>
-              </div>
-            </div>
-            
-          </div>
-        </div>
-        {{/each}}
+      <div class="product-image-placeholder bg-light d-flex align-items-center justify-content-center text-muted"
+        style="height: 180px;">
+        <img src="/src/static/images/{{seller_id}}/{{product_id}}/main_thumbs.jpg" class="img-fluid" alt="{{this.name}}"
+          onerror="this.src='http://placehold.it/200x200'">
       </div>
-      
-      {{else}}
-        <div class="alert alert-info text-center">
-            You haven't placed any bids yet. <a href="/products" class="alert-link">Explore auctions now!</a>
+
+      <div class="product-body p-3">
+        <div class="d-flex justify-content-between align-items-start">
+          <h5 class="product-title mb-1 text-truncate" title="{{this.name}}">
+            {{this.name}}
+          </h5>
         </div>
-      {{/if}}
-      
+
+        <p class="mb-1 small text-muted">
+          Seller: <span class="fw-semibold text-dark">User {{this.seller_id}}</span>
+        </p>
+
+        <p class="product-meta mb-1 small text-muted">
+          <span>Current Price: <span class="fw-bold text-danger">${{this.current_price}}</span></span><br>
+          <span>End Date: {{this.end_time}}</span><br>
+        </p>
+
+        <div class="mt-2">
+          <a href="/products/detail?id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">View Status</a>
+        </div>
+      </div>
+
     </div>
   </div>
+  {{/each}}
 </div>
+
+{{else}}
+<div class="alert alert-info text-center">
+  You haven't placed any bids yet. <a href="/products" class="alert-link">Explore auctions now!</a>
+</div>
+{{/if}}

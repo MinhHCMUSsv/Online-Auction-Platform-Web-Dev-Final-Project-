@@ -7,6 +7,7 @@ import moment from 'moment';
 
 import accountRouter from './src/routes/account.route.js';
 import productRouter from './src/routes/product.route.js';
+import sellerRouter from './src/routes/seller.route.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -55,6 +56,7 @@ app.get('/', (req, res) => {
 
 app.use('/account', accountRouter);
 app.use('/products', productRouter);
+app.use('/seller', sellerRouter);
 
 app.listen(PORT, function() {
     console.log('Server is running on http://localhost:' + PORT);
