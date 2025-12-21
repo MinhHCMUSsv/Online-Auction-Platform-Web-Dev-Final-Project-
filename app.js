@@ -3,7 +3,7 @@ import { engine } from 'express-handlebars';
 import hbs_helpers from 'handlebars-helpers';
 import expressHandlebarsSections from 'express-handlebars-sections';
 import session from 'express-session';
-import { isAuth, isAdmin } from './src/middlewares/auth.mdw.js';
+import { isAuth, isAdmin, isUpgradePending } from './src/middlewares/auth.mdw.js';
 import moment from 'moment';
 
 import accountRouter from './src/routes/account.route.js';
@@ -63,6 +63,8 @@ app.get('/', (req, res) => {
         activeNav: 'Home'
     });
 });
+
+app.use(isUpgradePending);
 
 app.use('/account', accountRouter);
 app.use('/products', productRouter);

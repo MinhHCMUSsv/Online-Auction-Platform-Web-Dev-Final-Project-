@@ -52,13 +52,17 @@ router.post('/create', async function (req, res) {
 
     const user = req.session.authUser;
 
+    const startPrice = req.body.startPrice.replace(/,/g, '');
+    const stepPrice = req.body.stepPrice.replace(/,/g, '');
+    const buyNowPrice = req.body.buyNowPrice.replace(/,/g, '');
+
     const newProduct = {
         category_id: req.body.catId,
         name: req.body.proName,
-        start_price: req.body.startPrice,
+        start_price: startPrice,
         description_html: req.body.description,
-        bid_step: req.body.stepPrice,
-        buy_now_price: req.body.buyNowPrice,
+        bid_step: stepPrice,
+        buy_now_price: buyNowPrice,
         seller_id: user.user_id,
         is_auto_extend: req.body.isAutoExtend === '1'
     };

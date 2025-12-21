@@ -1,3 +1,5 @@
+import * as upgradeService from '../services/upgrade.service.js';
+
 export function isAuth(req, res, next) {
     if (!req.session.isAuthenticated) {
         req.session.retUrl = req.originalUrl;
@@ -13,3 +15,15 @@ export function isAdmin(req, res, next) {
     next();
 }
 
+export async function isUpgradePending(req, res, next) {
+    if (req.session.isAuthenticated) {
+        try {
+            const userId = req.session.authUser.user_id;
+            const isPending = await upgradeService.getUpgradeStatus(userId);
+            res.locals.isUpgradePending = isPending;
+        } catch (error) {
+            console.error('Error checking upgrade status:', error);
+        }
+    }
+    next();
+}

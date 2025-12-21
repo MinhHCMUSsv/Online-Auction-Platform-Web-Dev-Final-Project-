@@ -81,15 +81,15 @@
   <div class="row mb-4">
     <div class="col-md-4">
       <label for="startPrice" class="form-label-custom">Starting price<span class="required-star">*</span></label>
-      <input type="number" class="form-control form-control-lg-custom" id="startPrice" name="startPrice" required>
+      <input type="text" class="form-control form-control-lg-custom" id="startPrice" name="startPrice" required>
     </div>
     <div class="col-md-4">
       <label for="stepPrice" class="form-label-custom">Bid increment<span class="required-star">*</span></label>
-      <input type="number" class="form-control form-control-lg-custom" id="stepPrice" name="stepPrice" required>
+      <input type="text" class="form-control form-control-lg-custom" id="stepPrice" name="stepPrice" required>
     </div>
     <div class="col-md-4">
       <label for="buyNowPrice" class="form-label-custom">Buy it now price</label>
-      <input type="number" class="form-control form-control-lg-custom" id="buyNowPrice" name="buyNowPrice">
+      <input type="text" class="form-control form-control-lg-custom" id="buyNowPrice" name="buyNowPrice">
     </div>
   </div>
 
@@ -205,5 +205,22 @@
       alert('Please upload only 4 images!');
     }
   });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
+
+<script>
+    var cleave = new Cleave('#startPrice', {
+        numeral: true,             
+        numeralThousandsGroupStyle: 'thousand'
+    });
+    var cleave = new Cleave('#stepPrice', {
+        numeral: true,             
+        numeralThousandsGroupStyle: 'thousand'
+    });
+    var cleave = new Cleave('#buyNowPrice', {
+        numeral: true,             
+        numeralThousandsGroupStyle: 'thousand'
+    });
 </script>
 {{/section}}

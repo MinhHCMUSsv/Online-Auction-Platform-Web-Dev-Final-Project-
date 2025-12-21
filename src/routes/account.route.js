@@ -1,13 +1,11 @@
 import express from 'express';
 import bcrypt, { hash } from 'bcryptjs';
-import multer from 'multer';
-import fs from 'fs-extra';
-import path from 'path';
 
 import * as userService from '../services/user.service.js';
 import * as productService from '../services/product.service.js';
 import * as watchlistService from '../services/watchlist.service.js';
 import * as bidService from '../services/bid.service.js';
+import * as upgradeService from '../services/upgrade.service.js';
 
 const router = express.Router();
 
@@ -125,96 +123,6 @@ router.get('/change-password', function (req, res) {
     res.send('Đây là trang đổi mật khẩu (Làm sau)');
 });
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const dir = './src/static/uploads';
-        fs.ensureDirSync(dir);
-        cb(null, dir);
-    },
-    filename: function (req, file, cb) {
-        cb(null, 'temp-' + Date.now() + '-' + file.originalname);
-    }
-});
-
-const upload = multer({ storage: storage });
-
-router.post('/upload/temp', upload.single('imgs'), function (req, res) {
-    res.json({ filename: req.file.filename });
-});
-
-router.get('/profile/create', async function (req, res) {
-    if (!req.session.isAuthenticated) {
-        req.session.retUrl = '/account/profile/create';
-        return res.redirect('/account/signin');
-    }
-
-    if (req.session.authUser.role !== 1) {
-        return res.redirect('/account/profile');
-    }
-
-    const category = await productService.getAllCategories();
-
-    res.render('vwAccounts/create', {
-        layout: 'account-layout',
-        title: 'Create Auction',
-        activeNav: 'CreateAuction',
-        authUser: req.session.authUser,
-        categories: category
-    });
-});
-
-router.post('/profile/create', async function (req, res) {
-    if (!req.session.isAuthenticated) {
-        return res.redirect('/account/signin');
-    }
-
-    const user = req.session.authUser;
-    
-    const newProduct = {
-        category_id: req.body.catId,
-        name: req.body.proName,
-        start_price: req.body.startPrice,
-        description_html: req.body.description,
-        bid_step: req.body.stepPrice,
-        buy_now_price: req.body.buyNowPrice,
-        seller_id: user.user_id,
-        is_auto_extend: req.body.isAutoExtend === '1'
-    };
-
-    const ret = await productService.add(newProduct);
-    const productId = ret[0].product_id;
-
-    const uploadedImages = JSON.parse(req.body.uploadedImages || '[]');
-
-    if (uploadedImages.length > 0) {
-        const userId = user.user_id;
-        const targetDir = `./src/static/images/${userId}/${productId}`;
-        await fs.ensureDir(targetDir);
-        let i = 0;
-
-        for (const fileName of uploadedImages) {
-            const oldPath = `./src/static/uploads/${fileName}`;
-
-            if (i === 0) {
-                const mainPath = path.join(targetDir, 'main.jpg');
-                const thumbsPath = path.join(targetDir, 'main_thumbs.jpg');
-                fs.copyFileSync(oldPath, mainPath);
-                fs.copyFileSync(oldPath, thumbsPath);
-            } else {
-                const subPath = path.join(targetDir, `${i}.jpg`);
-                const subThumbsPath = path.join(targetDir, `${i}_thumbs.jpg`);
-                fs.copyFileSync(oldPath, subPath);
-                fs.copyFileSync(oldPath, subThumbsPath);
-            }
-            fs.unlinkSync(oldPath);
-
-            i++;
-        }
-    }
-
-    res.redirect('/account/profile');
-});
-
 router.get('/profile/watchlist', async function (req, res) {
     if (!req.session.isAuthenticated) {
         req.session.retUrl = '/account/profile/watchlist';
@@ -262,6 +170,25 @@ router.get('/profile/won', async function (req, res) {
         activeNav: 'WonItems',
         wonItems: list
     });
+});
+
+router.post('/profile/upgrade', async function (req, res) {
+    if (!req.session.isAuthenticated) return res.redirect('/account/signin');
+
+    const userId = req.session.authUser.user_id;
+
+    const isPending = await upgradeService.getUpgradeStatus(userId);
+    if (isPending) {
+        return res.redirect('/account/profile');
+    }
+
+    const entity = {
+        bidder_id: userId,
+        status: 'pending',
+    };
+    await upgradeService.addUpgrade(entity);
+
+    res.redirect('/account/profile');
 });
 
 export default router;
