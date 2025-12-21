@@ -10,7 +10,7 @@ import productRouter from './src/routes/product.route.js';
 
 import adminCategoryRouter from './src/routes/admin-category.route.js';
 import adminProductRouter from './src/routes/admin-product.route.js';
-import adminUpgradeRouter from './src/routes/admin-upgrade.route.js';
+import adminUserRouter from './src/routes/admin-user.route.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,6 +34,14 @@ app.engine('handlebars', engine({
         substr: (str, start, length) => {
             if (!str) return '';
             return str.substring(start, start + length);
+        },
+        formatDate: (date) => {
+            if (!date) return '';
+            const d = new Date(date);
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
         }
     }
      
@@ -67,8 +75,7 @@ app.use('/products', productRouter);
 
 app.use('/admin/categories', adminCategoryRouter);
 app.use('/admin/products', adminProductRouter);
-app.use('/admin/upgrade-requests', adminUpgradeRouter);
-
+app.use('/admin/users', adminUserRouter);
 app.listen(PORT, function() {
     console.log('Server is running on http://localhost:' + PORT);
 });

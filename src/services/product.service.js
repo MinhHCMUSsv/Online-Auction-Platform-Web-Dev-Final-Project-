@@ -30,7 +30,9 @@ export function countByCat(catId) {
         .count('product_id as count').first();
 }
 
-
+export function getByCategoryID(categories_id) {
+    return db('product').where('category_id', categories_id).select();
+}
 
 export function add(product) {
     return db('product').insert(product).returning('product_id');
@@ -109,3 +111,4 @@ export function getRelatedProducts(category_id, limit) {
 export function placeBid(bidData) {
     return db('bid').insert(bidData);
 }
+

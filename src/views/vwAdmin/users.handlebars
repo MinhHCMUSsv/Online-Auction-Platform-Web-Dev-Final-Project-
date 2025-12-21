@@ -1,0 +1,395 @@
+{{#section 'css'}}
+<style>
+    :root {
+        --accent: #ff8c00;
+        --accent-dark: #d66f00;
+        --text-muted: #6c757d;
+    }
+
+    /* KPI Cards */
+    .kpi-card {
+        background: #fff;
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        height: 100%;
+        transition: transform 0.2s;
+    }
+    
+    .kpi-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(255, 140, 0, 0.3);
+    }
+
+    .kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .kpi-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #212529;
+    }
+
+    /* User Table Specifics */
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        background-color: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: #6c757d;
+        font-size: 1rem;
+    }
+
+    /* Role Badges */
+    .badge-role-seller {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+        border: 1px solid rgba(13, 110, 253, 0.2);
+    }
+
+    .badge-role-bidder {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+        border: 1px solid rgba(108, 117, 125, 0.2);
+    }
+
+    .badge-role-admin {
+        background-color: rgba(255, 140, 0, 0.1);
+        color: #d66f00;
+        border: 1px solid rgba(255, 140, 0, 0.2);
+    }
+
+    /* Status Indicators */
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+    }
+    .status-active { background-color: #198754; }
+    .status-banned { background-color: #dc3545; }
+    .status-pending { background-color: #ffc107; }
+
+    /* Action Buttons */
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        color: #495057;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+    .btn-icon:hover { background-color: #f1f3f5; color: var(--accent); }
+    .btn-icon-danger:hover { background-color: #fff5f5; color: #dc3545; }
+
+    .btn-warning-accent {
+        background-color: var(--accent);
+        color: #fff;
+        border: none;
+        font-weight: 600;
+    }
+    .btn-warning-accent:hover {
+        background-color: var(--accent-dark);
+        color: #fff;
+    }
+</style>
+{{/section}}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">User Management</h1>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-white border shadow-sm position-relative text-dark fw-medium" data-bs-toggle="modal" data-bs-target="#modalUpgradeRequests">
+            <i class="bi bi-shop-window me-1"></i> Seller Requests
+            {{#if upgradeRequests}}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white">
+                {{upgradeRequests.length}}
+                <span class="visually-hidden">unread messages</span>
+            </span>
+            {{/if}}
+        </button>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-md-4">
+        <div class="kpi-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="small text-muted fw-bold text-uppercase mb-1">Total Users</div>
+                    <div class="kpi-value">2,845</div>
+                    <div class="small text-success mt-1"><i class="bi bi-arrow-up"></i> +120 this week</div>
+                </div>
+                <div class="kpi-icon bg-light text-primary">
+                    <i class="bi bi-people"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="kpi-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="small text-muted fw-bold text-uppercase mb-1">Verified Sellers</div>
+                    <div class="kpi-value">142</div>
+                    <div class="small text-muted mt-1">5 pending requests</div>
+                </div>
+                <div class="kpi-icon" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
+                    <i class="bi bi-shop"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="kpi-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="small text-muted fw-bold text-uppercase mb-1">Banned Accounts</div>
+                    <div class="kpi-value">18</div>
+                    <div class="small text-danger mt-1">Action required</div>
+                </div>
+                <div class="kpi-icon" style="background: rgba(220, 53, 69, 0.1); color: #dc3545;">
+                    <i class="bi bi-slash-circle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-3">
+    <div class="card-header bg-white border-bottom p-3">
+        <form class="row g-3" action="/admin/users" method="get">
+            <div class="col-12 col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" class="form-control border-start-0 bg-light" name="q" placeholder="Search name, email...">
+                </div>
+            </div>
+            
+            <div class="col-6 col-md-3">
+                <select class="form-select" name="role">
+                    <option value="all" selected>All Roles</option>
+                    <option value="bidder">Bidder</option>
+                    <option value="seller">Seller</option>
+                    <option value="admin">Administrator</option>
+                </select>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <select class="form-select" name="status">
+                    <option value="all" selected>All Status</option>
+                    <option value="active">Active</option>
+                    <option value="pending">Pending</option>
+                    <option value="banned">Banned</option>
+                </select>
+            </div>
+
+            <div class="col-12 col-md-2">
+                <button type="submit" class="btn btn-outline-dark w-100">Apply Filter</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">User</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Joined Date</th>
+                    <th>Points/Rating</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#if users}}
+                    {{#each users}}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                {{#if avatar}}
+                                    <img src="{{avatar}}" alt="" class="user-avatar me-3">
+                                {{else}}
+                                    <div class="user-avatar me-3">{{#if full_name}}{{full_name.[0]}}{{else}}U{{/if}}</div>
+                                {{/if}}
+                                <div>
+                                    <div class="fw-bold text-dark">{{full_name}}</div>
+                                    <div class="small text-muted">{{email}}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {{#if (eq role 'seller')}}
+                                <span class="badge badge-role-seller rounded-pill px-2 py-1"><i class="bi bi-shop me-1"></i>Seller</span>
+                            {{else if (eq role 'admin')}}               
+                                <span class="badge badge-role-admin rounded-pill px-2 py-1"><i class="bi bi-shield-lock me-1"></i>Admin</span>
+                            {{else}}
+                                <span class="badge badge-role-bidder rounded-pill px-2 py-1"><i class="bi bi-person me-1"></i>Bidder</span>
+                            {{/if}}
+                        </td>
+                        <td>
+                            {{#if (eq status 'active')}}
+                                <span class="d-flex align-items-center text-success fw-medium font-monospace small">
+                                    <span class="status-dot status-active"></span>Active
+                                </span>
+                            {{else if (eq status 'banned')}}
+                                <span class="d-flex align-items-center text-danger fw-medium font-monospace small">
+                                    <span class="status-dot status-banned"></span>Banned
+                                </span>
+                            {{else}}
+                                <span class="d-flex align-items-center text-warning fw-medium font-monospace small">
+                                    <span class="status-dot status-pending"></span>Pending
+                                </span>
+                            {{/if}}
+                        </td>
+                        <td class="text-muted small">
+                            {{#if created_at}}{{formatDate created_at}}{{else}}N/A{{/if}}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-star-fill text-warning small me-1"></i>
+                                <span class="fw-semibold">{{#if rating}}{{rating}}{{else}}0.0{{/if}}</span>
+                                <span class="text-muted small ms-1">({{points}} pts)</span>
+                            </div>
+                        </td>
+                        <td class="text-end pe-4">
+                            <button class="btn-icon me-1" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalEditUser"
+                                    data-id="{{user_id}}"
+                                    data-name="{{full_name}}"
+                                    data-role="{{role}}"
+                                    data-status="{{status}}"
+                                    title="Edit User">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            
+                            {{#if (eq status 'banned')}}
+                            <form action="/admin/users/unban" method="post" class="d-inline-block m-0">
+                                <input type="hidden" name="user_id" value="{{user_id}}">
+                                <button type="submit" class="btn-icon text-success" title="Unban User">
+                                    <i class="bi bi-unlock"></i>
+                                </button>
+                            </form>
+                            {{else}}
+                            <form action="/admin/users/ban" method="post" class="d-inline-block m-0">
+                                <input type="hidden" name="user_id" value="{{user_id}}">
+                                <button type="submit" class="btn-icon btn-icon-danger" title="Ban User" onclick="return confirm('Ban this user?');">
+                                    <i class="bi bi-slash-circle"></i>
+                                </button>
+                            </form>
+                            {{/if}}
+                        </td>
+                    </tr>
+                    {{/each}}
+                {{else}}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="text-muted mb-2"><i class="bi bi-people display-4"></i></div>
+                            <h5>No users found</h5>
+                            <p class="text-muted">Try adjusting your filters or search query.</p>
+                        </td>
+                    </tr>
+                {{/if}}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="card-footer bg-white py-3 d-flex justify-content-between align-items-center border-top-0">
+        <div class="small text-muted">Showing 1 to 10 of 2,845 users</div>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item disabled"><a class="page-link" href="#">Prev</a></li>
+                <li class="page-item active"><a class="page-link bg-secondary border-secondary text-white" href="#">1</a></li>
+                <li class="page-item"><a class="page-link text-dark" href="#">2</a></li>
+                <li class="page-item"><a class="page-link text-dark" href="#">Next</a></li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditUser" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content border-0 shadow" action="/admin/users/edit" method="post">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Edit User Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="user_id" id="editUserId">
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold">Full Name</label>
+                    <input type="text" class="form-control" id="editUserName" readonly disabled>
+                    <div class="form-text">Name cannot be changed by admin directly.</div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-bold">Role</label>
+                        <select class="form-select" name="role" id="editUserRole">
+                            <option value="bidder">Bidder</option>
+                            <option value="seller">Seller</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-bold">Status</label>
+                        <select class="form-select" name="status" id="editUserStatus">
+                            <option value="active">Active</option>
+                            <option value="pending">Pending</option>
+                            <option value="banned">Banned</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-warning-accent">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{#section 'js'}}
+<script>
+    const editUserModal = document.getElementById('modalEditUser');
+    if (editUserModal) {
+        editUserModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            
+            // Extract info from data attributes
+            const id = button.getAttribute('data-id');
+            const name = button.getAttribute('data-name');
+            const role = button.getAttribute('data-role');
+            const status = button.getAttribute('data-status');
+            
+            // Update modal inputs
+            editUserModal.querySelector('#editUserId').value = id;
+            editUserModal.querySelector('#editUserName').value = name;
+            editUserModal.querySelector('#editUserRole').value = role;
+            editUserModal.querySelector('#editUserStatus').value = status;
+        });
+    }
+</script>
+{{/section}}
