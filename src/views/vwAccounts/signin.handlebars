@@ -1,30 +1,195 @@
-<div class="row justify-content-center">
-  <div class="col-md-6 col-lg-4">
-    <div class="card shadow-sm">
-      <div class="card-body p-4">
-        <h2 class="card-title text-center mb-4">Sign In</h2>
-        
-        <form action="/account/signin" method="POST">
-          
-          <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="email" name="email" required>
-          </div>
-          
-          <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" name="password" required>
-          </div>
-          
-          <button type="submit" class="btn btn-primary w-100">Sign In</button>
-        </form>
+{{#section 'css'}}
+<style>
+  /* Font chữ có chân */
+  .serif-font {
+    font-family: "Times New Roman", Times, serif;
+    font-weight: 700;
+  }
 
-        <hr>
+  /* Box màu xám trên cùng */
+  .register-box {
+    background-color: #e9ecef;
+    border-radius: 8px; /* Bo góc nhỏ hơn xíu */
+    padding: 10px 15px; /* Giảm padding */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-        <p class="text-center mb-0">
-          Don't have an account? <a href="/account/signup">Sign up now</a>
-        </p>
-      </div>
+  .register-text {
+    font-size: 0.9rem; /* Chữ nhỏ lại */
+    font-weight: 600;
+  }
+
+  .btn-create-account {
+    background-color: white;
+    border: 2px solid black;
+    color: black;
+    border-radius: 20px;
+    font-weight: 700;
+    padding: 4px 15px; /* Nút nhỏ lại */
+    text-decoration: none;
+    font-size: 0.8rem; /* Chữ trong nút nhỏ lại */
+    transition: all 0.2s;
+  }
+
+  .btn-create-account:hover {
+    background-color: black;
+    color: white;
+  }
+
+  /* Style cho input fields */
+  .form-control-custom {
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+    padding: 10px 12px; /* Input gọn hơn */
+    font-weight: 600;
+    font-size: 0.95rem; /* Font chữ nhập liệu nhỏ lại */
+    color: #495057;
+  }
+
+  .form-control-custom::placeholder {
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .form-control-custom:focus {
+    border-color: #0d6efd;
+    box-shadow: none;
+  }
+
+  /* Nút Continue màu xanh */
+  .btn-continue {
+    background-color: #0d6efd;
+    border: none;
+    border-radius: 20px;
+    padding: 10px; /* Giảm độ dày nút */
+    font-weight: 700;
+    font-size: 1rem; /* Font nút nhỏ lại */
+    width: 100%;
+    margin-top: 5px;
+  }
+
+  .btn-continue:hover {
+    background-color: #0b5ed7;
+  }
+
+  /* Phần divider "Or" */
+  .divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #6c757d;
+    margin: 15px 0; /* Giảm khoảng cách trên dưới */
+    font-size: 0.9rem;
+  }
+
+  .divider::before,
+  .divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #ced4da; /* Nét gạch mảnh hơn */
+  }
+
+  .divider:not(:empty)::before {
+    margin-right: .5em;
+  }
+
+  .divider:not(:empty)::after {
+    margin-left: .5em;
+  }
+
+  /* Nút Social (Google/Facebook) */
+  .btn-social {
+    background-color: white;
+    border: 2px solid black;
+    color: black;
+    border-radius: 25px;
+    padding: 8px; /* Nút gọn hơn */
+    font-weight: 700;
+    font-size: 0.95rem;
+    width: 100%;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    text-decoration: none;
+    transition: 0.2s;
+  }
+
+  .btn-social:hover {
+    background-color: #f8f9fa;
+    color: black;
+  }
+
+  /* Icon Google/FB */
+  .social-icon {
+    width: 20px; /* Kích thước icon nhỏ gọn */
+    height: 20px;
+    position: absolute;
+    left: 20px; /* Cố định bên trái */
+    object-fit: contain;
+  }
+
+  .btn-social i {
+    font-size: 1.3rem;
+    position: absolute;
+    left: 20px;
+  }
+
+  .forgot-pass {
+    text-decoration: underline;
+    color: #6c757d;
+    font-size: 0.85rem;
+    float: right;
+    margin-top: 8px;
+  }
+</style>
+{{/section}}
+
+<div class="row justify-content-center mt-0 mb-3">
+  <div class="col-md-6 col-lg-5" style="max-width: 380px;">
+    
+    <h1 class="text-center mb-3 serif-font" style="font-size: 2rem;">Sign in your account</h1>
+
+    <div class="register-box mb-3">
+      <span class="register-text">New to MNGo?</span>
+      <a href="/account/signup" class="btn-create-account">Create account</a>
     </div>
+
+    <form action="/account/signin" method="POST">
+      
+      <div class="mb-3">
+        <input type="email" class="form-control form-control-custom" 
+          id="email" name="email" placeholder="Email:" required>
+      </div>
+      
+      <div class="mb-3">
+        <input type="password" class="form-control form-control-custom" 
+          id="password" name="password" placeholder="Password:" required>
+      </div>
+      
+      <button type="submit" class="btn btn-primary btn-continue">Continue</button>
+      
+      <div class="clearfix">
+        <a href="/account/forgot-password" class="forgot-pass">Forgot password</a>
+      </div>
+
+    </form>
+
+    <div class="divider">Or</div>
+
+    <a href="#" class="btn-social">
+      <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="social-icon" alt="Google Logo">
+      Continue with Google
+    </a>
+
+    <a href="#" class="btn-social">
+      <i class="bi bi-facebook text-primary"></i> 
+      Continue with Facebook
+    </a>
+
   </div>
 </div>

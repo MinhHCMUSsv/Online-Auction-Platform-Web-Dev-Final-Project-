@@ -11,6 +11,7 @@ const router = express.Router();
 
 router.get('/signup', function (req, res) {
     res.render('vwAccounts/signup', {
+        layout: 'auth-layout',
         title: 'Sign Up',
         activeNav: 'Sign Up'
     });
@@ -32,6 +33,7 @@ router.post('/signup', async function (req, res) {
 
 router.get('/signin', function (req, res) {
     res.render('vwAccounts/signin', {
+        layout: 'auth-layout',
         title: 'Sign In',
         activeNav: 'Sign In'
     });
