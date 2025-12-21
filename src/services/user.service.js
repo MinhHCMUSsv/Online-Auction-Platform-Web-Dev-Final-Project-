@@ -12,3 +12,9 @@ export function findByEmail(email) {
     return db('app_user').where('email', email).first();
 }
 
+<<<<<<< HEAD
+=======
+export function patch(user) {
+    return db('app_user').where('user_id', user.user_id).update(user);
+}
+>>>>>>> 69f8650b2c3060755778ddc6d58bad70e56a5b8a

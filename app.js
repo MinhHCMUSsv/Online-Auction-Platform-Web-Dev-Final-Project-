@@ -4,9 +4,11 @@ import hbs_helpers from 'handlebars-helpers';
 import expressHandlebarsSections from 'express-handlebars-sections';
 import session from 'express-session';
 import { isAuth, isAdmin } from './src/middlewares/auth.mdw.js';
+import moment from 'moment';
 
 import accountRouter from './src/routes/account.route.js';
 import productRouter from './src/routes/product.route.js';
+import sellerRouter from './src/routes/seller.route.js';
 
 import adminCategoryRouter from './src/routes/admin-category.route.js';
 import adminProductRouter from './src/routes/admin-product.route.js';
@@ -34,6 +36,7 @@ app.engine('handlebars', engine({
         substr: (str, start, length) => {
             if (!str) return '';
             return str.substring(start, start + length);
+<<<<<<< HEAD
         },
         formatDate: (date) => {
             if (!date) return '';
@@ -42,6 +45,10 @@ app.engine('handlebars', engine({
             const month = String(d.getMonth() + 1).padStart(2, '0');
             const year = d.getFullYear();
             return `${day}/${month}/${year}`;
+=======
+        formatDate: function (date, format) {
+            return moment(date).format(format);
+>>>>>>> 69f8650b2c3060755778ddc6d58bad70e56a5b8a
         }
     }
      
@@ -57,9 +64,6 @@ app.use(express.urlencoded({
 app.use(function (req, res, next) {
     res.locals.isAuthenticated = req.session.isAuthenticated;
     res.locals.authUser = req.session.authUser;
-
-    res.locals.isAdmin = req.session.isAdmin ? true : false;
-   // console.log('Auth User:', res.locals.authUser);
     next();
 });
 
@@ -72,6 +76,7 @@ app.get('/', (req, res) => {
 
 app.use('/account', accountRouter);
 app.use('/products', productRouter);
+app.use('/seller', sellerRouter);
 
 app.use('/admin/categories', adminCategoryRouter);
 app.use('/admin/products', adminProductRouter);
