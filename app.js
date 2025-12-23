@@ -6,6 +6,7 @@ import session from 'express-session';
 import { isAuth, isAdmin, isUpgradePending } from './src/middlewares/auth.mdw.js';
 import moment from 'moment';
 
+import authRouter from './src/routes/auth.route.js';
 import accountRouter from './src/routes/account.route.js';
 import productRouter from './src/routes/product.route.js';
 import sellerRouter from './src/routes/seller.route.js';
@@ -13,6 +14,8 @@ import sellerRouter from './src/routes/seller.route.js';
 import adminCategoryRouter from './src/routes/admin-category.route.js';
 import adminProductRouter from './src/routes/admin-product.route.js';
 import adminUpgradeRouter from './src/routes/admin-upgrade.route.js';
+
+import passport from './src/config/passport.config.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -51,6 +54,9 @@ app.use(express.urlencoded({
     extended: true
 }));
 
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(function (req, res, next) {
     res.locals.isAuthenticated = req.session.isAuthenticated;
     res.locals.authUser = req.session.authUser;
@@ -66,6 +72,7 @@ app.get('/', (req, res) => {
 
 app.use(isUpgradePending);
 
+app.use('/auth', authRouter);
 app.use('/account', accountRouter);
 app.use('/products', productRouter);
 app.use('/seller', sellerRouter);

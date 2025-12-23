@@ -28,7 +28,7 @@ router.post('/signup', async function (req, res) {
     }
 
     await userService.add(user);
-    res.redirect('/');
+    res.redirect('/account/signin');
 });
 
 router.get('/signin', function (req, res) {
