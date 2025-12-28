@@ -20,6 +20,14 @@ export function findByGoogleId(googleId) {
         .first();
 }
 
+export function findByFacebookId(facebookId) {
+    return db('app_user as a')
+        .join('user_auth_provider as u', 'a.user_id', 'u.user_id')
+        .where('u.provider_user_id', facebookId)
+        .andWhere('u.provider', 'facebook')
+        .first();
+}
+
 export function addAuthProvider(entity) {
     return db('user_auth_provider').insert(entity);
 }
