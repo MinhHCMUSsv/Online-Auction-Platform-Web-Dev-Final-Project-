@@ -53,7 +53,7 @@
 </style>
 {{/section}}
 
-<form id="createAuctionForm" action="/account/profile/create" method="POST">
+<form id="createAuctionForm" action="/seller/create" method="POST">
   <div class="row mb-4">
     <div class="col-md-12">
       <label class="form-label-custom mb-2">Product Images (Only 4 images)<span class="required-star">*</span></label>
@@ -180,7 +180,7 @@
       hideUploadButton: true
     })
     .use(Uppy.XHRUpload, {
-      endpoint: '/account/upload/temp', // API backend
+      endpoint: '/seller/upload/temp', // API backend
       fieldName: 'imgs',
     });
 

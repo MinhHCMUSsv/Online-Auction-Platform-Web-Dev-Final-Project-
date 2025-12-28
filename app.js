@@ -17,6 +17,8 @@ import adminUpgradeRouter from './src/routes/admin-upgrade.route.js';
 
 import passport from './src/config/passport.config.js';
 
+import * as homeService from './src/services/home.service.js';
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const helpers = hbs_helpers();
@@ -63,11 +65,25 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.get('/', (req, res) => {
-    res.render('home', {
-        title: 'Home',
-        activeNav: 'Home'
-    });
+app.get('/', async function (req, res) {
+    try {
+        const [topBid, mostActive, endingSoon] = await Promise.all([
+            homeService.findTopPrice(5),
+            homeService.findMostActive(5),
+            homeService.findEndingSoon(5)
+        ]);
+
+        res.render('home', {
+            title: 'Home',
+            activeNav: 'Home',
+            topBidProducts: topBid,
+            mostActiveProducts: mostActive,
+            endingSoonProducts: endingSoon
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
 app.use(isUpgradePending);
