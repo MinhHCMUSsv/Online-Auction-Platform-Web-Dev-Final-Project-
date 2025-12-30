@@ -1,14 +1,75 @@
+{{#section 'js'}}
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.querySelector('#frmSignup').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const password = document.querySelector('#password').value;
+    const confirmPassword = document.querySelector('#confirmPassword').value;
+    const email = document.querySelector('#email').value;
+    const captchaResponse = grecaptcha.getResponse();
+
+    // 0. Check reCAPTCHA
+    if (!captchaResponse) {
+      Swal.fire({
+        title: 'Warning',
+        text: 'Please verify you are not a robot!',
+        icon: 'warning'
+      });
+      return;
+    }
+
+    // 1. Check độ dài Password
+    if (password.length < 6) {
+      Swal.fire({
+        title: 'Validation Error',
+        text: 'Password must be at least 6 characters long.',
+        icon: 'error'
+      });
+      return;
+    }
+
+    // 2. Check Password khớp nhau
+    if (password !== confirmPassword) {
+      Swal.fire({
+        title: 'Validation Error',
+        text: 'Passwords do not match.',
+        icon: 'error'
+      });
+      return;
+    }
+
+    // 3. Check trùng Email
+    try {
+      const response = await fetch(`/account/email-available?email=${email}`);
+      const isAvailable = await response.json();
+
+      if (isAvailable === false) {
+        Swal.fire({
+          title: 'Email Exists',
+          text: 'This email is already registered. Please choose another one.',
+          icon: 'error'
+        });
+        return; 
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
+    // 4. Nếu mọi thứ ok thì submit form
+    e.target.submit();
+  })
+</script>
+{{/section}}
+
 {{#section 'css'}}
 <style>
-  /* --- BỘ STYLE DÙNG CHUNG (COPY TỪ SIGNIN) --- */
-
-  /* Font chữ có chân */
   .serif-font {
     font-family: "Times New Roman", Times, serif;
     font-weight: 700;
   }
 
-  /* Box màu xám trên cùng */
   .login-box {
     background-color: #e9ecef;
     border-radius: 8px;
@@ -40,7 +101,6 @@
     color: white;
   }
 
-  /* Style cho input fields */
   .form-control-custom {
     border-radius: 8px;
     border: 2px solid #dee2e6;
@@ -61,7 +121,6 @@
     box-shadow: none;
   }
 
-  /* Nút Continue màu xanh */
   .btn-continue {
     background-color: #0d6efd;
     border: none;
@@ -77,7 +136,6 @@
     background-color: #0b5ed7;
   }
 
-  /* Phần divider "Or" */
   .divider {
     display: flex;
     align-items: center;
@@ -102,7 +160,6 @@
     margin-left: .5em;
   }
 
-  /* Nút Social */
   .btn-social {
     background-color: white;
     border: 2px solid black;
@@ -144,7 +201,7 @@
 
 <div class="row justify-content-center mt-0 mb-3">
   <div class="col-md-6 col-lg-5" style="max-width: 380px;">
-    
+
     <h1 class="text-center mb-3 serif-font" style="font-size: 2rem;">Create an account</h1>
 
     <div class="login-box mb-3">
@@ -152,33 +209,37 @@
       <a href="/account/signin" class="btn-signin-nav">Sign in</a>
     </div>
 
-    <form method="POST">
-      
+    <form method="POST" id="frmSignup">
+
       <div class="mb-3">
-        <input type="text" class="form-control form-control-custom" 
-          id="fullName" name="fullName" placeholder="Full name:" required>
+        <input type="text" class="form-control form-control-custom" id="fullName" name="fullName"
+          placeholder="Full name:" required>
       </div>
 
       <div class="mb-3">
-        <input type="email" class="form-control form-control-custom" 
-          id="email" name="email" placeholder="Email:" required>
+        <input type="email" class="form-control form-control-custom" id="email" name="email" placeholder="Email:"
+          required>
       </div>
 
       <div class="mb-3">
-        <input type="text" class="form-control form-control-custom" 
-          id="address" name="address" placeholder="Address:" required>
+        <input type="text" class="form-control form-control-custom" id="address" name="address" placeholder="Address:"
+          required>
       </div>
 
       <div class="mb-3">
-        <input type="password" class="form-control form-control-custom" 
-          id="password" name="password" placeholder="Password:" required>
+        <input type="password" class="form-control form-control-custom" id="password" name="password"
+          placeholder="Password:" required>
       </div>
 
       <div class="mb-3">
-        <input type="password" class="form-control form-control-custom" 
-          id="confirmPassword" name="confirmPassword" placeholder="Confirm Password:" required>
+        <input type="password" class="form-control form-control-custom" id="confirmPassword" name="confirmPassword"
+          placeholder="Confirm Password:" required>
       </div>
-      
+
+      <div class="mb-3 d-flex justify-content-center">
+         <div class="g-recaptcha" data-sitekey="{{captchaSiteKey}}"></div>
+      </div>
+
       <button type="submit" class="btn btn-primary btn-continue">Continue</button>
 
     </form>
@@ -191,7 +252,7 @@
     </a>
 
     <a href="/auth/facebook" class="btn-social">
-      <i class="bi bi-facebook text-primary"></i> 
+      <i class="bi bi-facebook text-primary"></i>
       Continue with Facebook
     </a>
 

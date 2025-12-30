@@ -4,6 +4,22 @@ export function add(user) {
     return db('app_user').insert(user).returning('user_id');
 }
 
+export function patchOTP(otp, userId) {
+    return db('app_user')
+        .where('user_id', userId)
+        .update({
+            otp: otp,
+        });
+}
+
+export function verifyUser(userId) {
+    return db('app_user')
+        .where('user_id', userId)
+        .update({
+            status: 1,
+        });
+}
+
 export function findByEmail(email) {
     return db('app_user').where('email', email).first();
 }
@@ -30,4 +46,12 @@ export function findByFacebookId(facebookId) {
 
 export function addAuthProvider(entity) {
     return db('user_auth_provider').insert(entity);
+}
+
+export function patchPassword(userId, newPassword) {
+    return db('app_user')
+        .where('user_id', userId)
+        .update({
+            password_hash: newPassword
+        });
 }

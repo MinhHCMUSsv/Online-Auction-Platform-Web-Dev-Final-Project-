@@ -55,7 +55,7 @@ app.use('/src/static', express.static('src/static'));
 app.use(express.urlencoded({
     extended: true
 }));
-
+app.use(express.json());
 app.use(passport.initialize());
 app.use(passport.session());
 

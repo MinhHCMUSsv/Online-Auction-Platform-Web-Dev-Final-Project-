@@ -32,7 +32,8 @@ router.get('/google/callback',
                 email: email,
                 address: null,
                 password_hash: null,
-                points: 0
+                points: 0,
+                status: 1
             }
             const result = await userService.add(newUser); 
             const newUserId = result[0].user_id;
@@ -89,7 +90,7 @@ router.get('/facebook/callback',
                 address: null,       
                 password_hash: null,
                 points: 0,
-                created_at: new Date()
+                status: 1
             };
             const result = await userService.add(newUser);
             const newUserId = result[0].user_id;
