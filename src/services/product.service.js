@@ -30,8 +30,6 @@ export function countByCat(catId) {
         .count('product_id as count').first();
 }
 
-
-
 export function add(product) {
     return db('product').insert(product).returning('product_id');
 }

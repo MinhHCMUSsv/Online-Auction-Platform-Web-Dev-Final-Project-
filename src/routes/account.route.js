@@ -1,24 +1,52 @@
 import express from 'express';
-import bcrypt, { hash } from 'bcryptjs';
-import multer from 'multer';
-import fs from 'fs-extra';
-import path from 'path';
+import bcrypt from 'bcryptjs';
+import moment from 'moment';
 
 import * as userService from '../services/user.service.js';
 import * as productService from '../services/product.service.js';
 import * as watchlistService from '../services/watchlist.service.js';
 import * as bidService from '../services/bid.service.js';
+import * as upgradeService from '../services/upgrade.service.js';
+import { sendForgotPasswordLink, sendOTP } from '../utils/email.js';
+import { generateOTP } from '../utils/genOTP.js';
 
 const router = express.Router();
+const SECRET_KEY = process.env.SECRET_KEY
+const CAPTCHA_SECRET_KEY = process.env.CAPTCHA_SECRET_KEY;
 
 router.get('/signup', function (req, res) {
     res.render('vwAccounts/signup', {
+        layout: 'auth-layout',
         title: 'Sign Up',
-        activeNav: 'Sign Up'
+        activeNav: 'Sign Up',
+        captchaSiteKey: process.env.CAPTCHA_SITE_KEY
     });
 });
 
 router.post('/signup', async function (req, res) {
+    const captchaToken = req.body['g-recaptcha-response'];
+    const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${CAPTCHA_SECRET_KEY}&response=${captchaToken}`;
+
+    try {
+        const googleRes = await fetch(verifyUrl, { method: 'POST' });
+        const googleData = await googleRes.json();
+
+        // Nếu Google bảo False (Là bot hoặc chưa tích)
+        if (!googleData.success) {
+            return res.render('vwAccounts/signup', {
+                layout: 'auth-layout',
+                err_message: 'Captcha verification failed. Please confirm you are not a robot.'
+            });
+        }
+    } catch (error) {
+        console.log('Captcha Error:', error);
+        return res.render('vwAccounts/signup', {
+            layout: 'auth-layout',
+            err_message: 'Error connecting to Captcha verification.'
+        });
+    }
+
+    const otp = generateOTP();
     const hashPassword = bcrypt.hashSync(req.body.password, 10);
     const user = {
         full_name: req.body.fullName,
@@ -27,13 +55,84 @@ router.post('/signup', async function (req, res) {
         password_hash: hashPassword,
         points: 0
     }
+    const ret = await userService.add(user);
+    await sendOTP(user.email, otp);
+    await userService.patchOTP(otp, ret[0].user_id);
 
-    await userService.add(user);
-    res.redirect('/');
+    res.render('OTP', {
+        layout: 'auth-layout',
+        title: 'OTP Verification',
+        action_link: '/account/verify-otp',
+        email: user.email
+    });
+});
+
+router.get('/verify-otp', function (req, res) {
+    const email = req.query.email;
+    res.render('OTP', {
+        layout: 'auth-layout',
+        title: 'OTP Verification',
+        action_link: '/account/verify-otp',
+        email: email
+    });
+});
+
+router.post('/verify-otp', async function (req, res) {
+    const { email, otp } = req.body;
+    const user = await userService.findByEmail(email);
+
+    if (!user) return res.send('User does not exist!');
+
+    // Kiểm tra OTP
+    const now = moment();
+    const expiry = moment(user.otp_expires_at);
+
+    if (user.otp === +otp && now.isBefore(expiry)) {
+        // Đúng OTP -> Kích hoạt tài khoản
+        await userService.verifyUser(user.user_id);
+        res.redirect('/account/signin');
+
+    } else {
+        res.render('OTP', {
+            layout: 'auth-layout',
+            email: email,
+            action_link: '/account/verify-otp',
+            err_message: 'The OTP is incorrect or has expired.'
+        });
+    }
+});
+
+router.get('/resend-otp', async function (req, res) {
+    try {
+        const email = req.query.email;
+        const user = await userService.findByEmail(email);
+
+        if (!user) {
+            return res.json({ 
+                success: false, 
+                message: 'User not found' 
+            });
+        }
+
+        const otp = generateOTP();
+
+        await userService.patchOTP(otp, user.user_id);
+        await sendOTP(email, otp);
+
+        return res.json({ success: true });
+
+    } catch (error) {
+        console.error('Error sending OTP:', error);
+        return res.json({ 
+            success: false, 
+            message: 'System error. Please try again later.' 
+        });
+    }
 });
 
 router.get('/signin', function (req, res) {
     res.render('vwAccounts/signin', {
+        layout: 'auth-layout',
         title: 'Sign In',
         activeNav: 'Sign In'
     });
@@ -46,6 +145,9 @@ router.post('/signin', async function (req, res) {
         return res.render('vwAccounts/signin', {
             err_message: 'Invalid email or password.'
         });
+    }
+    if (user.status === 0) {
+        return res.redirect(`/account/verify-otp?email=${user.email}`);
     }
 
     const password = req.body.password;
@@ -109,7 +211,7 @@ router.post('/profile', async function (req, res) {
         email: req.body.email,
         full_name: req.body.full_name,
         address: req.body.address,
-        //dob: req.body.dob || null     
+        dob: req.body.dob || null
     };
 
     await userService.patch(entity);
@@ -121,98 +223,87 @@ router.post('/profile', async function (req, res) {
     res.redirect('/account/profile');
 });
 
-router.get('/change-password', function (req, res) {
-    res.send('Đây là trang đổi mật khẩu (Làm sau)');
+router.get('/forgot-password', function (req, res) {
+    res.render('vwAccounts/forgot', { layout: 'auth-layout' });
 });
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const dir = './src/static/uploads';
-        fs.ensureDirSync(dir);
-        cb(null, dir);
-    },
-    filename: function (req, file, cb) {
-        cb(null, 'temp-' + Date.now() + '-' + file.originalname);
+router.post('/forgot-password', async function (req, res) {
+    const { email } = req.body;
+
+    const user = await userService.findByEmail(email);
+    if (!user) {
+        return res.render('vwAccount/forgot', {
+            layout: 'auth-layout',
+            err_message: 'This email is not registered!'
+        });
+    }
+
+    const secret = user.email + user.password + SECRET_KEY;
+    const token = bcrypt.hashSync(secret, 1);
+    const safeToken = encodeURIComponent(token);
+    const link = `http://localhost:3000/account/reset?email=${email}&token=${safeToken}`;
+
+    const result = await sendForgotPasswordLink(email, link);
+
+    if (result) {
+        res.render('vwAccounts/forgot', { layout: 'auth-layout', done: true });
+    } else {
+        res.render('vwAccounts/forgot', {
+            layout: 'auth-layout',
+            err_message: 'Cannot send email. Please try again later.'
+        });
     }
 });
 
-const upload = multer({ storage: storage });
+router.get('/reset', async function (req, res) {
+    const { email, token } = req.query;
 
-router.post('/upload/temp', upload.single('imgs'), function (req, res) {
-    res.json({ filename: req.file.filename });
+    if (!email || !token) {
+        return res.send('Invalid link!');
+    }
+
+    const user = await userService.findByEmail(email);
+    if (!user) {
+        return res.send('User does not exist!');
+    }
+
+    const secret = user.email + user.password + SECRET_KEY;
+    const isValid = bcrypt.compareSync(secret, token);
+
+    if (!isValid) {
+        return res.send('Invalid link or password has already been changed!');
+    }
+
+    res.render('vwAccounts/reset', { layout: 'auth-layout', email, token });
 });
 
-router.get('/profile/create', async function (req, res) {
-    if (!req.session.isAuthenticated) {
-        req.session.retUrl = '/account/profile/create';
-        return res.redirect('/account/signin');
+router.post('/reset', async function (req, res) {
+    const { email, token, password, confirm_password } = req.body;
+
+    if (password !== confirm_password) {
+        return res.render('vwAccount/reset', {
+            layout: 'auth-layout',
+            email,
+            token,
+            err_message: 'Confirm password does not match!'
+        });
     }
 
-    if (req.session.authUser.role !== 1) {
-        return res.redirect('/account/profile');
+    const user = await userService.findByEmail(email);
+    if (!user) {
+        return res.send('User does not exist!');
     }
 
-    const category = await productService.getAllCategories();
+    const secret = user.email + user.password + SECRET_KEY;
+    const isValid = bcrypt.compareSync(secret, token);
 
-    res.render('vwAccounts/create', {
-        layout: 'account-layout',
-        title: 'Create Auction',
-        activeNav: 'CreateAuction',
-        authUser: req.session.authUser,
-        categories: category
-    });
-});
-
-router.post('/profile/create', async function (req, res) {
-    if (!req.session.isAuthenticated) {
-        return res.redirect('/account/signin');
+    if (!isValid) {
+        return res.send('Invalid link or password has already been changed!');
     }
 
-    const user = req.session.authUser;
-    
-    const newProduct = {
-        category_id: req.body.catId,
-        name: req.body.proName,
-        start_price: req.body.startPrice,
-        description_html: req.body.description,
-        bid_step: req.body.stepPrice,
-        buy_now_price: req.body.buyNowPrice,
-        seller_id: user.user_id,
-        is_auto_extend: req.body.isAutoExtend === '1'
-    };
-
-    const ret = await productService.add(newProduct);
-    const productId = ret[0].product_id;
-
-    const uploadedImages = JSON.parse(req.body.uploadedImages || '[]');
-
-    if (uploadedImages.length > 0) {
-        const userId = user.user_id;
-        const targetDir = `./src/static/images/${userId}/${productId}`;
-        await fs.ensureDir(targetDir);
-        let i = 0;
-
-        for (const fileName of uploadedImages) {
-            const oldPath = `./src/static/uploads/${fileName}`;
-
-            if (i === 0) {
-                const mainPath = path.join(targetDir, 'main.jpg');
-                const thumbsPath = path.join(targetDir, 'main_thumbs.jpg');
-                fs.copyFileSync(oldPath, mainPath);
-                fs.copyFileSync(oldPath, thumbsPath);
-            } else {
-                const subPath = path.join(targetDir, `${i}.jpg`);
-                const subThumbsPath = path.join(targetDir, `${i}_thumbs.jpg`);
-                fs.copyFileSync(oldPath, subPath);
-                fs.copyFileSync(oldPath, subThumbsPath);
-            }
-            fs.unlinkSync(oldPath);
-
-            i++;
-        }
-    }
-
-    res.redirect('/account/profile');
+    const hashPassword = bcrypt.hashSync(password, 10);
+    await userService.patchPassword(user.user_id, hashPassword);
+    res.redirect('/account/signin');
 });
 
 router.get('/profile/watchlist', async function (req, res) {
@@ -262,6 +353,35 @@ router.get('/profile/won', async function (req, res) {
         activeNav: 'WonItems',
         wonItems: list
     });
+});
+
+router.post('/profile/upgrade', async function (req, res) {
+    if (!req.session.isAuthenticated) return res.redirect('/account/signin');
+
+    const userId = req.session.authUser.user_id;
+
+    const isPending = await upgradeService.getUpgradeStatus(userId);
+    if (isPending) {
+        return res.redirect('/account/profile');
+    }
+
+    const entity = {
+        bidder_id: userId,
+        status: 'pending',
+    };
+    await upgradeService.addUpgrade(entity);
+
+    res.redirect('/account/profile');
+});
+
+router.get('/email-available', async function (req, res) {
+    const email = req.query.email;
+    const user = await userService.findByEmail(email);
+
+    if (!user) {
+        return res.json(true);
+    }
+    return res.json(false);
 });
 
 export default router;
