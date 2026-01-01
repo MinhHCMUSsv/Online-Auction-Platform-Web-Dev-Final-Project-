@@ -112,12 +112,9 @@ export function placeBid(bidData) {
     return db('bid').insert(bidData);
 }
 
-<<<<<<< HEAD
-=======
 export function findWonItems(userId) {
     return db('product')
         .where('status', 'end')
         .andWhere('leader_id', userId)
         .orderBy('end_time', 'desc'); 
 }
->>>>>>> 69f8650b2c3060755778ddc6d58bad70e56a5b8a

@@ -36,7 +36,6 @@ app.engine('handlebars', engine({
         substr: (str, start, length) => {
             if (!str) return '';
             return str.substring(start, start + length);
-<<<<<<< HEAD
         },
         formatDate: (date) => {
             if (!date) return '';
@@ -45,10 +44,6 @@ app.engine('handlebars', engine({
             const month = String(d.getMonth() + 1).padStart(2, '0');
             const year = d.getFullYear();
             return `${day}/${month}/${year}`;
-=======
-        formatDate: function (date, format) {
-            return moment(date).format(format);
->>>>>>> 69f8650b2c3060755778ddc6d58bad70e56a5b8a
         }
     }
      
