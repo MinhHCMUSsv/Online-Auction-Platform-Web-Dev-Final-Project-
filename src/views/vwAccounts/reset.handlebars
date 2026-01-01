@@ -1,15 +1,70 @@
 {{#section 'css'}}
 <style>
   /* --- COPY STYLE TỪ SIGNIN --- */
-  .serif-font { font-family: "Times New Roman", Times, serif; font-weight: 700; }
-  .login-box { background-color: #e9ecef; border-radius: 8px; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; }
-  .login-text { font-size: 0.9rem; font-weight: 600; }
-  .btn-signin-nav { background-color: white; border: 2px solid black; color: black; border-radius: 20px; font-weight: 700; padding: 4px 15px; text-decoration: none; font-size: 0.8rem; transition: all 0.2s; }
-  .btn-signin-nav:hover { background-color: black; color: white; }
-  .form-control-custom { border-radius: 8px; border: 2px solid #dee2e6; padding: 10px 12px; font-weight: 600; font-size: 0.95rem; color: #495057; }
-  .form-control-custom:focus { border-color: #0d6efd; box-shadow: none; }
-  .btn-continue { background-color: #0d6efd; border: none; border-radius: 20px; padding: 10px; font-weight: 700; font-size: 1rem; width: 100%; margin-top: 5px; }
-  .btn-continue:hover { background-color: #0b5ed7; }
+  .serif-font {
+    font-family: "Times New Roman", Times, serif;
+    font-weight: 700;
+  }
+
+  .login-box {
+    background-color: #e9ecef;
+    border-radius: 8px;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .login-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .btn-signin-nav {
+    background-color: white;
+    border: 2px solid black;
+    color: black;
+    border-radius: 20px;
+    font-weight: 700;
+    padding: 4px 15px;
+    text-decoration: none;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+  }
+
+  .btn-signin-nav:hover {
+    background-color: black;
+    color: white;
+  }
+
+  .form-control-custom {
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+    padding: 10px 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #495057;
+  }
+
+  .form-control-custom:focus {
+    border-color: #0d6efd;
+    box-shadow: none;
+  }
+
+  .btn-continue {
+    background-color: #0d6efd;
+    border: none;
+    border-radius: 20px;
+    padding: 10px;
+    font-weight: 700;
+    font-size: 1rem;
+    width: 100%;
+    margin-top: 5px;
+  }
+
+  .btn-continue:hover {
+    background-color: #0b5ed7;
+  }
 </style>
 {{/section}}
 
@@ -28,16 +83,14 @@
     </p>
 
     <form method="POST" action="/account/reset" id="frmReset">
-        <input type="hidden" name="email" value="{{email}}">
-        <input type="hidden" name="token" value="{{token}}">
 
       <div class="mb-3">
-        <input type="password" class="form-control form-control-custom" id="password" name="password" 
+        <input type="password" class="form-control form-control-custom" id="password" name="password"
           placeholder="New Password:" required autofocus>
       </div>
 
       <div class="mb-3">
-        <input type="password" class="form-control form-control-custom" id="confirm_password" name="confirm_password" 
+        <input type="password" class="form-control form-control-custom" id="confirm_password" name="confirm_password"
           placeholder="Confirm Password:" required>
       </div>
 
@@ -52,47 +105,47 @@
 {{#section 'js'}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Kiểm tra lỗi từ Server (ví dụ: Token hết hạn)
-    const errMessage = '{{err_message}}';
-    if (errMessage) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: errMessage,
-            confirmButtonColor: '#dc3545'
-        });
+  // Kiểm tra lỗi từ Server (ví dụ: Token hết hạn)
+  const errMessage = '{{err_message}}';
+  if (errMessage) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: errMessage,
+      confirmButtonColor: '#dc3545'
+    });
+  }
+
+  // Xử lý Client-Side: Kiểm tra mật khẩu khớp nhau
+  document.querySelector('#frmReset').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const pass = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm_password').value;
+
+    // Check khớp
+    if (pass !== confirm) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Validation Error',
+        text: 'Passwords do not match.',
+        confirmButtonColor: '#ffc107'
+      });
+      return;
     }
 
-    // Xử lý Client-Side: Kiểm tra mật khẩu khớp nhau
-    document.querySelector('#frmReset').addEventListener('submit', function(e) {
-        e.preventDefault();
+    // Check độ dài (Thêm cho an toàn)
+    if (pass.length < 6) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Weak Password',
+        text: 'Password must be at least 6 characters long.',
+      });
+      return;
+    }
 
-        const pass = document.getElementById('password').value;
-        const confirm = document.getElementById('confirm_password').value;
-
-        // Check khớp
-        if (pass !== confirm) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Validation Error',
-                text: 'Passwords do not match.',
-                confirmButtonColor: '#ffc107'
-            });
-            return;
-        }
-
-        // Check độ dài (Thêm cho an toàn)
-        if (pass.length < 6) {
-             Swal.fire({
-                icon: 'warning',
-                title: 'Weak Password',
-                text: 'Password must be at least 6 characters long.',
-            });
-            return;
-        }
-
-        // OK -> Submit
-        this.submit();
-    });
+    // OK -> Submit
+    this.submit();
+  });
 </script>
 {{/section}}
