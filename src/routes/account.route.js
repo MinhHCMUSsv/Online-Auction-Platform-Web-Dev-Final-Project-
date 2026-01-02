@@ -7,7 +7,7 @@ import * as productService from '../services/product.service.js';
 import * as watchlistService from '../services/watchlist.service.js';
 import * as bidService from '../services/bid.service.js';
 import * as upgradeService from '../services/upgrade.service.js';
-import { sendForgotPasswordLink, sendOTP } from '../utils/email.js';
+import { sendOTP } from '../utils/email.js';
 import { generateOTP } from '../utils/genOTP.js';
 
 const router = express.Router();
@@ -107,9 +107,9 @@ router.get('/resend-otp', async function (req, res) {
         const user = await userService.findByEmail(email);
 
         if (!user) {
-            return res.json({ 
-                success: false, 
-                message: 'User not found' 
+            return res.json({
+                success: false,
+                message: 'User not found'
             });
         }
 
@@ -122,9 +122,9 @@ router.get('/resend-otp', async function (req, res) {
 
     } catch (error) {
         console.error('Error sending OTP:', error);
-        return res.json({ 
-            success: false, 
-            message: 'System error. Please try again later.' 
+        return res.json({
+            success: false,
+            message: 'System error. Please try again later.'
         });
     }
 });
@@ -205,13 +205,42 @@ router.post('/profile', async function (req, res) {
         return res.redirect('/account/signin');
     }
 
+    const user = req.session.authUser;
+    const { full_name, address, dob, old_password, new_password, confirm_new_password } = req.body;
+
     const entity = {
-        user_id: req.session.authUser.user_id,
-        email: req.body.email,
-        full_name: req.body.full_name,
-        address: req.body.address,
-        dob: req.body.dob || null
+        user_id: user.user_id,
+        email: user.email,
+        full_name: full_name,
+        address: address,
+        dob: dob || null
     };
+
+    const renderError = function (msg) {
+        return res.render('vwAccounts/profile', {
+            layout: 'account-layout',
+            activeNav: 'AccountSettings',
+            showSettings: true,
+            user: user,
+            err_message: msg
+        });
+    };
+
+    if (new_password) {
+        if (new_password !== confirm_new_password) {
+            return renderError('Confirm password does not match.');
+        }
+
+        const dbUser = await userService.findByEmail(user.email);
+        const ret = bcrypt.compareSync(old_password, dbUser.password_hash);
+
+        if (!ret) {
+            return renderError('Current password is incorrect. Profile was NOT updated.');
+        }
+
+        const hashPassword = bcrypt.hashSync(new_password, 10);
+        await userService.patchPassword(user.user_id, hashPassword);
+    }
 
     await userService.patch(entity);
 
@@ -219,11 +248,19 @@ router.post('/profile', async function (req, res) {
     req.session.authUser.address = entity.address;
     req.session.authUser.dob = entity.dob;
 
-    res.redirect('/account/profile');
+    res.render('vwAccounts/profile', {
+        layout: 'account-layout',
+        activeNav: 'AccountSettings',
+        showSettings: true,
+        user: req.session.authUser,
+        success_message: 'Profile updated successfully!'
+    });
 });
 
 router.get('/forgot-password', function (req, res) {
-    res.render('vwAccounts/forgot', { layout: 'auth-layout' });
+    res.render('vwAccounts/forgot', {
+        layout: 'auth-layout'
+    });
 });
 
 router.post('/forgot-password', async function (req, res) {
@@ -237,15 +274,17 @@ router.post('/forgot-password', async function (req, res) {
         });
     }
 
-    const secret = user.email + user.password + SECRET_KEY;
-    const token = bcrypt.hashSync(secret, 1);
-    const safeToken = encodeURIComponent(token);
-    const link = `http://localhost:3000/account/reset?email=${email}&token=${safeToken}`;
-
-    const result = await sendForgotPasswordLink(email, link);
+    const otp = generateOTP();
+    await userService.patchOTP(otp, user.user_id);
+    const result = await sendOTP(email, otp);
 
     if (result) {
-        res.render('vwAccounts/forgot', { layout: 'auth-layout', done: true });
+        res.render('OTP', {
+            layout: 'auth-layout',
+            title: 'Recovery Code',
+            email: email,
+            action_link: '/account/verify-reset-otp'
+        });
     } else {
         res.render('vwAccounts/forgot', {
             layout: 'auth-layout',
@@ -254,55 +293,77 @@ router.post('/forgot-password', async function (req, res) {
     }
 });
 
-router.get('/reset', async function (req, res) {
-    const { email, token } = req.query;
-
-    if (!email || !token) {
-        return res.send('Invalid link!');
-    }
-
+router.post('/verify-reset-otp', async function (req, res) {
+    const { email, otp } = req.body;
     const user = await userService.findByEmail(email);
-    if (!user) {
-        return res.send('User does not exist!');
+
+    if (!user) return res.render('OTP', { 
+        layout: 'auth-layout', 
+        email, 
+        action_link: '/account/verify-reset-otp', 
+        err_message: 'User not found.' 
+    });
+
+    const now = moment();
+    const expiry = moment(user.otp_expires_at);
+
+    if (user.otp === +otp && now.isBefore(expiry)) {
+        
+        req.session.canResetPassword = true;
+        req.session.resetEmail = email;
+        
+        return res.redirect('/account/reset');
+    } else {
+        return res.render('OTP', {
+            layout: 'auth-layout',
+            email: email,
+            action_link: '/account/verify-reset-otp',
+            err_message: 'Invalid OTP code or it has expired.'
+        });
+    }
+});
+
+router.get('/reset', function (req, res) {
+    if (!req.session.canResetPassword || !req.session.resetEmail) {
+        return res.redirect('/account/forgot-password');
     }
 
-    const secret = user.email + user.password + SECRET_KEY;
-    const isValid = bcrypt.compareSync(secret, token);
-
-    if (!isValid) {
-        return res.send('Invalid link or password has already been changed!');
-    }
-
-    res.render('vwAccounts/reset', { layout: 'auth-layout', email, token });
+    res.render('vwAccounts/reset', { 
+        layout: 'auth-layout'
+    });
 });
 
 router.post('/reset', async function (req, res) {
-    const { email, token, password, confirm_password } = req.body;
+    if (!req.session.canResetPassword || !req.session.resetEmail) {
+        return res.redirect('/account/forgot-password');
+    }
+
+    const { password, confirm_password } = req.body;
+    const email = req.session.resetEmail;
 
     if (password !== confirm_password) {
-        return res.render('vwAccount/reset', {
+        return res.render('vwAccounts/reset', {
             layout: 'auth-layout',
-            email,
-            token,
             err_message: 'Confirm password does not match!'
         });
     }
 
     const user = await userService.findByEmail(email);
+    
     if (!user) {
-        return res.send('User does not exist!');
-    }
-
-    const secret = user.email + user.password + SECRET_KEY;
-    const isValid = bcrypt.compareSync(secret, token);
-
-    if (!isValid) {
-        return res.send('Invalid link or password has already been changed!');
+        return res.redirect('/account/forgot-password');
     }
 
     const hashPassword = bcrypt.hashSync(password, 10);
     await userService.patchPassword(user.user_id, hashPassword);
-    res.redirect('/account/signin');
+
+    delete req.session.canResetPassword;
+    delete req.session.resetEmail;
+
+    res.render('vwAccounts/signin', {
+        layout: 'auth-layout',
+        success_message: 'Password reset successfully! Please login.'
+    });
 });
 
 router.get('/profile/watchlist', async function (req, res) {

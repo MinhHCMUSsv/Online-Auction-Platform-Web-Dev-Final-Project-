@@ -130,7 +130,7 @@
             <span>Buy it now: <span class="fw-bold text-primary">{{#if this.buy_now_price}}${{this.buy_now_price}}
                 {{else}}
                 None {{/if}}</span></span><br>
-            <span>Listed: {{formatDate this.start_time "DD/MM/YYYY HH:mm"}}</span><br> <span>Time left: {{formatDate
+            <span>Listed: {{formatDate this.start_time "DD/MM/YYYY HH:mm"}}</span><br> <span>Time left: {{formatAuctionTime
               this.end_time "DD/MM/YYYY HH:mm"}}</span><br>
             <span>Bids: 0</span>
           </p>

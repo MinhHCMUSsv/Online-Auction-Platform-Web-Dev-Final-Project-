@@ -43,17 +43,31 @@ app.engine('handlebars', engine({
             if (!str) return '';
             return str.substring(start, start + length);
         },
-        formatDate: (date) => {
-            if (!date) return '';
-            const d = new Date(date);
-            const day = String(d.getDate()).padStart(2, '0');
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const year = d.getFullYear();
-            return `${day}/${month}/${year}`;
+        formatDate: function (date, format) {
+            return moment(date).format(format);
+        },
+        formatAuctionTime: function (date, format) {
+            const dateObj = moment(date);
+            const now = moment();
+
+            if (!dateObj.isValid()) return '';
+            // Tính khoảng cách (đơn vị ngày)
+            const diffDays = dateObj.diff(now, 'days', true);
+            // A. ĐÃ HẾT HẠN (Quá khứ)
+            if (diffDays < 0) {
+                return "Ended"; 
+            }
+            // B. SẮP HẾT HẠN (Dưới 3 ngày) -> Hiện in 2 hours, in a day...
+            if (diffDays >= 0 && diffDays < 3) {
+                return dateObj.fromNow(); 
+            }
+            // C. CÒN LÂU (Trên 3 ngày) -> Hiện ngày tháng cụ thể
+            return dateObj.format(format);
         }
     }
      
 }));
+
 app.set('view engine', 'handlebars');
 app.set('views', './src/views');
 
