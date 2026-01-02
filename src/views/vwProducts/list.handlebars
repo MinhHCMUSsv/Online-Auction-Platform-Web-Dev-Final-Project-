@@ -70,9 +70,9 @@
         <ul class="dropdown-menu dropdown-menu-end">
           <li><a class="dropdown-item" href="/products">All</a></li>
 
-          {{#each categories}}
+          {{#each fatherCategories}}
           <li>
-            <a class="dropdown-item" href="/products/byCat?catID={{this.category_id}}">
+            <a class="dropdown-item" href="/products/{{this.slug}}">
               {{this.name}}
             </a>
           </li>
@@ -80,9 +80,9 @@
         </ul>
       </div>
 
-      <form class="flex-grow-1">
+      <form class="flex-grow-1" action="/products/search" method="GET">
         <div class="input-group">
-          <input type="text" class="form-control" placeholder="Search...">
+          <input type="text" class="form-control" placeholder="Search..." name="q">
           <button class="btn btn-primary px-4" type="submit">
             <i class="bi bi-search me-1"></i> Search
           </button>
@@ -92,7 +92,6 @@
     </div>
   </div>
 </div>
-
 
 <!-- PRODUCT GRID -->
 <div class="container-fluid px-4 py-4">

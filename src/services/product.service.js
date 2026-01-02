@@ -30,6 +30,10 @@ export function countByCat(catId) {
         .count('product_id as count').first();
 }
 
+export function getByCategoryID(categories_id) {
+    return db('product').where('category_id', categories_id).select();
+}
+
 export function add(product) {
     return db('product').insert(product).returning('product_id');
 }
@@ -113,4 +117,33 @@ export function findWonItems(userId) {
         .where('status', 'end')
         .andWhere('leader_id', userId)
         .orderBy('end_time', 'desc'); 
+}
+
+export function search(keyword) {
+    return db('product')
+        .whereRaw(`fts @@ to_tsquery(remove_accents('${keyword}'))`);
+}
+
+export function getProductByParentID(parent_id) {
+    return db('product as p')
+        .join('category as c', 'p.category_id', 'c.category_id')
+        .where('c.parent_id', parent_id)
+        .select('p.*');
+}
+
+export function findPageByParentID(parent_id, limit, offset) {
+    return db('product as p')
+        .join('category as c', 'p.category_id', 'c.category_id')
+        .where('c.parent_id', parent_id)
+        .limit(limit)
+        .offset(offset)
+        .select('p.*');
+}
+
+export function countByParentID(parent_id) {
+    return db('product as p')
+        .join('category as c', 'p.category_id', 'c.category_id')
+        .where('c.parent_id', parent_id)
+        .count('p.product_id as count')
+        .first();
 }

@@ -13,11 +13,12 @@ import sellerRouter from './src/routes/seller.route.js';
 
 import adminCategoryRouter from './src/routes/admin-category.route.js';
 import adminProductRouter from './src/routes/admin-product.route.js';
-import adminUpgradeRouter from './src/routes/admin-upgrade.route.js';
+import adminUserRouter from './src/routes/admin-user.route.js';
 
-import passport from './src/config/passport.config.js';
+//import passport from './src/config/passport.config.js';
 
-import * as homeService from './src/services/home.service.js';
+import commonRouter from './src/routes/accountRoute/common.route.js';
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -81,31 +82,14 @@ app.use(passport.session());
 app.use(function (req, res, next) {
     res.locals.isAuthenticated = req.session.isAuthenticated;
     res.locals.authUser = req.session.authUser;
+
+    res.locals.fatherCategories = req.session.fatherCategories || [];
     next();
 });
 
-app.get('/', async function (req, res) {
-    try {
-        const [topBid, mostActive, endingSoon] = await Promise.all([
-            homeService.findTopPrice(5),
-            homeService.findMostActive(5),
-            homeService.findEndingSoon(5)
-        ]);
-
-        res.render('home', {
-            title: 'Home',
-            activeNav: 'Home',
-            topBidProducts: topBid,
-            mostActiveProducts: mostActive,
-            endingSoonProducts: endingSoon
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Internal Server Error');
-    }
-});
-
 app.use(isUpgradePending);
+
+app.use('/', commonRouter);
 
 app.use('/auth', authRouter);
 app.use('/account', accountRouter);
@@ -114,8 +98,7 @@ app.use('/seller', sellerRouter);
 
 app.use('/admin/categories', adminCategoryRouter);
 app.use('/admin/products', adminProductRouter);
-app.use('/admin/upgrade-requests', adminUpgradeRouter);
-
+app.use('/admin/users', adminUserRouter);
 app.listen(PORT, function() {
     console.log('Server is running on http://localhost:' + PORT);
 });

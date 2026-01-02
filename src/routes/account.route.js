@@ -11,7 +11,6 @@ import { sendOTP } from '../utils/email.js';
 import { generateOTP } from '../utils/genOTP.js';
 
 const router = express.Router();
-const SECRET_KEY = process.env.SECRET_KEY
 const CAPTCHA_SECRET_KEY = process.env.CAPTCHA_SECRET_KEY;
 
 router.get('/signup', function (req, res) {
