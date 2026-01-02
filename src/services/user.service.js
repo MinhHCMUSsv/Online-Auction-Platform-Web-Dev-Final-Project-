@@ -4,6 +4,12 @@ export function getAllUsers() {
     return db('app_user');
 }
 
+export function getUserById(user_id) {
+    return db('app_user')
+        .where('user_id', user_id)
+        .first();
+}
+
 export function add(user) {
     return db('app_user').insert(user).returning('user_id');
 }
@@ -58,4 +64,16 @@ export function patchPassword(userId, newPassword) {
         .update({
             password_hash: newPassword
         });
+}
+
+export function updateUserRole(userId, role) {
+    return db('app_user')
+        .where('user_id', userId)
+        .update({ role: role });
+}
+
+export function updateUser(userId, updates) {
+    return db('app_user')
+        .where('user_id', userId)
+        .update(updates);
 }

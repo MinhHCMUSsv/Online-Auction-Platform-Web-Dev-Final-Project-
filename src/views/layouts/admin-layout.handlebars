@@ -58,12 +58,40 @@
 
         /* --- Admin Sidebar Styles --- */
         .admin-sidebar {
-            position: sticky;
-            top: 1.5rem; /* Adjusted sticky top */
+            position: fixed;
+            top: calc(var(--navbar-height) + 1.5rem);
+            left: 1rem;
+            width: 280px;
+            height: calc(100vh - var(--navbar-height) - 3rem);
+            overflow-y: auto;
             border: 1px solid #e0e0e0;
             border-radius: 12px;
             background: #fff;
             padding: 0 !important; /* Remove card padding for flush list group */
+            z-index: 100;
+        }
+
+        @media (max-width: 767px) {
+            .admin-sidebar {
+                position: sticky;
+                top: 1.5rem;
+                width: 100%;
+                height: auto;
+                left: 0;
+            }
+        }
+        
+        /* Main content adjustment for fixed sidebar */
+        .admin-main-content {
+            margin-left: calc(280px + 2rem);
+            padding-right: 1rem;
+        }
+
+        @media (max-width: 767px) {
+            .admin-main-content {
+                margin-left: 0;
+                padding-right: 0;
+            }
         }
         
         .sidebar-header {
@@ -106,6 +134,25 @@
             padding: 1.5rem !important; /* Increase padding for main content */
             border-radius: 12px !important;
         }
+
+        /* Sidebar scrollbar styling */
+        .admin-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .admin-sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .admin-sidebar::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 10px;
+        }
+
+        .admin-sidebar::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
         
     </style>
 
@@ -115,7 +162,7 @@
 <body>
 
     <nav class="navbar navbar-expand-lg bg-white shadow-sm sticky-top">
-        <div class="container-fluid container-xl px-4"> <a class="navbar-brand" href="/">
+        <div class="container-fluid"> <a class="navbar-brand" href="/">
                 <span class="logo-accent">MN</span><span class="logo-dark">Go</span>
             </a>
 
@@ -149,11 +196,11 @@
                             <li><a class="dropdown-item" href="/admin">Dashboard</a></li>
                             <li><a class="dropdown-item" href="/admin/settings">Settings</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="/account/signout">Sign Out</a></li>
+                            <li><a class="dropdown-item text-danger" href="/signout">Sign Out</a></li>
                           </ul>
                     </div>
                     {{else}}
-                    <a class="btn btn-warning" href="/account/signin">Sign In</a>
+                    <a class="btn btn-warning" href="/signin">Sign In</a>
                     {{/if}}
                 </div>
 
@@ -161,12 +208,11 @@
         </div>
     </nav>
 
-    <div class="container-xl my-4" style="min-height: 70vh;">
+    <div class="container-fluid" style="min-height: 100px;">
         <div class="row g-4"> <aside class="col-12 col-md-3">
                 <div class="admin-sidebar shadow-sm">
                     <div class="sidebar-header d-flex align-items-center justify-content-between">
                         ADMIN NAVIGATION
-                        <span class="badge text-bg-light border">v1.0</span>
                     </div>
                     <div class="list-group list-group-flush">
                         
@@ -187,7 +233,7 @@
                     </div>
                 </div>
             </aside>
-            <main class="col-12 col-md-9">
+            <main class="col-12 col-md-9 admin-main-content mb-5">
                 <div class="bg-white shadow-sm">
                     {{{body}}}
                 </div>
@@ -195,7 +241,7 @@
         </div>
     </div>
 
-    <footer class="text-center text-muted p-4 border-top mt-5">
+    <footer class="text-center text-muted p-4 border-top mt-7">
         <div class="container-xl">
             © 2025 MNGo | Built for Web Development Final Project
         </div>

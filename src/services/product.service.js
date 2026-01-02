@@ -1,7 +1,9 @@
 import db from '../utils/db.js';
 
 export function getAll() {
-    return db('product').select();
+    return db('product as p')
+        .join('app_user as u', 'p.seller_id', 'u.user_id')
+        .select('p.*', 'u.full_name as seller_name');
 }
 
 export function getAllCategories() {
@@ -146,4 +148,10 @@ export function countByParentID(parent_id) {
         .where('c.parent_id', parent_id)
         .count('p.product_id as count')
         .first();
+}
+
+export function updateCurrentPriceAndLeader(productId, updateProductData) {
+    return db('product')
+        .where('product_id', productId)
+        .update(updateProductData);
 }

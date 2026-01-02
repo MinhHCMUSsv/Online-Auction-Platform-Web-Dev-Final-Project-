@@ -56,21 +56,25 @@
                     </div>
                 </div>
 
+                {{#if (eq product.current_price null)}}
                 <div class="mb-2 fw-semibold">
-                    Highest bid: <span class="text-warning">${{bidder.[0].max_auto_bid}}</span>
+                        Starting bid: <span class="text-warning">${{product.start_price}}</span>
                 </div>
-
+                {{else}}
+                <div class="mb-2 fw-semibold">
+                        Current price: <span class="text-warning">${{product.current_price}}</span>
+                </div>
                 <!-- Highest bidder -->
                 <div class="d-flex align-items-center mb-3">
                     <div class="badge-avatar badge-avatar-dark me-3">
                         B
                     </div>
                     <div>
-                        <div class="fw-semibold">{{bidder.[0].full_name}}</div>
-                        <small class="text-muted">Points: {{bidder.[0].points}}</small>
+                        <div class="fw-semibold">{{winBidder.full_name}}</div>
+                        <small class="text-muted">Points: {{winBidder.points}}</small>
                     </div>
                 </div>
-
+                {{/if}}
                 <ul class="list-unstyled small text-muted mb-3">
                     <li>Listed: 02/11/2025</li>
                     <li>Time left: 11/11/2025</li>
@@ -104,7 +108,7 @@
                         <h5 class="mb-0">Place Your Bid</h5>
                     </div>
                     <div class="card-body">
-                        <form method="POST" action="/products/place-bid">
+                        <form method="POST" action="/menu/place-bid" id="bidForm">
                             <div class="mb-3">
                                 <label for="bidAmount" class="form-label">Bid Amount</label>
                                 <div class="input-group">
@@ -113,21 +117,27 @@
                                            class="form-control" 
                                            id="bidAmount" 
                                            name="max_auto_bid" 
-                                           placeholder="Enter your bid amount"
-                                           min="{{product.start_price}}"
-                                           required>
+                                           placeholder="Enter your bid amount">
 
                                     <input type="hidden" name="product_id" value="{{product.product_id}}">
                                     <input type="hidden" name="bidder_id" value="{{authUser.user_id}}">
-                                    
+                                    <input type="hidden" id="minBid" value="{{product.start_price}}">
                                     
                                 </div>
                             </div>
                             
-                            Minimum bid: ${{product.start_price}}<br>
+                            {{#if (eq current_price null)}}
+                                <div class="alert alert-info" role="alert">
+                                    Current highest bid is ${{current_price}}. Your bid must be higher than this amount.
+                                </div>
+                            {{else}}
+                                <div class="alert alert-info" role="alert">
+                                    Minimum bid is ${{product.start_price}}.
+                                </div>
+                            {{/if}}
 
                             <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary px-4">
+                                <button type="submit" class="btn btn-primary px-4" id="submitBidBtn">
                                     <i class="bi bi-hammer"></i> Submit Bid
                                 </button>
                                 <button type="reset" class="btn btn-outline-secondary px-4">
@@ -294,3 +304,87 @@
         </div>
     </section>
 </main>
+
+<!-- SweetAlert2 Library -->
+{{#section 'js'}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.0/dist/sweetalert2.all.min.js"></script>
+
+<script>
+    // Bid form validation with SweetAlert
+    {{#if isAuthenticated}}
+        document.getElementById('bidForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            
+            const bidAmount = parseFloat(document.getElementById('bidAmount').value);
+            const minBid = parseFloat(document.getElementById('minBid').value);
+            const highestBid = {{#if current_price}}{{current_price}}{{else}}{{product.start_price}}{{/if}};
+            const maxBid = {{#if leader_max}}{{leader_max}}{{else}}0{{/if}};
+            
+            // Check if bid is less than minimum
+            if (bidAmount < minBid) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Bid Too Low',
+                    text: `Minimum bid is $${minBid}. Please enter a bid of at least $${minBid}.`,
+                    confirmButtonColor: '#dc3545',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+            
+            // Check if bid is not greater than highest bid
+            if (bidAmount <= highestBid) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Bid Must Be Higher',
+                    text: `Your bid must be higher than the current highest bid ($${highestBid}).`,
+                    confirmButtonColor: '#ffc107',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+            
+            // All validations passed, ask for confirmation before submit
+
+            if (bidAmount < maxBid) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Bid Successfully',
+                    text: `But your bet ($${bidAmount}) isn't high enough to win. Bet more.`,
+                    confirmButtonColor: '#dc3545',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            if (bidAmount === maxBid) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Bid Successfully',
+                    text: `But your bet ($${bidAmount}) is equal to the highest bid. Try increasing your bid to win.`,
+                    confirmButtonColor: '#0d6efd',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            if (bidAmount > maxBid) {
+                 Swal.fire({
+                    icon: 'success',
+                    title: 'Bid Successfully',
+                    text: `Congratulations! Your bid of $${bidAmount} is now the highest bid.`,
+                    confirmButtonColor: '#198754',
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+                return;
+            }
+        });
+    {{/if}}
+</script>
+
+{{/section}}

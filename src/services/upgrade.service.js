@@ -25,3 +25,9 @@ export function getUpgradeStatus(userId) {
         .orderBy('request_time', 'desc')
         .first();
 }
+
+export function deleteUpgradeRequest(userId) {
+    return db('upgrade_request')
+        .where('bidder_id', userId)
+        .del();
+}

@@ -136,7 +136,7 @@
           </p>
 
           <div class="mt-2">
-            <a href="/products/detail?id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">Details</a>
+            <a href="/menu/detail?product_id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">Details</a>
           </div>
         </div>
 
@@ -189,7 +189,7 @@
     const $icon = $btn.find('i');
 
     // Gửi AJAX request lên server
-    $.post('/products/watchlist/toggle', { product_id: productId }, function (data) {
+    $.post('/menu/watchlist/toggle', { product_id: productId }, function (data) {
       if (data.success) {
         if (data.isAdded) {
           $btn.addClass('active');
@@ -201,7 +201,7 @@
       } else {
         alert(data.message || 'Something went wrong!');
         if (data.message === 'Please login first!') {
-          window.location.href = '/account/signin';
+          window.location.href = '/signin';
         }
       }
     }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -209,7 +209,7 @@
         const msg = jqXHR.responseJSON ? jqXHR.responseJSON.message : 'Please login first!';
         alert(msg);
 
-        window.location.href = '/account/signin';
+        window.location.href = '/signin';
       } else {
         alert('Cannot connect to server!');
       }

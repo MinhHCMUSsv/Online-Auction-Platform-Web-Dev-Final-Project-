@@ -14,6 +14,10 @@ export function getFatherCategories() {
         .select();
 }
 
+export function getAll() {
+    return db('category').select();
+}
+
 export function getChildCategories(parent_id) {
     return db('category')
         .where('parent_id', parent_id)

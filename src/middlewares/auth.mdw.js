@@ -15,6 +15,13 @@ export function isAdmin(req, res, next) {
     next();
 }
 
+export function isSeller(req, res, next) {
+    if (!req.session.isAuthenticated || req.session.authUser.role !== 1) {
+        return res.status(403).send('Forbidden');
+    }
+    next();
+}
+
 export async function isUpgradePending(req, res, next) {
     if (req.session.isAuthenticated) {
         try {

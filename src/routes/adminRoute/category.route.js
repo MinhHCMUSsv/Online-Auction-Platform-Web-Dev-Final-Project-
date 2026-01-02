@@ -4,10 +4,16 @@ import * as categoriesService from '../../services/category.service.js';
 const router = express.Router();
 
 router.get('/', async function(req, res) {
-    const list = await categoriesService.getFatherCategories();
+    const allCategories = await categoriesService.getAll();
+    
+    // Add hasChildren flag to each category
+    const categoriesWithChildren = allCategories.map(cat => {
+        const hasChildren = allCategories.some(c => c.parent_id === cat.category_id);
+        return { ...cat, hasChildren };
+    });
     
     res.render('vwAdmin/categories', { 
-        categories: list,
+        categories: categoriesWithChildren,
         activeNav: 'categories',
         layout: 'admin-layout'
     });
@@ -16,6 +22,7 @@ router.get('/', async function(req, res) {
 router.post('/add', async function(req, res) {
     const category = {
         name: req.body.name,
+        parent_id: req.body.parent_id || null
     };
 
     await categoriesService.addCategory(category);

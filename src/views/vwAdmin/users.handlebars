@@ -328,6 +328,92 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalUpgradeRequests" tabindex="-1" aria-labelledby="modalUpgradeRequestsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title fw-bold" id="modalUpgradeRequestsLabel">
+                        <i class="bi bi-shop-window me-2 text-primary"></i>Seller Upgrade Requests
+                    </h5>
+                    <p class="text-muted small mb-0">Review and approve users who want to become sellers</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                {{#if upgradeRequests}}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">User</th>
+                                    <th>Email</th>
+                                    <th>Request Date</th>
+                                    <th style="width: 120px;">Status</th>
+                                    <th class="text-end pe-4" style="width: 200px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#each upgradeRequests}}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar me-3">{{#if full_name}}{{full_name.[0]}}{{else}}U{{/if}}</div>
+                                            <div class="fw-bold text-dark">{{full_name}}</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted small">{{email}}</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted small">
+                                            {{#if created_at}}{{formatDate created_at "DD/MM/YYYY HH:mm"}}{{else}}N/A{{/if}}
+                                        </span>
+                                    </td>
+                            
+                                    <td>
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-hourglass-split"></i> Pending
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <form action="/admin/users/upgrade/reject" method="post" class="d-inline">
+                                                <input type="hidden" name="user_id" value="{{user_id}}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Reject this seller request?');">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </form>
+                                            <form action="/admin/users/upgrade/approve" method="post" class="d-inline">
+                                                <input type="hidden" name="user_id" value="{{user_id}}">
+                                                <button type="submit" class="btn btn-sm btn-warning-accent">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                {{else}}
+                    <div class="text-center py-5">
+                        <div class="mb-3">
+                            <i class="bi bi-inbox display-4 text-muted"></i>
+                        </div>
+                        <h5 class="fw-bold">No Pending Requests</h5>
+                        <p class="text-muted mb-0">All seller upgrade requests have been processed.</p>
+                    </div>
+                {{/if}}
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="modalEditUser" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <form class="modal-content border-0 shadow" action="/admin/users/edit" method="post">

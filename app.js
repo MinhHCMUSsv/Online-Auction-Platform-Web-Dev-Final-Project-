@@ -62,7 +62,12 @@ app.engine('handlebars', engine({
             }
             // C. CÒN LÂU (Trên 3 ngày) -> Hiện ngày tháng cụ thể
             return dateObj.format(format);
+        },
+
+        ifEquals (a, b, options) {
+            return (a === b) ? options.fn(this) : options.inverse(this);
         }
+
     }
      
 }));

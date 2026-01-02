@@ -26,7 +26,7 @@
 <body class="bg-light-subtle">
 
   <nav class="navbar navbar-expand-lg bg-white shadow-sm">
-    <div class="container-fluid">
+    <div class="container-fluid px-3">
 
       <a class="navbar-brand" href="/">
         <span style="color: #FF8C00; font-weight: 800;">MN</span><span
@@ -39,7 +39,6 @@
 
       <div class="collapse navbar-collapse" id="mainNav">
 
-        <div class="d-none d-lg-block" style="width: 200px;"></div>
         <ul class="nav nav-pills mx-auto">
           <li class="nav-item">
             <a class="nav-link {{#if (eq activeNav 'Home')}}active{{/if}}" href="/">Home</a>
@@ -56,7 +55,7 @@
           </li>
         </ul>
 
-        <div class="d-flex justify-content-end" style="width: 200px;"> {{#if isAuthenticated}}
+        <div class="d-flex ms-auto"> {{#if isAuthenticated}}
           <div class="d-flex align-items-center">
             <div class="text-end me-2">
               <div class="fw-bold" style="font-size: 1.1rem; color: #000;">

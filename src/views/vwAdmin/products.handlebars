@@ -93,42 +93,51 @@
         transition: all 0.2s;
     }
 
+    /* Pagination Styles */
+    .pagination {
+        gap: 0.25rem;
+    }
+
+    .pagination .page-link {
+        color: #212529;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-weight: 500;
+        padding: 0.5rem 0.75rem;
+        transition: all 0.2s;
+    }
+
+    .pagination .page-link:hover {
+        background-color: rgba(255, 140, 0, 0.1);
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+        color: #6c757d;
+        cursor: not-allowed;
+    }
+
+    .pagination .page-link:focus {
+        box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25);
+    }
+
 </style>
 {{/section}}
 
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-5">
     <div>
         <h1 class="h2 fw-bolder mb-0">Product Management</h1>
-    </div>
-</div>
-
-<div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
-    <div class="col">
-        <div class="product-kpi">
-            <div class="kpi-title mb-2">Total Products</div>
-            <div class="kpi-value">
-                {{products.length}}
-            </div>
-            
-        </div>
-    </div>
-    <div class="col">
-        <div class="product-kpi">
-            <div class="kpi-title mb-2">Live Auctions</div>
-            <div class="kpi-value">
-                98
-            </div>
-            
-        </div>
-    </div>
-    <div class="col">
-        <div class="product-kpi">
-            <div class="kpi-title mb-2">Draft Items</div>
-            <div class="kpi-value">
-                16
-            </div>
-            
-        </div>
     </div>
 </div>
 
@@ -171,7 +180,7 @@
                                 <td class="fw-semibold text-muted px-4">{{#if product_id}}{{product_id}}{{else}}#{{@index}}{{/if}}</td>
                                 <td>
                                     <div class="fw-bold">{{name}}</div>
-                                    <div class="text-muted small">Seller: {{#if seller}}{{seller}}{{else}}N/A{{/if}}</div>
+                                    <div class="text-muted small">Seller: {{#if seller_name}}{{seller_name}}{{else}}N/A{{/if}}</div>
                                 </td>
                                 
                                 <td class="fw-bold text-dark">{{#if price}}{{price}}{{else}}—{{/if}}</td>
@@ -186,7 +195,7 @@
                                 </td>
                                 <td>
                                     <div class="d-flex justify-content-end gap-2 px-4">
-                                        <a class="btn btn-sm btn-outline-secondary" href="/admin/products/details?product_id={{product_id}}" title="View Details">
+                                        <a class="btn btn-sm btn-outline-secondary" href="/admin/products/details?  product_id={{product_id}}" title="View Details">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         <a class="btn btn-sm btn-outline-dark" href="/admin/products/edit?product_id={{product_id}}" title="Edit Product">
@@ -219,14 +228,46 @@
         </div>
     </div>
     <div class="card-footer py-3 d-flex justify-content-between align-items-center">
-        <div class="text-muted small">Showing 1 - 10 of 124 products</div>
+        <div class="text-muted small">
+            {{#if products}}
+                Showing {{showing.from}} - {{showing.to}} of {{total}} products
+            {{else}}
+                No products to display
+            {{/if}}
+        </div>
         <nav>
             <ul class="pagination pagination-sm mb-0">
-                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                {{#if prevPage}}
+                <li class="page-item">
+                    <a class="page-link" href="/admin/products?page={{prevPage}}{{#if categoryFilter}}&category_id={{categoryFilter}}{{/if}}">Previous</a>
+                </li>
+                {{else}}
+                <li class="page-item disabled">
+                    <a class="page-link">Previous</a>
+                </li>
+                {{/if}}
+                
+                {{#each pageNumbers}}
+                {{#if isCurrent}}
+                <li class="page-item active">
+                    <a class="page-link" href="javascript:;">{{value}}</a>
+                </li>
+                {{else}}
+                <li class="page-item">
+                    <a class="page-link" href="/admin/products?page={{value}}{{#if ../categoryFilter}}&category_id={{../categoryFilter}}{{/if}}">{{value}}</a>
+                </li>
+                {{/if}}
+                {{/each}}
+                
+                {{#if nextPage}}
+                <li class="page-item">
+                    <a class="page-link" href="/admin/products?page={{nextPage}}{{#if categoryFilter}}&category_id={{categoryFilter}}{{/if}}">Next</a>
+                </li>
+                {{else}}
+                <li class="page-item disabled">
+                    <a class="page-link">Next</a>
+                </li>
+                {{/if}}
             </ul>
         </nav>
     </div>

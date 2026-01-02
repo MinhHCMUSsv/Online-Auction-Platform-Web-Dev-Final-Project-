@@ -1,6 +1,7 @@
 import express from 'express';
 import * as productService from '../../services/product.service.js';
 import * as watchlistService from '../../services/watchlist.service.js';
+import * as userService from '../../services/user.service.js';
 import * as categoriesService from '../../services/category.service.js';
 
 const router = express.Router();
@@ -55,23 +56,27 @@ router.get('/', async function (req, res) {
     });
 });
 
-
-
 router.get('/detail', async function (req, res) {
     const product_id = req.query.product_id;
     const product= await productService.getProductById(product_id);   
 
     const seller = await productService.getSellerById(product.seller_id);
-    const bidder = await productService.getBidder(product_id);
     const comments = await productService.getCommentsWithReplies(product_id);
-
+    
     const limit = 5;
     const related_products = await productService.getRelatedProducts(product.category_id, limit);
+    const bidder = await productService.getBidder(product_id);
+    
+    let winBidder = [];
+    if (product.leader_id !== null) {
+        winBidder = await productService.getBidder(product.leader_id);
+    }
 
-    res.render('vwProducts/detail', {
+    res.render('vwMenu/detail', {
         product: product,
         seller: seller,
         bidder: bidder,
+        winBidder: winBidder,
         comments: comments,
         related_products: related_products
     });
@@ -98,11 +103,14 @@ router.post('/place-bid', async function (req, res) {
         const step = Number(product.bid_step);
         const currentLeaderId = product.leader_id; // ID người đang thắng
 
+        let isChange = false;
+
         // BƯỚC 2: LOGIC TÍNH GIÁ BID_AMOUNT ĐỂ LƯU VÀO LỊCH SỬ
         
         // Trường hợp A: Sản phẩm chưa có ai đấu giá
         if (!currentLeaderId) {
             finalBidAmount = startPrice;
+            isChange = true;
         } 
         else {
             // Trường hợp B: Đã có người đấu giá
@@ -112,46 +120,60 @@ router.post('/place-bid', async function (req, res) {
                 // Nếu mình đang thắng mà đặt tiếp -> Giữ nguyên giá hiện tại (chỉ update Max Bid ngầm)
                 // Để lịch sử hiện: 30.5tr (Max 40tr) thay vì nhảy lên 35tr
                 finalBidAmount = currentPrice;
+                if (inputMaxAutoBid > product.leader_max) {
+                    isChange = true;
+                }
+                else {
+                    
+                    
+
+                
             } else {
                 // >>> QUAN TRỌNG: ĐẤU VỚI NGƯỜI KHÁC <<<
                 // Giá vào lệnh = Giá hiện tại + Bước giá
-                finalBidAmount = currentPrice + step;
+
+                if (inputMaxAutoBid < product.leader_max) {
+                    // Trường hợp 1: Người dùng nhập Max Auto Bid thấp hơn người đang thắng
+                    // Giữ nguyên giá hiện tại, không đổi người thắng
+                    finalBidAmount = currentPrice; // Không đổi giá
+                }
+                else {
+                    // Trường hợp 2: Người dùng nhập Max Auto Bid cao hơn hoặc bằng người đang thắng
+                    // Cập nhật người thắng mới và giá hiện tại
+                    finalBidAmount = Math.min(inputMaxAutoBid, product.leader_max + step);
+                    isChange = true; 
+                }
             }
         }
-
-        // Validate nhẹ: Nếu Max Auto Bid người dùng nhập vào nhỏ hơn giá sàn định bid
-        if (inputMaxAutoBid < finalBidAmount) {
-             // Tùy logic bên bạn, có thể báo lỗi hoặc tự động set bằng finalBidAmount
-             // return res.send('Giá Auto Bid phải lớn hơn giá hiện tại + bước giá');
+        
+        if (isChange) {
+            const updateProductData = {
+                current_price: finalBidAmount,
+                leader_id: bidderId,
+                leader_max: inputMaxAutoBid
+            };  
+            await productService.updateCurrentPriceAndLeader(productId, updateProductData);
         }
 
         // BƯỚC 3: GỌI SERVICE ĐỂ INSERT VÀO DB
         const placeBidData = {
             product_id: productId,
             bidder_id: bidderId,
-            bid_amount: finalBidAmount, // <--- Đã được tính toán chính xác
+            bid_amount: finalBidAmount,
             max_auto_bid: inputMaxAutoBid
         };
 
         await productService.placeBid(placeBidData);
         
-        // Thành công -> Refresh trang
-        res.redirect('/products/detail?product_id=' + productId);
+        res.redirect('/menu/detail?product_id=' + productId);
 
     } catch (error) {
         console.error(error);
-        res.status(500).send('Lỗi server');
+        res.status(500).send('Server error');
     }
 });
 
 router.post('/watchlist/toggle', async function (req, res) {
-    if (!req.session.isAuthenticated) {
-        return res.status(401).json({ 
-            success: false, 
-            message: 'Please login first!' 
-        });
-    }
-
     const userId = req.session.authUser.user_id;
     const productId = req.body.product_id;
 
@@ -181,9 +203,7 @@ router.post('/watchlist/toggle', async function (req, res) {
 });
 
 router.get('/search', async function (req, res) {
-    console.log('Search route accessed');
     const query = req.query.q || '';
-    console.log('Search query:', query);
     
     if (query.length === 0) {
         return res.render('vwMenu/search', {
