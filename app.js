@@ -6,19 +6,18 @@ import session from 'express-session';
 import { isAuth, isAdmin, isUpgradePending } from './src/middlewares/auth.mdw.js';
 import moment from 'moment';
 
-import authRouter from './src/routes/auth.route.js';
-import accountRouter from './src/routes/account.route.js';
-import productRouter from './src/routes/product.route.js';
+import authRouter from './src/routes/accountRoute/auth.route.js';
 import sellerRouter from './src/routes/seller.route.js';
 
-import adminCategoryRouter from './src/routes/admin-category.route.js';
-import adminProductRouter from './src/routes/admin-product.route.js';
-import adminUserRouter from './src/routes/admin-user.route.js';
+import adminCategoryRouter from './src/routes/adminRoute/category.route.js';
+import adminProductRouter from './src/routes/adminRoute/product.route.js';
+import adminUserRouter from './src/routes/adminRoute/user.route.js';
 
-//import passport from './src/config/passport.config.js';
+import passport from './src/utils/passport.js';
 
 import commonRouter from './src/routes/accountRoute/common.route.js';
-
+import profileRouter from './src/routes/accountRoute/profile.route.js';
+import menuRouter from './src/routes/accountRoute/menu.route.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -90,15 +89,21 @@ app.use(function (req, res, next) {
 app.use(isUpgradePending);
 
 app.use('/', commonRouter);
-
+app.use('/menu', menuRouter);
 app.use('/auth', authRouter);
-app.use('/account', accountRouter);
-app.use('/products', productRouter);
+
+app.use('/profile', isAuth, profileRouter);
+
 app.use('/seller', sellerRouter);
 
 app.use('/admin/categories', adminCategoryRouter);
 app.use('/admin/products', adminProductRouter);
 app.use('/admin/users', adminUserRouter);
+
+app.use((req, res) => {
+    res.status(403).render('vwError/403');
+});
+
 app.listen(PORT, function() {
     console.log('Server is running on http://localhost:' + PORT);
 });

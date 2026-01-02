@@ -1,13 +1,13 @@
 import express from 'express';
 import passport from 'passport';
-import * as userService from '../services/user.service.js';
+import * as userService from '../../services/user.service.js';
 
 const router = express.Router();
 
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 router.get('/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/account/signin' }),
+  passport.authenticate('google', { failureRedirect: '/signin' }),
   async function(req, res) {
     const googleProfile = req.user;
     const googleId = googleProfile.id;
@@ -59,7 +59,7 @@ router.get('/google/callback',
 router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
 
 router.get('/facebook/callback',
-  passport.authenticate('facebook', { failureRedirect: '/account/signin' }),
+  passport.authenticate('facebook', { failureRedirect: '/signin' }),
   async function(req, res) {
     const fbProfile = req.user;
     const fbId = fbProfile.id;

@@ -68,11 +68,11 @@
                 </button>
 
                 <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="/products">All</a></li>
+                    <li><a class="dropdown-item" href="/menu">All</a></li>
 
-                    {{#each categories}}
+                    {{#each fatherCategories}}
                     <li>
-                        <a class="dropdown-item" href="/products/byCat?catID={{this.category_id}}">
+                        <a class="dropdown-item" href="/menu/{{this.slug}}">
                             {{this.name}}
                         </a>
                     </li>
@@ -80,7 +80,7 @@
                 </ul>
             </div>
 
-            <form class="flex-grow-1" action="/products/search" method="GET">
+            <form class="flex-grow-1" action="/menu/search" method="GET">
                 <div class="input-group">
                     <input type="text" class="form-control" placeholder="Search..." name="q">
                     <button class="btn btn-primary px-4" type="submit">
@@ -97,6 +97,8 @@
 <h5 class="header">Search results for "{{query}}"</h5>
 
 {{#if (eq empty 0)}}
+    <div>No products found.</div>
+{{else}}
 <div class="container-fluid px-4 py-4">
     <div class="row g-3">
         {{#each products}}
@@ -140,7 +142,7 @@
                     </p>
 
                     <div class="mt-2">
-                        <a href="/products/detail?product_id={{this.product_id}}"
+                        <a href="/menu/detail?product_id={{this.product_id}}"
                             class="btn btn-sm btn-outline-primary w-100">Details</a>
                     </div>
                 </div>
@@ -170,9 +172,7 @@
             </ul>
         </nav>
     </div>
-</div>
-{{else}}
-    <div>No products found.</div>
+</div>    
 {{/if}}
 
 {{#section 'js'}}

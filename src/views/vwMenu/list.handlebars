@@ -68,11 +68,11 @@
         </button>
 
         <ul class="dropdown-menu dropdown-menu-end">
-          <li><a class="dropdown-item" href="/products">All</a></li>
+          <li><a class="dropdown-item" href="/menu">All</a></li>
 
           {{#each fatherCategories}}
           <li>
-            <a class="dropdown-item" href="/products/{{this.slug}}">
+            <a class="dropdown-item" href="/menu/{{this.slug}}">
               {{this.name}}
             </a>
           </li>
@@ -80,7 +80,7 @@
         </ul>
       </div>
 
-      <form class="flex-grow-1" action="/products/search" method="GET">
+      <form class="flex-grow-1" action="/menu/search" method="GET">
         <div class="input-group">
           <input type="text" class="form-control" placeholder="Search..." name="q">
           <button class="btn btn-primary px-4" type="submit">
@@ -135,7 +135,7 @@
           </p>
 
           <div class="mt-2">
-            <a href="/products/detail?product_id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">Details</a>
+            <a href="/menu/detail?product_id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">Details</a>
           </div>
         </div>
 
@@ -144,9 +144,15 @@
     {{/each}}
     <nav aria-label="...">
       <ul class="pagination">
+        {{#if prevPage}}
+        <li class="page-item">
+          <a class="page-link" href="/menu?page={{prevPage}}">Previous</a>
+        </li>
+        {{else}}
         <li class="page-item disabled">
           <a class="page-link">Previous</a>
         </li>
+        {{/if}}
         {{#each pageNumbers}}
         {{#if isCurrent}}
         <li class="page-item active">
@@ -154,13 +160,19 @@
         </li>
         {{else}}
         <li class="page-item">
-          <a class="page-link" href="/products?page={{value}}">{{value}}</a>
+          <a class="page-link" href="/menu?page={{value}}">{{value}}</a>
         </li>
         {{/if}}
         {{/each}}
+        {{#if nextPage}}
         <li class="page-item">
-          <a class="page-link" href="#">Next</a>
+          <a class="page-link" href="/menu?page={{nextPage}}">Next</a>
         </li>
+        {{else}}
+        <li class="page-item disabled">
+          <a class="page-link">Next</a>
+        </li>
+        {{/if}}
       </ul>
     </nav>
   </div>
@@ -176,7 +188,7 @@
     const $icon = $btn.find('i');
 
     // Gửi AJAX request lên server
-    $.post('/products/watchlist/toggle', { product_id: productId }, function (data) {
+    $.post('/menu/watchlist/toggle', { product_id: productId }, function (data) {
       if (data.success) {
         if (data.isAdded) {
           $btn.addClass('active');
@@ -188,7 +200,7 @@
       } else {
         alert(data.message || 'Something went wrong!');
         if (data.message === 'Please login first!') {
-          window.location.href = '/account/signin';
+          window.location.href = '/signin';
         }
       }
     }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -196,7 +208,7 @@
         const msg = jqXHR.responseJSON ? jqXHR.responseJSON.message : 'Please login first!';
         alert(msg);
 
-        window.location.href = '/account/signin';
+        window.location.href = '/signin';
       } else {
         alert('Cannot connect to server!');
       }

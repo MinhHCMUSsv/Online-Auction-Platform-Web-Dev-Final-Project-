@@ -45,14 +45,14 @@
             <a class="nav-link {{#if (eq activeNav 'Home')}}active{{/if}}" href="/">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {{#if (eq activeNav 'Menu')}}active{{/if}}" href="/products">Menu</a>
+            <a class="nav-link {{#if (eq activeNav 'Menu')}}active{{/if}}" href="/menu">Menu</a>
           </li>
           <li class="nav-item">
             <a class="nav-link {{#if (eq activeNav 'Watchlist')}}active{{/if}}"
-              href="/account/profile/watchlist">Watchlist</a>
+              href="/profile/watchlist">Watchlist</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {{#if (eq activeNav 'Account')}}active{{/if}}" href="/account/profile">Account</a>
+            <a class="nav-link {{#if (eq activeNav 'Account')}}active{{/if}}" href="/profile">Account</a>
           </li>
         </ul>
 
@@ -81,7 +81,7 @@
             </div>
           </div>
           {{else}}
-          <a class="btn btn-danger rounded-pill" href="/account/signin">Sign In</a>
+          <a class="btn btn-danger rounded-pill" href="/signin">Sign In</a>
           {{/if}}
         </div>
 

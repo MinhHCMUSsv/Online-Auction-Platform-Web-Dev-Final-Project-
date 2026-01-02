@@ -4,6 +4,7 @@ import fs from 'fs-extra';
 import path from 'path';
 
 import * as productService from '../services/product.service.js';
+import * as categoryService from '../services/category.service.js';
 
 const router = express.Router();
 
@@ -25,16 +26,7 @@ router.post('/upload/temp', upload.single('imgs'), function (req, res) {
 });
 
 router.get('/create', async function (req, res) {
-    if (!req.session.isAuthenticated) {
-        req.session.retUrl = '/seller/create';
-        return res.redirect('/account/signin');
-    }
-
-    if (req.session.authUser.role !== 1) {
-        return res.redirect('/account/profile');
-    }
-
-    const category = await productService.getAllCategories();
+    const category = await categoryService.getAllChild();
 
     res.render('vwAccounts/create', {
         layout: 'account-layout',
@@ -46,10 +38,6 @@ router.get('/create', async function (req, res) {
 });
 
 router.post('/create', async function (req, res) {
-    if (!req.session.isAuthenticated) {
-        return res.redirect('/account/signin');
-    }
-
     const user = req.session.authUser;
 
     const startPrice = req.body.startPrice.replace(/,/g, '');
@@ -99,7 +87,7 @@ router.post('/create', async function (req, res) {
         }
     }
 
-    res.redirect('/account/profile');
+    res.redirect('/profile');
 });
 
 export default router;

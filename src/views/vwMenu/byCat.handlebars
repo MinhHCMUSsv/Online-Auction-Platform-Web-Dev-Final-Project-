@@ -68,11 +68,11 @@
         </button>
 
         <ul class="dropdown-menu dropdown-menu-end">
-          <li><a class="dropdown-item" href="/products">All</a></li>
+          <li><a class="dropdown-item" href="/menu">All</a></li>
 
-          {{#each categories}}
+          {{#each fatherCategories}}
           <li>
-            <a class="dropdown-item" href="/products/byCat?catID={{this.category_id}}">
+            <a class="dropdown-item" href="/menu/{{this.slug}}">
               {{this.name}}
             </a>
           </li>
@@ -145,9 +145,15 @@
     {{/each}}
     <nav aria-label="...">
       <ul class="pagination">
+        {{#if prevPage}}
+        <li class="page-item">
+          <a class="page-link" href="/menu/{{slug}}?page={{prevPage}}">Previous</a>
+        </li>
+        {{else}}
         <li class="page-item disabled">
           <a class="page-link">Previous</a>
         </li>
+        {{/if}}
         {{#each pageNumbers}}
         {{#if isCurrent}}
         <li class="page-item active">
@@ -155,13 +161,19 @@
         </li>
         {{else}}
         <li class="page-item">
-          <a class="page-link" href="/products/byCat?catID={{../catID}}&page={{value}}">{{value}}</a>
+          <a class="page-link" href="/menu/{{../slug}}?page={{value}}">{{value}}</a>
         </li>
         {{/if}}
         {{/each}}
+        {{#if nextPage}}
         <li class="page-item">
-          <a class="page-link" href="#">Next</a>
+          <a class="page-link" href="/menu/{{slug}}?page={{nextPage}}">Next</a>
         </li>
+        {{else}}
+        <li class="page-item disabled">
+          <a class="page-link">Next</a>
+        </li>
+        {{/if}}
       </ul>
     </nav>
   </div>

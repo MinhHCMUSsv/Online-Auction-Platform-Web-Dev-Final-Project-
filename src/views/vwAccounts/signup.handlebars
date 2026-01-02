@@ -42,7 +42,7 @@
 
     // 3. Check trùng Email
     try {
-      const response = await fetch(`/account/email-available?email=${email}`);
+      const response = await fetch(`/email-available?email=${email}`);
       const isAvailable = await response.json();
 
       if (isAvailable === false) {
@@ -206,7 +206,7 @@
 
     <div class="login-box mb-3">
       <span class="login-text">Have an account?</span>
-      <a href="/account/signin" class="btn-signin-nav">Sign in</a>
+      <a href="/signin" class="btn-signin-nav">Sign in</a>
     </div>
 
     <form method="POST" id="frmSignup">
