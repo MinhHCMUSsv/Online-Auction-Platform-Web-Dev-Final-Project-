@@ -1,0 +1,217 @@
+{{#section 'css'}}
+<style>
+  .error-container {
+    text-align: center;
+    padding: 80px 20px;
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .error-code {
+    font-size: 120px;
+    font-weight: bold;
+    color: #dc3545;
+    margin: 0;
+    line-height: 1;
+    text-shadow: 2px 2px 4px rgba(220, 53, 69, 0.3);
+  }
+
+  .error-title {
+    font-size: 32px;
+    font-weight: 600;
+    color: #343a40;
+    margin: 20px 0 10px 0;
+  }
+
+  .error-message {
+    font-size: 18px;
+    color: #6c757d;
+    margin: 0 0 40px 0;
+    max-width: 600px;
+    line-height: 1.5;
+  }
+
+  .error-actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn-home {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+  }
+
+  .btn-home:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+    color: white;
+    text-decoration: none;
+  }
+
+  .btn-back {
+    background: transparent;
+    border: 2px solid #6c757d;
+    padding: 10px 28px;
+    border-radius: 25px;
+    color: #6c757d;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .btn-back:hover {
+    background: #6c757d;
+    color: white;
+    text-decoration: none;
+    transform: translateY(-2px);
+  }
+
+  .error-icon {
+    font-size: 80px;
+    color: #ffc107;
+    margin-bottom: 30px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .error-details {
+    background: #f8f9fa;
+    border-left: 4px solid #dc3545;
+    padding: 20px;
+    margin: 30px auto;
+    max-width: 500px;
+    text-align: left;
+    border-radius: 5px;
+  }
+
+  .error-details h5 {
+    color: #dc3545;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .error-details ul {
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  .error-details li {
+    margin-bottom: 5px;
+    color: #495057;
+  }
+
+  @media (max-width: 768px) {
+    .error-code {
+      font-size: 80px;
+    }
+    
+    .error-title {
+      font-size: 24px;
+    }
+    
+    .error-message {
+      font-size: 16px;
+      padding: 0 10px;
+    }
+    
+    .error-actions {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .btn-home, .btn-back {
+      width: 200px;
+      text-align: center;
+    }
+  }
+</style>
+{{/section}}
+
+<div class="error-container">
+  <div class="error-icon">
+    <i class="fas fa-exclamation-triangle"></i>
+  </div>
+  
+  <h1 class="error-code">403</h1>
+  <h2 class="error-title">Access Denied</h2>
+  <p class="error-message">
+    Sorry, you don't have permission to access this page. 
+    You need admin privileges or login with an account that has appropriate permissions.
+  </p>
+
+  <div class="error-details">
+    <h5>This might be due to:</h5>
+    <ul>
+      <li>You are not logged into the system</li>
+      <li>Your account doesn't have permission to access this page</li>
+      <li>Your login session has expired</li>
+      <li>This page is for administrators only</li>
+    </ul>
+  </div>
+
+  <div class="error-actions">
+    <a href="/" class="btn-home">
+      <i class="fas fa-home mr-2"></i>
+      Go Home
+    </a>
+    <a href="javascript:history.back()" class="btn-back">
+      <i class="fas fa-arrow-left mr-2"></i>
+      Go Back
+    </a>
+    <a href="/account/signin" class="btn-home">
+      <i class="fas fa-sign-in-alt mr-2"></i>
+      Sign In
+    </a>
+  </div>
+</div>
+
+{{#section 'js'}}
+<script>
+  // Auto redirect after 10 seconds if user doesn't interact
+  let redirectTimer = setTimeout(function() {
+    if (confirm('You will be redirected to the home page. Press OK to continue or Cancel to stay.')) {
+      window.location.href = '/';
+    }
+  }, 10000);
+
+  // Clear timer if user interacts with page
+  document.addEventListener('click', function() {
+    clearTimeout(redirectTimer);
+  });
+
+  document.addEventListener('keydown', function() {
+    clearTimeout(redirectTimer);
+  });
+
+  // Add some interactive effects
+  document.querySelector('.error-code').addEventListener('click', function() {
+    this.style.animation = 'pulse 0.5s ease-in-out';
+    setTimeout(() => {
+      this.style.animation = '';
+    }, 500);
+  });
+</script>
+{{/section}}

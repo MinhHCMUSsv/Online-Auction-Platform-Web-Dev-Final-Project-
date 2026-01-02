@@ -3,7 +3,7 @@ import * as upgradeService from '../services/upgrade.service.js';
 export function isAuth(req, res, next) {
     if (!req.session.isAuthenticated) {
         req.session.retUrl = req.originalUrl;
-        return res.redirect('/account/signin');
+        return res.redirect('/signin');
     }
     next();
 }

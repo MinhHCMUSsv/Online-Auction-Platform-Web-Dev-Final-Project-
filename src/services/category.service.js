@@ -20,6 +20,12 @@ export function getChildCategories(parent_id) {
         .select();
 }
 
+export function getAllChild() {
+    return db('category')
+        .whereNotNull('parent_id')
+        .select();
+}
+
 export function addCategory(category) {
     return db('category').insert(category);
 }

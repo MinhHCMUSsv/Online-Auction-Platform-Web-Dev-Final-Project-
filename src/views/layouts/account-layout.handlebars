@@ -157,14 +157,14 @@
 
         <ul class="nav nav-pills mx-auto">
           <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="/products">Menu</a></li>
+          <li class="nav-item"><a class="nav-link" href="/menu">Menu</a></li>
           <li class="nav-item">
             <a class="nav-link {{#if (eq activeNav 'Watchlist')}}active{{/if}}"
-              href="/account/profile/watchlist">Watchlist</a>
+              href="/profile/watchlist">Watchlist</a>
           </li>
           <li class="nav-item">
             <a class="nav-link {{#unless (eq activeNav 'Watchlist')}}active{{/unless}}"
-              href="/account/profile">Account</a>
+              href="/profile">Account</a>
           </li>
         </ul>
 
@@ -188,7 +188,7 @@
             </div>
           </div>
           {{else}}
-          <a class="btn btn-danger rounded-pill" href="/account/signin">Sign In</a>
+          <a class="btn btn-danger rounded-pill" href="/signin">Sign In</a>
           {{/if}}
         </div>
 
@@ -222,7 +222,7 @@
             </div>
             <a href="javascript: document.querySelector('#frmSignOutLayout').submit();" class="logout-link">Logout</a>
           </div>
-          <form method="POST" action="/account/signout" id="frmSignOutLayout"></form>
+          <form method="POST" action="/signout" id="frmSignOutLayout"></form>
         </div>
 
         <nav class="nav flex-column profile-nav">
@@ -235,16 +235,16 @@
           {{/if}}
 
           <a class="nav-link {{#if (eq activeNav 'AccountSettings')}}active-custom{{/if}}"
-            href="/account/profile">Account Settings</a>
+            href="/profile">Account Settings</a>
           <a class="nav-link" href="#">My Ratings</a>
 
           <hr class="my-3 text-secondary">
 
           <a class="nav-link {{#if (eq activeNav 'Watchlist')}}active-custom{{/if}}"
-            href="/account/profile/watchlist">Watchlist</a>
+            href="/profile/watchlist">Watchlist</a>
           <a class="nav-link {{#if (eq activeNav 'ActiveBids')}}active-custom{{/if}}"
-            href="/account/profile/active">Active Bids</a>
-          <a class="nav-link {{#if (eq activeNav 'WonItems')}}active-custom{{/if}}" href="/account/profile/won">Won
+            href="/profile/active">Active Bids</a>
+          <a class="nav-link {{#if (eq activeNav 'WonItems')}}active-custom{{/if}}" href="/profile/won">Won
             items</a>
 
           {{#unless (eq authUser.role 1)}} <div class="mt-3">
@@ -277,7 +277,7 @@
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <form action="/account/profile/upgrade" method="POST">
+            <form action="/profile/upgrade" method="POST">
               <div class="modal-body">
                 <p>Do you want to send a request to upgrade your account to <strong>Seller</strong>?</p>
                 <p class="text-muted small">This action may require admin approval or instant update depending on system

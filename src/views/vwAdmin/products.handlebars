@@ -159,7 +159,6 @@
                     <tr>
                         <th style="width: 80px;" class="px-4">ID</th>
                         <th>Product Name</th>
-                        <th style="width: 180px;">Category</th>
                         <th style="width: 150px;">Current Bid</th>
                         <th style="width: 140px;">Status</th>
                         <th style="width: 200px;" class="text-end px-4">Actions</th>
@@ -174,9 +173,7 @@
                                     <div class="fw-bold">{{name}}</div>
                                     <div class="text-muted small">Seller: {{#if seller}}{{seller}}{{else}}N/A{{/if}}</div>
                                 </td>
-                                <td>
-                                    <span class="badge badge-soft">{{#if category}}{{category}}{{else}}Uncategorized{{/if}}</span>
-                                </td>
+                                
                                 <td class="fw-bold text-dark">{{#if price}}{{price}}{{else}}—{{/if}}</td>
                                 <td>
                                     {{#if (eq status 'live')}}

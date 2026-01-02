@@ -146,7 +146,7 @@ router.post('/signin', async function (req, res) {
         });
     }
     if (user.status === 0) {
-        return res.redirect(`/account/verify-otp?email=${user.email}`);
+        return res.redirect(`/verify-otp?email=${user.email}`);
     }
 
     const password = req.body.password;
@@ -188,8 +188,8 @@ router.post('/signout', function (req, res) {
 
 router.get('/profile', function (req, res) {
     if (!req.session.isAuthenticated) {
-        req.session.retUrl = '/account/profile';
-        return res.redirect('/account/signin');
+        req.session.retUrl = '/profile';
+        return res.redirect('/signin');
     }
     res.render('vwAccounts/profile', {
         layout: 'account-layout',
@@ -202,7 +202,7 @@ router.get('/profile', function (req, res) {
 
 router.post('/profile', async function (req, res) {
     if (!req.session.isAuthenticated) {
-        return res.redirect('/account/signin');
+        return res.redirect('/signin');
     }
 
     const user = req.session.authUser;
@@ -283,7 +283,7 @@ router.post('/forgot-password', async function (req, res) {
             layout: 'auth-layout',
             title: 'Recovery Code',
             email: email,
-            action_link: '/account/verify-reset-otp'
+            action_link: '/verify-reset-otp'
         });
     } else {
         res.render('vwAccounts/forgot', {
@@ -300,7 +300,7 @@ router.post('/verify-reset-otp', async function (req, res) {
     if (!user) return res.render('OTP', { 
         layout: 'auth-layout', 
         email, 
-        action_link: '/account/verify-reset-otp', 
+        action_link: '/verify-reset-otp', 
         err_message: 'User not found.' 
     });
 
@@ -312,12 +312,12 @@ router.post('/verify-reset-otp', async function (req, res) {
         req.session.canResetPassword = true;
         req.session.resetEmail = email;
         
-        return res.redirect('/account/reset');
+        return res.redirect('/reset');
     } else {
         return res.render('OTP', {
             layout: 'auth-layout',
             email: email,
-            action_link: '/account/verify-reset-otp',
+            action_link: '/verify-reset-otp',
             err_message: 'Invalid OTP code or it has expired.'
         });
     }
@@ -325,7 +325,7 @@ router.post('/verify-reset-otp', async function (req, res) {
 
 router.get('/reset', function (req, res) {
     if (!req.session.canResetPassword || !req.session.resetEmail) {
-        return res.redirect('/account/forgot-password');
+        return res.redirect('/forgot-password');
     }
 
     res.render('vwAccounts/reset', { 
@@ -335,7 +335,7 @@ router.get('/reset', function (req, res) {
 
 router.post('/reset', async function (req, res) {
     if (!req.session.canResetPassword || !req.session.resetEmail) {
-        return res.redirect('/account/forgot-password');
+        return res.redirect('/forgot-password');
     }
 
     const { password, confirm_password } = req.body;
@@ -351,7 +351,7 @@ router.post('/reset', async function (req, res) {
     const user = await userService.findByEmail(email);
     
     if (!user) {
-        return res.redirect('/account/forgot-password');
+        return res.redirect('/forgot-password');
     }
 
     const hashPassword = bcrypt.hashSync(password, 10);
@@ -368,8 +368,8 @@ router.post('/reset', async function (req, res) {
 
 router.get('/profile/watchlist', async function (req, res) {
     if (!req.session.isAuthenticated) {
-        req.session.retUrl = '/account/profile/watchlist';
-        return res.redirect('/account/signin');
+        req.session.retUrl = '/profile/watchlist';
+        return res.redirect('/signin');
     }
     const user = req.session.authUser;
     const watchlist = await watchlistService.findByUserId(user.user_id);
@@ -383,8 +383,8 @@ router.get('/profile/watchlist', async function (req, res) {
 
 router.get('/profile/active', async function (req, res) {
     if (!req.session.isAuthenticated) {
-        req.session.retUrl = '/account/profile/active';
-        return res.redirect('/account/signin');
+        req.session.retUrl = '/profile/active';
+        return res.redirect('/signin');
     }
 
     const user = req.session.authUser;
@@ -416,13 +416,13 @@ router.get('/profile/won', async function (req, res) {
 });
 
 router.post('/profile/upgrade', async function (req, res) {
-    if (!req.session.isAuthenticated) return res.redirect('/account/signin');
+    if (!req.session.isAuthenticated) return res.redirect('/signin');
 
     const userId = req.session.authUser.user_id;
 
     const isPending = await upgradeService.getUpgradeStatus(userId);
     if (isPending) {
-        return res.redirect('/account/profile');
+        return res.redirect('/profile');
     }
 
     const entity = {
@@ -431,7 +431,7 @@ router.post('/profile/upgrade', async function (req, res) {
     };
     await upgradeService.addUpgrade(entity);
 
-    res.redirect('/account/profile');
+    res.redirect('/profile');
 });
 
 router.get('/email-available', async function (req, res) {

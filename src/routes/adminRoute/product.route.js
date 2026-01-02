@@ -6,10 +6,10 @@ const router = express.Router();
 
 router.get('/', async function(req, res) {
     const list = await productsService.getAll();
-    const categories = await categoriesService.getAllCategories();
+    // const categories = await categoriesService.getAllCategories();
     res.render('vwAdmin/products', { 
         products: list,
-        categories: categories,
+        // categories: categories,
         layout: 'admin-layout'
     });
 });
