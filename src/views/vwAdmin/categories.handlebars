@@ -206,7 +206,6 @@
                 <tr>
                     <th style="width: 80px;" class="ps-4">#ID</th>
                     <th>Category Name</th>
-                    <th style="width: 200px;">Products Count</th>
                     <th style="width: 200px;">Created At</th>
                     <th style="width: 150px;" class="text-end pe-4">Actions</th>
                 </tr>
@@ -228,15 +227,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td>
-                            {{#if productCount}}
-                                <span class="badge rounded-pill text-bg-light border px-3 py-2">
-                                    {{productCount}} items
-                                </span>
-                            {{else}}
-                                <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary px-3 py-2">Empty</span>
-                            {{/if}}
-                        </td>
+                        
                         <td>
                             <div class="text-muted small">
                                 <i class="bi bi-calendar3 me-1"></i>

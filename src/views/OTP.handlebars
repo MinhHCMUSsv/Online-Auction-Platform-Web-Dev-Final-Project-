@@ -1,0 +1,138 @@
+{{#section 'css'}}
+<style>
+    .otp-input {
+        letter-spacing: 8px;
+        font-size: 1.5rem;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .disabled-link {
+        pointer-events: none;
+        color: #6c757d !important;
+        text-decoration: none;
+    }
+</style>
+{{/section}}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-body p-4 text-center">
+                <h3 class="fw-bold text-primary mb-3">Enter OTP</h3>
+                <p class="text-muted small">Verification code has been sent to email:<br><strong>{{email}}</strong></p>
+
+                <form method="POST" action="{{action_link}}">
+                    <input type="hidden" name="email" value="{{email}}">
+
+                    <div class="mb-4">
+                        <input type="text" class="form-control form-control-lg otp-input" name="otp" maxlength="6"
+                            placeholder="000000" required autofocus>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">
+                        Confirm OTP
+                    </button>
+                </form>
+
+                <div class="mt-3">
+                    <small>Didn't receive the code?</small>
+
+                    <a href="javascript:;" id="btnResend" class="text-decoration-none fw-bold">Resend</a>
+
+                    <span id="resendTimer" class="text-muted d-none">
+                        Wait <b id="countdown" class="text-danger">30</b>s
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{#section 'js'}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    const errMessage = '{{err_message}}';
+    if (errMessage) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: errMessage,
+            confirmButtonColor: '#dc3545'
+        });
+    }
+
+    function startCountdown(seconds) {
+        let counter = seconds;
+
+        const btn = document.getElementById('btnResend');
+        const timerSpan = document.getElementById('resendTimer');
+        const countDisplay = document.getElementById('countdown');
+
+        btn.classList.add('d-none');
+        timerSpan.classList.remove('d-none');
+        countDisplay.innerText = counter;
+
+        const interval = setInterval(() => {
+            counter--;
+            countDisplay.innerText = counter;
+
+            if (counter <= 0) {
+                clearInterval(interval);
+                btn.classList.remove('d-none');
+                timerSpan.classList.add('d-none');
+            }
+        }, 1000);
+    }
+
+    document.getElementById('btnResend').addEventListener('click', async function () {
+        const btn = document.getElementById('btnResend');
+        const email = '{{email}}';
+
+        const originalText = btn.innerText;
+        btn.classList.add('disabled-link');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...';
+
+        try {
+            // Gọi server
+            const response = await fetch(`/account/resend-otp?email=${email}`);
+
+            // Kiểm tra nếu server lỗi 500 (crash)
+            if (!response.ok) {
+                throw new Error('Server error');
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Resent!',
+                    text: 'Please check your email.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                btn.classList.remove('disabled-link');
+                btn.innerText = originalText;
+
+                // Kích hoạt timer
+                startCountdown(30);
+
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'Failed to send email.'
+                });
+                btn.classList.remove('disabled-link');
+                btn.innerText = originalText;
+            }
+        } catch (e) {
+            console.error(e);
+            Swal.fire({ icon: 'error', title: 'Connection Error', text: 'Cannot connect to server.' });
+            btn.classList.remove('disabled-link');
+            btn.innerText = originalText;
+        }
+    });
+</script>
+{{/section}}

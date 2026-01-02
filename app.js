@@ -3,9 +3,10 @@ import { engine } from 'express-handlebars';
 import hbs_helpers from 'handlebars-helpers';
 import expressHandlebarsSections from 'express-handlebars-sections';
 import session from 'express-session';
-import { isAuth, isAdmin } from './src/middlewares/auth.mdw.js';
+import { isAuth, isAdmin, isUpgradePending } from './src/middlewares/auth.mdw.js';
 import moment from 'moment';
 
+import authRouter from './src/routes/auth.route.js';
 import accountRouter from './src/routes/account.route.js';
 import productRouter from './src/routes/product.route.js';
 import sellerRouter from './src/routes/seller.route.js';
@@ -13,6 +14,11 @@ import sellerRouter from './src/routes/seller.route.js';
 import adminCategoryRouter from './src/routes/admin-category.route.js';
 import adminProductRouter from './src/routes/admin-product.route.js';
 import adminUserRouter from './src/routes/admin-user.route.js';
+
+//import passport from './src/config/passport.config.js';
+
+import commonRouter from './src/routes/accountRoute/common.route.js';
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -55,20 +61,23 @@ app.use('/src/static', express.static('src/static'));
 app.use(express.urlencoded({
     extended: true
 }));
+app.use(express.json());
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use(function (req, res, next) {
     res.locals.isAuthenticated = req.session.isAuthenticated;
     res.locals.authUser = req.session.authUser;
+
+    res.locals.fatherCategories = req.session.fatherCategories || [];
     next();
 });
 
-app.get('/', (req, res) => {
-    res.render('home', {
-        title: 'Home',
-        activeNav: 'Home'
-    });
-});
+app.use(isUpgradePending);
 
+app.use('/', commonRouter);
+
+app.use('/auth', authRouter);
 app.use('/account', accountRouter);
 app.use('/products', productRouter);
 app.use('/seller', sellerRouter);

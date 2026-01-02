@@ -1,13 +1,16 @@
 import express from 'express';
 import * as productService from '../services/product.service.js';
 import * as watchlistService from '../services/watchlist.service.js';
+import * as categoriesService from '../services/category.service.js';
 
 const router = express.Router();
 
 router.get('/', async function (req, res) {
     
     const products = await productService.getAll();
-    const categories = await productService.getAllCategories();
+    const fatherCategories = await categoriesService.getFatherCategories();
+
+    req.session.fatherCategories = fatherCategories;
     
     const page = req.query.page || 1;
     const limit = 12;
@@ -44,23 +47,26 @@ router.get('/', async function (req, res) {
     res.render('vwProducts/list', {
         products: list,
         activeNav: 'Menu',
-        categories: categories,
         pageNumbers: pageNumbers
     });
 });
 
-router.get('/byCat', async function (req, res) {
-    const categories = await productService.getAllCategories();
+router.get('/:slug', async function (req, res) {
+    const slug = req.params.slug;
+    const cat_id = await categoriesService.getCategory(slug); 
 
-    const id = req.query.catID;
+    const childCategories = await categoriesService.getChildCategories(cat_id);  
+
     const page = req.query.page || 1;
     const limit = 8;
     const offset = (page - 1) * limit;
 
-    const total = await productService.countByCat(id);
+    const total = await productService.countByParentID(cat_id);
 
     const nPages = Math.ceil(+total.count / limit);
     const pageNumbers = [];
+
+    console.log(nPages);
 
     for (let i = 1; i <= nPages; i++) {
         pageNumbers.push({
@@ -69,13 +75,30 @@ router.get('/byCat', async function (req, res) {
         });
     }
 
-    const list = await productService.findPageByCat(id, limit, offset);
+    let list = await productService.findPageByParentID(cat_id, limit, offset);
+    console.log(list);
+
+    if (req.session.isAuthenticated) {
+        const user_id = req.session.authUser.user_id;
+        
+        const watchlist = await watchlistService.findByUserId(user_id);
+        
+        const watchlistIds = watchlist.map(item => item.product_id);
+
+        list = list.map(item => {
+            if (watchlistIds.includes(item.product_id)) {
+                return { ...item, is_liked: true };
+            }
+            return item;
+        });
+    }
 
     res.render('vwProducts/byCat', {
         products: list,
-        categories: categories,
+        activeNav: 'Menu',
+        childCategories: childCategories,
         pageNumbers: pageNumbers,
-        catID: id
+        catID: cat_id
     });
 });
 
@@ -200,6 +223,29 @@ router.post('/watchlist/toggle', async function (req, res) {
             message: 'Database error' 
         });
     }
+});
+
+router.get('/search', async function (req, res) {
+    const query = req.query.q || '';
+
+    if (query.length === 0) {
+        return res.render('vwProducts/search', {
+            products: [],
+            empty: true,   
+            query: query,
+            activeNav: 'Menu'
+        });
+    }
+
+    const keywords = query.replace(/ /g, '&');
+
+    const products = await productService.search(keywords);
+    res.render('vwProducts/search', {
+        products: products,
+        query: query,
+        empty: products.length === 0,
+        activeNav: 'Menu'
+    });
 });
 
 export default router; 
