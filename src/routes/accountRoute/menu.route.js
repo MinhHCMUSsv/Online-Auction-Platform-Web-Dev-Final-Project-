@@ -2,16 +2,17 @@ import express from 'express';
 import * as productService from '../../services/product.service.js';
 import * as watchlistService from '../../services/watchlist.service.js';
 import * as categoriesService from '../../services/category.service.js';
+import { sendSellerReplyNotification, sendNewQuestionNotification } from '../../utils/email.js';
 
 const router = express.Router();
 
 router.get('/', async function (req, res) {
-    
+
     const products = await productService.getAll();
     const fatherCategories = await categoriesService.getFatherCategories();
 
     req.session.fatherCategories = fatherCategories;
-    
+
     const page = req.query.page || 1;
     const limit = 12;
     const offset = (page - 1) * limit;
@@ -31,9 +32,9 @@ router.get('/', async function (req, res) {
 
     if (req.session.isAuthenticated) {
         const userId = req.session.authUser.user_id;
-        
+
         const watchlist = await watchlistService.findByUserId(userId);
-        
+
         const watchlistIds = watchlist.map(item => item.product_id);
 
         list = list.map(item => {
@@ -45,6 +46,7 @@ router.get('/', async function (req, res) {
     }
 
     res.render('vwMenu/list', {
+        title: 'Menu',
         products: list,
         activeNav: 'Menu',
         pageNumbers: pageNumbers,
@@ -55,25 +57,44 @@ router.get('/', async function (req, res) {
     });
 });
 
-
-
 router.get('/detail', async function (req, res) {
     const product_id = req.query.product_id;
-    const product= await productService.getProductById(product_id);   
+    const product = await productService.getProductById(product_id);
 
     const seller = await productService.getSellerById(product.seller_id);
     const bidder = await productService.getBidder(product_id);
     const comments = await productService.getCommentsWithReplies(product_id);
 
     const limit = 5;
-    const related_products = await productService.getRelatedProducts(product.category_id, limit);
+    let related_products = await productService.getRelatedProducts(product.category_id, limit);
 
-    res.render('vwProducts/detail', {
+    let is_liked = false;
+    if (req.session.isAuthenticated) {
+        const userId = req.session.authUser.user_id;
+        
+        // 1. Check sản phẩm chính
+        is_liked = await watchlistService.check(userId, product_id);
+
+        // 2. Check danh sách sản phẩm liên quan (để hiện tim)
+        const watchlist = await watchlistService.findByUserId(userId);
+        const watchlistIds = watchlist.map(item => item.product_id);
+
+        related_products = related_products.map(item => {
+            return {
+                ...item,
+                is_liked: watchlistIds.includes(item.product_id)
+            };
+        });
+    }
+
+    res.render('vwMenu/detail', {
+        title: 'Detail',
         product: product,
         seller: seller,
         bidder: bidder,
         comments: comments,
-        related_products: related_products
+        related_products: related_products,
+        is_liked: is_liked
     });
 
 });
@@ -86,8 +107,8 @@ router.post('/place-bid', async function (req, res) {
 
         // BƯỚC 1: Lấy thông tin sản phẩm hiện tại từ DB
         // (Giả sử bạn có hàm getDetail để lấy thông tin sản phẩm)
-        const product = await productService.getProductById(productId); 
-        
+        const product = await productService.getProductById(productId);
+
         if (!product) {
             return res.status(404).send('Sản phẩm không tồn tại');
         }
@@ -99,14 +120,14 @@ router.post('/place-bid', async function (req, res) {
         const currentLeaderId = product.leader_id; // ID người đang thắng
 
         // BƯỚC 2: LOGIC TÍNH GIÁ BID_AMOUNT ĐỂ LƯU VÀO LỊCH SỬ
-        
+
         // Trường hợp A: Sản phẩm chưa có ai đấu giá
         if (!currentLeaderId) {
             finalBidAmount = startPrice;
-        } 
+        }
         else {
             // Trường hợp B: Đã có người đấu giá
-            
+
             if (currentLeaderId == bidderId) {
                 // >>> QUAN TRỌNG: NGƯỜI DÙNG TỰ NÂNG CẤP (Self-Bidding) <<<
                 // Nếu mình đang thắng mà đặt tiếp -> Giữ nguyên giá hiện tại (chỉ update Max Bid ngầm)
@@ -121,8 +142,8 @@ router.post('/place-bid', async function (req, res) {
 
         // Validate nhẹ: Nếu Max Auto Bid người dùng nhập vào nhỏ hơn giá sàn định bid
         if (inputMaxAutoBid < finalBidAmount) {
-             // Tùy logic bên bạn, có thể báo lỗi hoặc tự động set bằng finalBidAmount
-             // return res.send('Giá Auto Bid phải lớn hơn giá hiện tại + bước giá');
+            // Tùy logic bên bạn, có thể báo lỗi hoặc tự động set bằng finalBidAmount
+            // return res.send('Giá Auto Bid phải lớn hơn giá hiện tại + bước giá');
         }
 
         // BƯỚC 3: GỌI SERVICE ĐỂ INSERT VÀO DB
@@ -134,9 +155,9 @@ router.post('/place-bid', async function (req, res) {
         };
 
         await productService.placeBid(placeBidData);
-        
+
         // Thành công -> Refresh trang
-        res.redirect('/products/detail?product_id=' + productId);
+        res.redirect('/menu/detail?product_id=' + productId);
 
     } catch (error) {
         console.error(error);
@@ -144,11 +165,90 @@ router.post('/place-bid', async function (req, res) {
     }
 });
 
+router.post('/comment', async function (req, res) {
+    const { product_id, content, parent_comment_id } = req.body;
+    const user = req.session.authUser;
+
+    try {
+        const entity = {
+            product_id: product_id,
+            user_id: user.user_id,
+            content: content,
+            parent_comment_id: parent_comment_id || null
+        };
+
+        const newId = await productService.addComment(entity);
+        entity.comment_id = newId;
+
+        (async function () {
+            try {
+                // Lấy thông tin sản phẩm để biết Seller là ai
+                const product = await productService.getProductById(product_id);
+                const sellerId = product.seller_id;
+                const productName = product.name;
+                // Tạo link sản phẩm
+                const productLink = `${req.protocol}://${req.get('host')}/menu/detail?product_id=${product_id}`;
+
+                if (user.user_id == sellerId) {
+                    // === TRƯỜNG HỢP 1: SELLER TRẢ LỜI ===
+                    // -> Gửi cho TẤT CẢ người liên quan (Bidder + Commenter cũ)
+
+                    const emailList = await productService.getInterestedEmails(product_id, sellerId);
+
+                    if (emailList.length > 0) {
+                        await sendSellerReplyNotification(
+                            emailList,
+                            productName,
+                            productLink,
+                            content
+                        );
+                        console.log(`Sent notification to ${emailList.length} interested users.`);
+                    }
+
+                } else {
+                    // === TRƯỜNG HỢP 2: NGƯỜI MUA ĐẶT CÂU HỎI ===
+                    // -> Gửi cho riêng SELLER
+
+                    // Dùng hàm getSellerById bạn đã sửa (có select email)
+                    const seller = await productService.getSellerById(sellerId);
+
+                    if (seller && seller.seller_email) {
+                        await sendNewQuestionNotification(
+                            seller.seller_email,
+                            user.full_name,
+                            productName,
+                            productLink,
+                            content
+                        );
+                        console.log(`Sent notification to seller: ${seller.seller_email}`);
+                    }
+                }
+            } catch (mailError) {
+                console.error("Background Email Error:", mailError);
+            }
+        })();
+
+        return res.json({
+            success: true,
+            comment: {
+                ...entity,
+                reviewer_name: user.full_name,
+                user_id: user.user_id,
+                created_at: new Date()
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Database error.' });
+    }
+});
+
 router.post('/watchlist/toggle', async function (req, res) {
     if (!req.session.isAuthenticated) {
-        return res.status(401).json({ 
-            success: false, 
-            message: 'Please login first!' 
+        return res.status(401).json({
+            success: false,
+            message: 'Please login first!'
         });
     }
 
@@ -160,22 +260,22 @@ router.post('/watchlist/toggle', async function (req, res) {
 
         if (isExist) {
             await watchlistService.remove(userId, productId);
-            return res.json({ 
-                success: true, 
-                isAdded: false 
-            }); 
+            return res.json({
+                success: true,
+                isAdded: false
+            });
         } else {
             await watchlistService.add(userId, productId);
-            return res.json({ 
-                success: true, 
-                isAdded: true 
-            }); 
+            return res.json({
+                success: true,
+                isAdded: true
+            });
         }
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ 
-            success: false, 
-            message: 'Database error' 
+        return res.status(500).json({
+            success: false,
+            message: 'Database error'
         });
     }
 });
@@ -184,11 +284,11 @@ router.get('/search', async function (req, res) {
     console.log('Search route accessed');
     const query = req.query.q || '';
     console.log('Search query:', query);
-    
+
     if (query.length === 0) {
         return res.render('vwMenu/search', {
             products: [],
-            empty: true,   
+            empty: true,
             query: query,
             activeNav: 'Menu'
         });
@@ -208,9 +308,9 @@ router.get('/search', async function (req, res) {
 
 router.get('/:slug', async function (req, res) {
     const slug = req.params.slug;
-    const cat_id = await categoriesService.getCategory(slug); 
+    const cat_id = await categoriesService.getCategory(slug);
 
-    const childCategories = await categoriesService.getChildCategories(cat_id);  
+    const childCategories = await categoriesService.getChildCategories(cat_id);
 
     const page = req.query.page || 1;
     const limit = 8;
@@ -235,9 +335,9 @@ router.get('/:slug', async function (req, res) {
 
     if (req.session.isAuthenticated) {
         const user_id = req.session.authUser.user_id;
-        
+
         const watchlist = await watchlistService.findByUserId(user_id);
-        
+
         const watchlistIds = watchlist.map(item => item.product_id);
 
         list = list.map(item => {

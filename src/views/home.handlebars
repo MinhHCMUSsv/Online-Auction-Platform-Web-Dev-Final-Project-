@@ -162,7 +162,7 @@
             </p>
 
             <div class="mt-2">
-                <a href="/products/detail?product_id={{product_id}}"
+                <a href="/menu/detail?product_id={{product_id}}"
                     class="btn btn-sm btn-outline-primary w-100">Details</a>
             </div>
         </div>
@@ -201,7 +201,7 @@
             const productId = $btn.data('id');
             const $icon = $btn.find('i');
 
-            $.post('/products/watchlist/toggle', { product_id: productId }, function (data) {
+            $.post('/menu/watchlist/toggle', { product_id: productId }, function (data) {
                 if (data.success) {
                     if (data.isAdded) {
                         $btn.addClass('active');

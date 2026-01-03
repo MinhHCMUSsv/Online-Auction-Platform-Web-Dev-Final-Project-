@@ -47,7 +47,7 @@ export function getProductById(product_id) {
 export function getSellerById(seller_id) {
     return db('app_user')
         .where('user_id', seller_id)
-        .select('full_name as seller_name', 'points as seller_point')
+        .select('full_name as seller_name', 'points as seller_point', 'email as seller_email')
         .first();
 }   
 
@@ -57,6 +57,7 @@ export function getBidder(product_id) {
         .where('b.product_id', product_id)
         .orderBy('b.max_auto_bid', 'desc')
         .select('u.*', 'b.bid_amount', 'b.max_auto_bid')
+        .first();
 }
 
 // Get comments with nested replies organized by structure
@@ -70,6 +71,7 @@ export async function getCommentsWithReplies(product_id) {
             'pc.content',
             'u.full_name as reviewer_name',
             'u.role',
+            'pc.user_id',
             db.raw("SUBSTR(u.full_name, 1, 1) as reviewer_initials")
         );
     
@@ -146,4 +148,8 @@ export function countByParentID(parent_id) {
         .where('c.parent_id', parent_id)
         .count('p.product_id as count')
         .first();
+}
+
+export function addComment(entity) {
+    return db('product_comment').insert(entity);
 }

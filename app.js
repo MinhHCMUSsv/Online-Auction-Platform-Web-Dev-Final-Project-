@@ -62,6 +62,16 @@ app.engine('handlebars', engine({
             }
             // C. CÒN LÂU (Trên 3 ngày) -> Hiện ngày tháng cụ thể
             return dateObj.format(format);
+        },
+        formatCurrency: function (value) {
+            const number = Number(value);
+            if (isNaN(number)) {
+                return '0';
+            }
+            return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(number);
         }
     }
      
