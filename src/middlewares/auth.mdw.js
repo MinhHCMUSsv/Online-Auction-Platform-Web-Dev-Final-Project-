@@ -8,6 +8,13 @@ export function isAuth(req, res, next) {
     next();
 }
 
+export function isSeller(req, res, next) {
+    if (req.session.authUser.role !== 1) {
+        return res.status(403).send('Forbidden');
+    }
+    next();
+}
+
 export function isAdmin(req, res, next) {
     if (!req.session.isAuthenticated || req.session.authUser.role !== 2) {
         return res.status(403).send('Forbidden');

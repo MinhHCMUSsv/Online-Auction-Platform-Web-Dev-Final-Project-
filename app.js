@@ -3,7 +3,7 @@ import { engine } from 'express-handlebars';
 import hbs_helpers from 'handlebars-helpers';
 import expressHandlebarsSections from 'express-handlebars-sections';
 import session from 'express-session';
-import { isAuth, isAdmin, isUpgradePending } from './src/middlewares/auth.mdw.js';
+import { isAuth, isSeller, isAdmin, isUpgradePending } from './src/middlewares/auth.mdw.js';
 import moment from 'moment';
 
 import authRouter from './src/routes/accountRoute/auth.route.js';
@@ -104,7 +104,7 @@ app.use('/auth', authRouter);
 
 app.use('/profile', isAuth, profileRouter);
 
-app.use('/seller', sellerRouter);
+app.use('/seller', isAuth, isSeller, sellerRouter);
 
 app.use('/admin/categories', adminCategoryRouter);
 app.use('/admin/products', adminProductRouter);

@@ -151,10 +151,16 @@
             </p>
 
             <p class="product-meta mb-1 small text-muted">
-                <span class="fw-bold text-primary fs-5">${{current_price}}</span>
+                <span class="fw-bold text-primary fs-5">
+                    {{#if current_price}}
+                    ${{formatCurrency current_price}}
+                    {{else}}
+                    ${{formatCurrency start_price}}
+                    {{/if}}
+                </span>
                 <br>
                 <span>Buy it now: <span class="fw-bold text-primary">{{#if
-                        buy_now_price}}${{buy_now_price}}{{else}}None{{/if}}</span></span><br>
+                        buy_now_price}}${{formatCurrency buy_now_price}}{{else}}None{{/if}}</span></span><br>
 
                 <span>Listed: {{formatDate start_time "DD/MM/YYYY HH:mm"}}</span><br>
                 <span>Time left: {{formatAuctionTime end_time "DD/MM/YYYY HH:mm"}}</span><br>

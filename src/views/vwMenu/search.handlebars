@@ -97,7 +97,7 @@
 <h5 class="header">Search results for "{{query}}"</h5>
 
 {{#if (eq empty 0)}}
-    <div>No products found.</div>
+<div>No products found.</div>
 {{else}}
 <div class="container-fluid px-4 py-4">
     <div class="row g-3">
@@ -127,12 +127,21 @@
                     </div>
 
                     <p class="mb-1 small">
-                        <span class="fw-semibold">Bidder Name</span><br>
+                        <span class="fw-semibold">{{#if current_bidder_name}}{{current_bidder_name}}{{else}}No
+                            Bids{{/if}}</span><br>
                     </p>
 
                     <p class="product-meta mb-1 small text-muted">
+                        <span class="fw-bold text-primary fs-5">
+                            {{#if this.current_price}}
+                            ${{formatCurrency this.current_price}}
+                            {{else}}
+                            ${{formatCurrency this.start_price}}
+                            {{/if}}
+                        </span>
+                        <br>
                         <span>Buy it now: <span class="fw-bold text-primary">{{#if
-                                this.buy_now_price}}${{this.buy_now_price}}
+                                this.buy_now_price}}${{formatCurrency this.buy_now_price}}
                                 {{else}}
                                 None {{/if}}</span></span><br>
                         <span>Listed: {{formatDate this.start_time "DD/MM/YYYY HH:mm"}}</span><br> <span>Time left:
@@ -172,7 +181,7 @@
             </ul>
         </nav>
     </div>
-</div>    
+</div>
 {{/if}}
 
 {{#section 'js'}}
@@ -185,7 +194,7 @@
         const $icon = $btn.find('i');
 
         // Gửi AJAX request lên server
-        $.post('/products/watchlist/toggle', { product_id: productId }, function (data) {
+        $.post('/menu/watchlist/toggle', { product_id: productId }, function (data) {
             if (data.success) {
                 if (data.isAdded) {
                     $btn.addClass('active');

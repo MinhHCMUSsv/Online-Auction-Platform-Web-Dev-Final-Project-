@@ -64,6 +64,7 @@ router.get('/detail', async function (req, res) {
     const seller = await productService.getSellerById(product.seller_id);
     const bidder = await productService.getBidder(product_id);
     const comments = await productService.getCommentsWithReplies(product_id);
+    const description_logs = await productService.getDescriptionLogs(product_id);
 
     const limit = 5;
     let related_products = await productService.getRelatedProducts(product.category_id, limit);
@@ -94,7 +95,8 @@ router.get('/detail', async function (req, res) {
         bidder: bidder,
         comments: comments,
         related_products: related_products,
-        is_liked: is_liked
+        is_liked: is_liked,
+        description_logs: description_logs
     });
 
 });
@@ -165,6 +167,34 @@ router.post('/place-bid', async function (req, res) {
     }
 });
 
+router.post('/append-description', async function (req, res) {
+    const { product_id, new_description_html } = req.body;
+    const user_id = req.session.authUser.user_id;
+
+    try {
+        const product = await productService.getProductById(product_id);
+        if (!product) {
+            return res.status(404).send('Product not found');
+        }
+        if (String(product.seller_id) !== String(user_id)) {
+            return res.render('vwError/403');
+        }
+        const entity = {
+            product_id: product_id,
+            added_by: user_id,
+            content_html: new_description_html,
+        };
+
+        await productService.addDescriptionLog(entity);
+
+        res.redirect(`/menu/detail?product_id=${product_id}`);
+
+    } catch (error) {
+        console.error("Error appending description:", error);
+        res.status(500).send('Database Error');
+    }
+});
+
 router.post('/comment', async function (req, res) {
     const { product_id, content, parent_comment_id } = req.body;
     const user = req.session.authUser;
@@ -182,7 +212,6 @@ router.post('/comment', async function (req, res) {
 
         (async function () {
             try {
-                // Lấy thông tin sản phẩm để biết Seller là ai
                 const product = await productService.getProductById(product_id);
                 const sellerId = product.seller_id;
                 const productName = product.name;
@@ -208,8 +237,6 @@ router.post('/comment', async function (req, res) {
                 } else {
                     // === TRƯỜNG HỢP 2: NGƯỜI MUA ĐẶT CÂU HỎI ===
                     // -> Gửi cho riêng SELLER
-
-                    // Dùng hàm getSellerById bạn đã sửa (có select email)
                     const seller = await productService.getSellerById(sellerId);
 
                     if (seller && seller.seller_email) {
@@ -234,7 +261,6 @@ router.post('/comment', async function (req, res) {
                 ...entity,
                 reviewer_name: user.full_name,
                 user_id: user.user_id,
-                created_at: new Date()
             }
         });
 
@@ -321,8 +347,6 @@ router.get('/:slug', async function (req, res) {
     const nPages = Math.ceil(+total.count / limit);
     const pageNumbers = [];
 
-    console.log(nPages);
-
     for (let i = 1; i <= nPages; i++) {
         pageNumbers.push({
             value: i,
@@ -331,7 +355,6 @@ router.get('/:slug', async function (req, res) {
     }
 
     let list = await productService.findPageByParentID(cat_id, limit, offset);
-    console.log(list);
 
     if (req.session.isAuthenticated) {
         const user_id = req.session.authUser.user_id;
@@ -349,6 +372,7 @@ router.get('/:slug', async function (req, res) {
     }
 
     res.render('vwMenu/byCat', {
+        title: slug,
         products: list,
         activeNav: 'Menu',
         childCategories: childCategories,

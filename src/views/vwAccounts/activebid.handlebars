@@ -48,12 +48,13 @@
         </p>
 
         <p class="product-meta mb-1 small text-muted">
-          <span>Current Price: <span class="fw-bold text-danger">${{this.current_price}}</span></span><br>
-          <span>End Date: {{this.end_time}}</span><br>
+          <span>Current Price: <span class="fw-bold text-danger">${{formatCurrency this.current_price}}</span></span><br>
+          <span>Listed: {{formatDate this.start_time "DD/MM/YYYY HH:MM"}}</span><br>
+          <span>Time left: {{formatAuctionTime this.end_time "DD/MM/YYYY HH:MM"}}</span><br>
         </p>
 
         <div class="mt-2">
-          <a href="/detail?id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">View Status</a>
+          <a href="/menu/detail?product_id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">View Status</a>
         </div>
       </div>
 

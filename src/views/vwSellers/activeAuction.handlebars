@@ -1,0 +1,154 @@
+{{#section 'css'}}
+<style>
+    .product-card {
+        transition: transform 0.2s;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-image-placeholder {
+        height: 180px;
+        overflow: hidden;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .product-image-placeholder img {
+        object-fit: contain;
+        width: 100%;
+        height: 100%;
+    }
+
+    .status-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(40, 167, 69, 0.9);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        z-index: 10;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+</style>
+{{/section}}
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-primary m-0">
+            <i class="bi bi-lightning-charge-fill"></i> My Active Auctions
+        </h3>
+    </div>
+
+    {{#if empty}}
+    <div class="alert alert-info text-center py-5">
+        <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+        <h5>You have no active auctions.</h5>
+        <p>Start selling your items now!</p>
+        <a href="/seller/create" class="btn btn-primary mt-2">Post a Product</a>
+    </div>
+    {{else}}
+
+    <div class="row g-3">
+        {{#each products}}
+        <div class="col-sm-6 col-md-4">
+            <div class="product-card h-100 border rounded bg-white position-relative">
+
+                <span class="status-badge">Active</span>
+
+                <div
+                    class="product-image-placeholder bg-light d-flex align-items-center justify-content-center text-muted">
+                    <img src="/src/static/images/{{this.seller_id}}/{{this.product_id}}/main_thumbs.jpg"
+                        class="img-fluid">
+                </div>
+
+                <div class="product-body p-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h5 class="product-title mb-1 text-truncate" title="{{this.name}}">
+                            {{this.name}}
+                        </h5>
+                    </div>
+
+                    <p class="mb-1 small">
+                        <span class="fw-semibold">{{#if current_bidder_name}}{{current_bidder_name}}{{else}}No
+                            Bids{{/if}}</span><br>
+                    </p>
+
+                    <p class="product-meta mb-1 small text-muted">
+                        <span class="fw-bold text-primary fs-5">
+                            {{#if current_price}}
+                            ${{formatCurrency current_price}}
+                            {{else}}
+                            ${{formatCurrency start_price}}
+                            {{/if}}
+                        </span>
+                        <br>
+
+                        <span>Buy it now:
+                            <span class="fw-bold text-primary">
+                                {{#if this.buy_now_price}}
+                                ${{formatCurrency this.buy_now_price}}
+                                {{else}}
+                                None
+                                {{/if}}
+                            </span>
+                        </span>
+                        <br>
+
+                        <span>Listed: {{formatDate this.start_time "DD/MM/YYYY HH:mm"}}</span><br>
+                        <span>Time left:
+                            {{formatAuctionTime
+                            this.end_time "DD/MM/YYYY HH:mm"}}</span><br>
+                        <span>Bids: {{this.bid_count}}</span>
+                    </p>
+
+                    <div class="mt-2">
+                        <a href="/menu/detail?product_id={{this.product_id}}"
+                            class="btn btn-sm btn-outline-primary w-100">
+                            Details
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {{/each}}
+    </div>
+
+    <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {{#if prevPage}}
+            <li class="page-item">
+                <a class="page-link" href="?page={{prevPage}}">Previous</a>
+            </li>
+            {{else}}
+            <li class="page-item disabled"><a class="page-link">Previous</a></li>
+            {{/if}}
+
+            {{#each pageNumbers}}
+            {{#if isCurrent}}
+            <li class="page-item active"><a class="page-link" href="javascript:;">{{value}}</a></li>
+            {{else}}
+            <li class="page-item"><a class="page-link" href="?page={{value}}">{{value}}</a></li>
+            {{/if}}
+            {{/each}}
+
+            {{#if nextPage}}
+            <li class="page-item">
+                <a class="page-link" href="?page={{nextPage}}">Next</a>
+            </li>
+            {{else}}
+            <li class="page-item disabled"><a class="page-link">Next</a></li>
+            {{/if}}
+        </ul>
+    </nav>
+    {{/if}}
+</div>

@@ -123,14 +123,25 @@
           </div>
 
           <p class="mb-1 small">
-            <span class="fw-semibold">Bidder Name</span><br>
+            <span class="fw-semibold">{{#if current_bidder_name}}{{current_bidder_name}}{{else}}No
+              Bids{{/if}}</span><br>
           </p>
 
           <p class="product-meta mb-1 small text-muted">
-            <span>Buy it now: <span class="fw-bold text-primary">{{#if this.buy_now_price}}${{this.buy_now_price}}
+            <span class="fw-bold text-primary fs-5">
+              {{#if this.current_price}}
+              ${{formatCurrency this.current_price}}
+              {{else}}
+              ${{formatCurrency this.start_price}}
+              {{/if}}
+            </span>
+            <br>
+            <span>Buy it now: <span class="fw-bold text-primary">{{#if this.buy_now_price}}${{formatCurrency
+                this.buy_now_price}}
                 {{else}}
                 None {{/if}}</span></span><br>
-            <span>Listed: {{formatDate this.start_time "DD/MM/YYYY HH:mm"}}</span><br> <span>Time left: {{formatAuctionTime
+            <span>Listed: {{formatDate this.start_time "DD/MM/YYYY HH:mm"}}</span><br> <span>Time left:
+              {{formatAuctionTime
               this.end_time "DD/MM/YYYY HH:mm"}}</span><br>
             <span>Bids: 0</span>
           </p>
@@ -189,7 +200,7 @@
     const $icon = $btn.find('i');
 
     // Gửi AJAX request lên server
-    $.post('/products/watchlist/toggle', { product_id: productId }, function (data) {
+    $.post('/menu/watchlist/toggle', { product_id: productId }, function (data) {
       if (data.success) {
         if (data.isAdded) {
           $btn.addClass('active');

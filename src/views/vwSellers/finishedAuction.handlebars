@@ -1,0 +1,140 @@
+{{#section 'css'}}
+<style>
+    /* CSS cho bảng giống trong hình */
+    .table thead th {
+        border-bottom: 2px solid #000;
+        /* Đường kẻ đậm dưới header */
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .table tbody td {
+        vertical-align: middle;
+        padding: 15px 10px;
+        font-weight: 500;
+    }
+
+    /* Style cho các nút Action */
+    .btn-rate {
+        border: 1px solid #198754;
+        color: #198754;
+        background: white;
+        font-weight: 600;
+        padding: 4px 15px;
+        border-radius: 4px;
+    }
+
+    .btn-rate:hover {
+        background: #198754;
+        color: white;
+    }
+
+    .btn-cancel {
+        border: 1px solid #dc3545;
+        color: #dc3545;
+        background: white;
+        font-weight: 600;
+        padding: 4px 15px;
+        border-radius: 4px;
+    }
+
+    .btn-cancel:hover {
+        background: #dc3545;
+        color: white;
+    }
+
+    .dashed-line {
+        border-bottom: 1px dashed #ccc;
+    }
+</style>
+{{/section}}
+
+<div class="container-fluid px-4 py-4">
+    <h3 class="fw-bold mb-4 text-primary">Finished auctions</h3>
+
+    {{#if empty}}
+    <div class="alert alert-info text-center py-5">
+        <i class="bi bi-clipboard-x fs-1 d-block mb-3"></i>
+        <h5>No finished auctions yet.</h5>
+    </div>
+    {{else}}
+    <div class="table-responsive">
+        <table class="table table-borderless">
+            <thead>
+                <tr>
+                    <th>Auction id</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th>Winner</th>
+                    <th class="text-end">Note</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each products}}
+                <tr class="dashed-line">
+                    <td class="fw-bold">#{{this.product_id}}</td>
+
+                    <td>{{formatDate this.end_time "DD/MM/YYYY"}}</td>
+
+                    <td>
+                        {{#if this.winner_name}}
+                        Success
+                        {{else}}
+                        <span class="text-muted">No Bids</span>
+                        {{/if}}
+                    </td>
+
+                    <td class="fw-bold fs-5">${{formatCurrency this.current_price}}</td>
+
+                    <td>
+                        {{#if this.winner_name}}
+                        {{this.winner_name}}
+                        {{else}}
+                        ---
+                        {{/if}}
+                    </td>
+
+                    <td class="text-end">
+                        {{#if this.winner_name}}
+                        <a href="/seller/rate/{{this.product_id}}" class="btn-rate text-decoration-none">Rate</a>
+
+                        {{else}}
+                        <span class="text-muted small">Ended</span>
+                        {{/if}}
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+
+    <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {{#if prevPage}}
+            <li class="page-item">
+                <a class="page-link" href="?page={{prevPage}}">Previous</a>
+            </li>
+            {{else}}
+            <li class="page-item disabled"><a class="page-link">Previous</a></li>
+            {{/if}}
+
+            {{#each pageNumbers}}
+            {{#if isCurrent}}
+            <li class="page-item active"><a class="page-link" href="javascript:;">{{value}}</a></li>
+            {{else}}
+            <li class="page-item"><a class="page-link" href="?page={{value}}">{{value}}</a></li>
+            {{/if}}
+            {{/each}}
+
+            {{#if nextPage}}
+            <li class="page-item">
+                <a class="page-link" href="?page={{nextPage}}">Next</a>
+            </li>
+            {{else}}
+            <li class="page-item disabled"><a class="page-link">Next</a></li>
+            {{/if}}
+        </ul>
+    </nav>
+    {{/if}}
+</div>

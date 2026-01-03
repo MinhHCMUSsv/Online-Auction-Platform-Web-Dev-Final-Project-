@@ -187,12 +187,20 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        overflow: hidden;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .related-img a {
+        display: block;       
+        width: 100%;
+        height: 100%;        
     }
 
     .related-img img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
     }
 
     .wishlist-btn-small {
@@ -278,8 +286,14 @@
             </div>
 
             <div class="mb-2">
-                <span class="fw-bold fs-5">Highest bid:</span>
-                <span class="fw-bold fs-4 text-warning">${{formatCurrency product.current_price}}</span>
+                <span class="fw-bold fs-5">{{#if product.current_price}}Highest bid:{{else}}Starting price:{{/if}}</span>
+                <span class="fw-bold fs-4 text-warning">
+                    {{#if product.current_price}}
+                    ${{formatCurrency product.current_price}}
+                    {{else}}
+                    ${{formatCurrency product.start_price}}
+                    {{/if}}
+                    </span>
             </div>
 
             {{#if bidder}}
@@ -298,7 +312,7 @@
 
             <div class="text-muted small mb-4 lh-lg">
                 <div>Listed: <strong>{{formatDate product.start_time "DD/MM/YYYY"}}</strong></div>
-                <div>Time left: <strong>{{formatAuctionTime product.end_time}}</strong></div>
+                <div>Time left: <strong>{{formatAuctionTime product.end_time "DD/MM/YYYY"}}</strong></div>
                 <div>Bids: <strong>10</strong></div>
                 <div class="fs-5 mt-2 text-dark">
                     Buy it now:
@@ -327,7 +341,7 @@
 
             {{else}}
 
-            <form method="POST" action="/menu/place-bid" class="mb-3">
+            <form method="POST" action="/menu/place-bid">
                 <input type="hidden" name="product_id" value="{{product.product_id}}">
                 <input type="hidden" name="bidder_id" value="{{authUser.user_id}}">
 
@@ -437,7 +451,7 @@
         <div class="collapse mb-4" id="editDescArea">
             <div class="card card-body border-0 shadow-sm bg-light">
                 <h6 class="mb-2 fw-bold text-primary">Append new information:</h6>
-                <form method="POST" action="/seller/products/append-description" id="frmAppendDesc">
+                <form method="POST" action="/menu/append-description" id="frmAppendDesc">
                     <input type="hidden" name="product_id" value="{{product.product_id}}">
                     <input type="hidden" name="new_description_html" id="hiddenDescInput">
 
@@ -624,8 +638,9 @@
 
                         <div class="text-muted small" style="line-height: 1.6;">
                             <div>Buy now: <span class="text-primary fw-bold">{{#if this.buy_now_price}}${{formatCurrency
-                                    this.buy_now_price}}{{else}}N/A{{/if}}</span></div>
-                            <div>End: {{formatAuctionTime this.end_time}}</div>
+                                    this.buy_now_price}}{{else}}None{{/if}}</span></div>
+                            <div>Listed: {{formatDate this.start_time "DD/MM/YYYY"}}</div>
+                            <div>Time left: {{formatAuctionTime this.end_time "DD/MM/YYYY"}}</div>
                             <div>Bids: {{this.bid_count}}</div>
                         </div>
                     </div>

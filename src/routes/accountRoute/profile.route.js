@@ -96,7 +96,23 @@ router.get('/active', async function (req, res) {
 
 router.get('/won', async function (req, res) {
     const userId = req.session.authUser.user_id;
-    const list = await productService.findWonItems(userId);
+    let list = await productService.findWonItems(userId);
+
+    list = list.map(item => {
+        // [TODO]: Bạn thay logic này bằng trường thật trong DB
+        // Ví dụ: const isPaid = item.payment_status === 1;
+        
+        // Hiện tại mình random 50/50 để bạn test giao diện
+        const isPaid = Math.random() < 0.5; 
+
+        return {
+            ...item,
+            // Tạo thêm trường status_text để hiện chữ
+            status_text: isPaid ? 'Success' : 'Waiting payment',
+            // Tạo thêm trường is_paid để hiện nút Pay hoặc dấu tích
+            is_paid: isPaid
+        };
+    });
 
     res.render('vwAccounts/wonitem', {
         layout: 'account-layout',

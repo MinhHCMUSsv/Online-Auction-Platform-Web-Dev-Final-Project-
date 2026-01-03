@@ -153,3 +153,14 @@ export function countByParentID(parent_id) {
 export function addComment(entity) {
     return db('product_comment').insert(entity);
 }
+
+export function getDescriptionLogs(productId) {
+    return db('product_description_log')
+        .where('product_id', productId)
+        .orderBy('created_at', 'desc')
+        .select();
+}
+
+export function addDescriptionLog(entity) {
+    return db('product_description_log').insert(entity);
+}
