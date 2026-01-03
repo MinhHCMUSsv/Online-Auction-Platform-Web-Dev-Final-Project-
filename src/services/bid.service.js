@@ -7,3 +7,17 @@ export function findActiveBidsByUserId(userId) {
         .distinct('p.product_id') 
         .select('p.*'); 
 }
+
+export function checkProductHasBids(productId) {
+    return db('bid')
+        .where('product_id', productId)
+        .count('bid_id as count')
+        .first()
+        .then(result => result.count > 0);
+}
+
+export function deleteProductBids(productId) {
+    return db('bid')
+        .where('product_id', productId)
+        .del();
+}

@@ -1,0 +1,405 @@
+{{#section 'css'}}
+<style>
+    :root {
+        --accent: #ff8c00; /* Deep orange, used for primary buttons */
+        --accent-dark: #d66f00;
+        --secondary-bg: #f8f9fa; /* Light secondary background */
+        --accent-light: #fff6eb; /* Light background for active/hover */
+    }
+
+    /* Settings Cards */
+    .setting-card {
+        border: 1px solid rgba(255, 140, 0, 0.3); /* Light orange border */
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(255, 140, 0, 0.02), #ffffff);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .setting-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .setting-header {
+        background-color: var(--accent-light);
+        border-bottom: 1px solid rgba(255, 140, 0, 0.2);
+        color: #b35f00;
+        font-weight: 600;
+        padding: 1.25rem;
+    }
+
+    .setting-body {
+        padding: 1.5rem;
+    }
+
+    /* Form Styles */
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        padding: 0.75rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25);
+    }
+
+    .input-group-text {
+        background-color: var(--secondary-bg);
+        border: 1px solid #ced4da;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    /* Switch Styles */
+    .form-check-input:checked {
+        background-color: var(--accent);
+        border-color: var(--accent);
+    }
+
+    .form-check-input:focus {
+        box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25);
+    }
+
+    /* Button Styles */
+    .btn-warning-accent {
+        background-color: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .btn-warning-accent:hover {
+        background-color: var(--accent-dark);
+        border-color: var(--accent-dark);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    .btn-outline-secondary {
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    /* Info Badge */
+    .info-badge {
+        background: rgba(13, 110, 253, 0.12);
+        color: #0d6efd;
+        border: 1px solid rgba(13, 110, 253, 0.18);
+        font-weight: 500;
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+    }
+
+    /* Section Divider */
+    .section-divider {
+        border-top: 2px solid #e9ecef;
+        margin: 2rem 0;
+    }
+
+</style>
+{{/section}}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-5">
+    <div>
+        <h1 class="h2 fw-bolder mb-0">System Settings</h1>
+        <p class="text-muted mb-0">Configure auction system parameters and product settings</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Auto Bid Extension Settings -->
+    <div class="col-lg-6">
+        <div class="card setting-card border-0 shadow-sm">
+            <div class="setting-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock-history me-2"></i>
+                    Auto Bid Extension
+                </h5>
+            </div>
+            <div class="setting-body">
+                <form id="autoExtensionForm">
+                    <!-- Enable Auto Extension -->
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="enableAutoExtension" 
+                                   name="enableAutoExtension" checked>
+                            <label class="form-check-label fw-semibold" for="enableAutoExtension">
+                                Enable Auto Extension
+                            </label>
+                        </div>
+                        <small class="text-muted">Automatically extend auction time when bids are placed near the end</small>
+                    </div>
+
+                    <div class="section-divider"></div>
+
+                    <!-- Extension Settings -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="triggerTime" class="form-label">
+                                <i class="bi bi-alarm me-1"></i>
+                                Trigger Time (minutes before end)
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="triggerTime" name="triggerTime" 
+                                       value="5" min="1" max="60">
+                                <span class="input-group-text">minutes</span>
+                            </div>
+                            <small class="text-muted">Extension triggers when bids are placed within this time</small>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="extensionDuration" class="form-label">
+                                <i class="bi bi-plus-circle me-1"></i>
+                                Extension Duration
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="extensionDuration" name="extensionDuration" 
+                                       value="10" min="1" max="120">
+                                <span class="input-group-text">minutes</span>
+                            </div>
+                            <small class="text-muted">How much time to add when extending</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <div class="info-badge">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Current: Auto-extend by <strong>10 minutes</strong> when bid placed within <strong>5 minutes</strong> of end time
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Highlight Settings -->
+    <div class="col-lg-6">
+        <div class="card setting-card border-0 shadow-sm">
+            <div class="setting-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-star me-2"></i>
+                    Product Highlight
+                </h5>
+            </div>
+            <div class="setting-body">
+                <form id="highlightForm">
+                    <!-- Enable Product Highlight -->
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="enableHighlight" 
+                                   name="enableHighlight" checked>
+                            <label class="form-check-label fw-semibold" for="enableHighlight">
+                                Enable Product Highlight
+                            </label>
+                        </div>
+                        <small class="text-muted">Show highlighted products on homepage and search results</small>
+                    </div>
+
+                    <div class="section-divider"></div>
+
+                    <!-- Highlight Duration -->
+                    <div class="mb-4">
+                        <label for="highlightDuration" class="form-label">
+                            <i class="bi bi-stopwatch me-1"></i>
+                            Highlight Duration
+                        </label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="highlightDuration" name="highlightDuration" 
+                                   value="30" min="5" max="1440">
+                            <span class="input-group-text">minutes</span>
+                        </div>
+                        <small class="text-muted">How long products remain highlighted after being featured</small>
+                    </div>
+
+                    <!-- Highlight Style -->
+                    <div class="mb-4">
+                        <label for="highlightStyle" class="form-label">
+                            <i class="bi bi-palette me-1"></i>
+                            Highlight Style
+                        </label>
+                        <select class="form-select" id="highlightStyle" name="highlightStyle">
+                            <option value="badge">Badge Only</option>
+                            <option value="border" selected>Colored Border</option>
+                            <option value="glow">Glow Effect</option>
+                            <option value="gradient">Gradient Background</option>
+                        </select>
+                        <small class="text-muted">Visual style for highlighted products</small>
+                    </div>
+
+                    <div class="mt-4">
+                        <div class="info-badge">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Current: Products highlighted for <strong>30 minutes</strong> with <strong>colored border</strong> style
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Settings Row -->
+<div class="row g-4 mt-2">
+    <!-- General System Settings -->
+    <div class="col-12">
+        <div class="card setting-card border-0 shadow-sm">
+            <div class="setting-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-gear me-2"></i>
+                    General System Configuration
+                </h5>
+            </div>
+            <div class="setting-body">
+                <div class="row g-4">
+                    <!-- Maximum Bid Increment -->
+                    <div class="col-lg-4">
+                        <label for="maxBidIncrement" class="form-label">
+                            <i class="bi bi-arrow-up-circle me-1"></i>
+                            Maximum Bid Increment
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="maxBidIncrement" name="maxBidIncrement" 
+                                   value="1000" min="1" step="0.01">
+                        </div>
+                        <small class="text-muted">Maximum allowed bid increase per bid</small>
+                    </div>
+
+                    <!-- Minimum Auction Duration -->
+                    <div class="col-lg-4">
+                        <label for="minAuctionDuration" class="form-label">
+                            <i class="bi bi-hourglass-split me-1"></i>
+                            Minimum Auction Duration
+                        </label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="minAuctionDuration" name="minAuctionDuration" 
+                                   value="24" min="1" max="168">
+                            <span class="input-group-text">hours</span>
+                        </div>
+                        <small class="text-muted">Shortest allowed auction period</small>
+                    </div>
+
+                    <!-- Auto-Close Buffer -->
+                    <div class="col-lg-4">
+                        <label for="autoCloseBuffer" class="form-label">
+                            <i class="bi bi-clock me-1"></i>
+                            Auto-Close Buffer
+                        </label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="autoCloseBuffer" name="autoCloseBuffer" 
+                                   value="30" min="1" max="300">
+                            <span class="input-group-text">seconds</span>
+                        </div>
+                        <small class="text-muted">Buffer time before final auction close</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="d-flex justify-content-end gap-3 mt-4">
+    <button type="button" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-clockwise me-1"></i>
+        Reset to Defaults
+    </button>
+    <button type="submit" class="btn btn-warning-accent" id="saveAllSettings">
+        <i class="bi bi-check-circle me-1"></i>
+        Save All Settings
+    </button>
+</div>
+
+{{#section 'js'}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle form submissions
+    const saveButton = document.getElementById('saveAllSettings');
+    
+    saveButton.addEventListener('click', function() {
+        // Collect all form data
+        const autoExtensionData = new FormData(document.getElementById('autoExtensionForm'));
+        const highlightData = new FormData(document.getElementById('highlightForm'));
+        
+        // Simulate saving (replace with actual API call)
+        saveButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Saving...';
+        saveButton.disabled = true;
+        
+        setTimeout(() => {
+            saveButton.innerHTML = '<i class="bi bi-check-circle me-1"></i> Saved!';
+            saveButton.classList.remove('btn-warning-accent');
+            saveButton.classList.add('btn-success');
+            
+            setTimeout(() => {
+                saveButton.innerHTML = '<i class="bi bi-check-circle me-1"></i> Save All Settings';
+                saveButton.classList.remove('btn-success');
+                saveButton.classList.add('btn-warning-accent');
+                saveButton.disabled = false;
+            }, 2000);
+        }, 1500);
+    });
+
+    // Real-time preview updates
+    const triggerTimeInput = document.getElementById('triggerTime');
+    const extensionDurationInput = document.getElementById('extensionDuration');
+    const highlightDurationInput = document.getElementById('highlightDuration');
+    const highlightStyleSelect = document.getElementById('highlightStyle');
+
+    function updatePreview() {
+        const triggerTime = triggerTimeInput.value;
+        const extensionDuration = extensionDurationInput.value;
+        const highlightDuration = highlightDurationInput.value;
+        const highlightStyle = highlightStyleSelect.options[highlightStyleSelect.selectedIndex].text;
+
+        // Update auto extension preview
+        const autoExtensionPreview = document.querySelector('.info-badge');
+        autoExtensionPreview.innerHTML = `
+            <i class="bi bi-info-circle me-1"></i>
+            Current: Auto-extend by <strong>${extensionDuration} minutes</strong> when bid placed within <strong>${triggerTime} minutes</strong> of end time
+        `;
+
+        // Update highlight preview
+        const highlightPreview = document.querySelectorAll('.info-badge')[1];
+        highlightPreview.innerHTML = `
+            <i class="bi bi-info-circle me-1"></i>
+            Current: Products highlighted for <strong>${highlightDuration} minutes</strong> with <strong>${highlightStyle.toLowerCase()}</strong> style
+        `;
+    }
+
+    // Add event listeners for real-time updates
+    [triggerTimeInput, extensionDurationInput, highlightDurationInput, highlightStyleSelect].forEach(element => {
+        element.addEventListener('input', updatePreview);
+        element.addEventListener('change', updatePreview);
+    });
+
+    // Enable/disable form sections based on checkbox state
+    document.getElementById('enableAutoExtension').addEventListener('change', function() {
+        const formInputs = document.querySelectorAll('#autoExtensionForm input:not([type="checkbox"]), #autoExtensionForm select');
+        formInputs.forEach(input => {
+            input.disabled = !this.checked;
+        });
+    });
+
+    document.getElementById('enableHighlight').addEventListener('change', function() {
+        const formInputs = document.querySelectorAll('#highlightForm input:not([type="checkbox"]), #highlightForm select');
+        formInputs.forEach(input => {
+            input.disabled = !this.checked;
+        });
+    });
+});
+</script>
+{{/section}}

@@ -150,15 +150,46 @@
                     <input type="search" class="form-control border-start-0" name="q" placeholder="Search product...">
                 </div>
             </form>
-            <div class="dropdown">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-filter"></i> Filter by: All
-                </button>
-                <ul class="dropdown-menu">
-                    {{#each categories}}
-                        <li><a class="dropdown-item" href="/admin/products/byCategory?category_id={{this.category_id}}">{{this.name}}</a></li>
-                    {{/each}}
-                </ul>
+            <div class="d-flex gap-2">
+                <!-- Parent Category Filter -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-filter"></i> 
+                        {{#if currentParent}}
+                            {{currentParent.name}}
+                        {{else}}
+                            All Categories
+                        {{/if}}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item {{#unless currentParent}}active{{/unless}}" href="/admin/products">All Categories</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        {{#each parentCategories}}
+                            <li><a class="dropdown-item {{#if (eq this.slug ../parentSlug)}}active{{/if}}" href="/admin/products/{{this.slug}}">{{this.name}}</a></li>
+                        {{/each}}
+                    </ul>
+                </div>
+                
+                <!-- Child Category Filter (only show if parent is selected) -->
+                {{#if childCategories}}
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-funnel"></i> 
+                        {{#if childSlug}}
+                            {{#each childCategories}}{{#if (eq this.slug ../childSlug)}}{{this.name}}{{/if}}{{/each}}
+                        {{else}}
+                            All {{currentParent.name}}
+                        {{/if}}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item {{#unless childSlug}}active{{/unless}}" href="/admin/products/{{parentSlug}}">All {{currentParent.name}}</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        {{#each childCategories}}
+                            <li><a class="dropdown-item {{#if (eq this.slug ../childSlug)}}active{{/if}}" href="/admin/products/{{../parentSlug}}/{{this.slug}}">{{this.name}}</a></li>
+                        {{/each}}
+                    </ul>
+                </div>
+                {{/if}}
             </div>
         </div>
 
@@ -195,18 +226,12 @@
                                 </td>
                                 <td>
                                     <div class="d-flex justify-content-end gap-2 px-4">
-                                        <a class="btn btn-sm btn-outline-secondary" href="/admin/products/details?  product_id={{product_id}}" title="View Details">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                        <a class="btn btn-sm btn-outline-dark" href="/admin/products/edit?product_id={{product_id}}" title="Edit Product">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <form class="mb-0" action="/admin/products/disable" method="post">
-                                            <input type="hidden" name="product_id" value="{{product_id}}">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Disable Product">
-                                                <i class="bi bi-slash-circle"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-product-btn" 
+                                                data-product-id="{{product_id}}" 
+                                                data-product-name="{{name}}" 
+                                                title="Delete Product">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -239,7 +264,13 @@
             <ul class="pagination pagination-sm mb-0">
                 {{#if prevPage}}
                 <li class="page-item">
-                    <a class="page-link" href="/admin/products?page={{prevPage}}{{#if categoryFilter}}&category_id={{categoryFilter}}{{/if}}">Previous</a>
+                    {{#if childSlug}}
+                        <a class="page-link" href="/admin/products/{{parentSlug}}/{{childSlug}}?page={{prevPage}}">Previous</a>
+                    {{else if parentSlug}}
+                        <a class="page-link" href="/admin/products/{{parentSlug}}?page={{prevPage}}">Previous</a>
+                    {{else}}
+                        <a class="page-link" href="/admin/products?page={{prevPage}}">Previous</a>
+                    {{/if}}
                 </li>
                 {{else}}
                 <li class="page-item disabled">
@@ -254,14 +285,26 @@
                 </li>
                 {{else}}
                 <li class="page-item">
-                    <a class="page-link" href="/admin/products?page={{value}}{{#if ../categoryFilter}}&category_id={{../categoryFilter}}{{/if}}">{{value}}</a>
+                    {{#if ../childSlug}}
+                        <a class="page-link" href="/admin/products/{{../parentSlug}}/{{../childSlug}}?page={{value}}">{{value}}</a>
+                    {{else if ../parentSlug}}
+                        <a class="page-link" href="/admin/products/{{../parentSlug}}?page={{value}}">{{value}}</a>
+                    {{else}}
+                        <a class="page-link" href="/admin/products?page={{value}}">{{value}}</a>
+                    {{/if}}
                 </li>
                 {{/if}}
                 {{/each}}
                 
                 {{#if nextPage}}
                 <li class="page-item">
-                    <a class="page-link" href="/admin/products?page={{nextPage}}{{#if categoryFilter}}&category_id={{categoryFilter}}{{/if}}">Next</a>
+                    {{#if childSlug}}
+                        <a class="page-link" href="/admin/products/{{parentSlug}}/{{childSlug}}?page={{nextPage}}">Next</a>
+                    {{else if parentSlug}}
+                        <a class="page-link" href="/admin/products/{{parentSlug}}?page={{nextPage}}">Next</a>
+                    {{else}}
+                        <a class="page-link" href="/admin/products?page={{nextPage}}">Next</a>
+                    {{/if}}
                 </li>
                 {{else}}
                 <li class="page-item disabled">
@@ -272,3 +315,75 @@
         </nav>
     </div>
 </div>
+
+{{#section 'js'}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+$(document).ready(function() {
+    $('.delete-product-btn').on('click', function() {
+        const productId = $(this).data('product-id');
+        const productName = $(this).data('product-name');
+        
+        Swal.fire({
+            title: 'Delete Product?',
+            html: `Are you sure you want to delete <strong>${productName}</strong>?<br><small class="text-muted">This action cannot be undone.</small>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading
+                Swal.fire({
+                    title: 'Deleting...',
+                    text: 'Please wait while we delete the product.',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Send delete request
+                $.ajax({
+                    url: '/admin/products/delete',
+                    method: 'POST',
+                    data: { product_id: productId },
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                title: 'Deleted!',
+                                text: response.message,
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Cannot Delete',
+                                text: response.message,
+                                icon: 'error'
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        const response = xhr.responseJSON;
+                        Swal.fire({
+                            title: 'Error',
+                            text: response?.message || 'Failed to delete product. Please try again.',
+                            icon: 'error'
+                        });
+                    }
+                });
+            }
+        });
+    });
+});
+</script>
+{{/section}}

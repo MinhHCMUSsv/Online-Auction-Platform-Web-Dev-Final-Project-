@@ -209,7 +209,8 @@
     </nav>
 
     <div class="container-fluid" style="min-height: 100px;">
-        <div class="row g-4"> <aside class="col-12 col-md-3">
+        <div class="row g-4"> 
+            <aside class="col-12 col-md-3">
                 <div class="admin-sidebar shadow-sm">
                     <div class="sidebar-header d-flex align-items-center justify-content-between">
                         ADMIN NAVIGATION
@@ -228,7 +229,18 @@
                             class="list-group-item list-group-item-action {{#if (eq activeAdmin 'products')}}active{{/if}}">
                             <i class="bi bi-box-seam me-2"></i>Products
                         </a>
-                       
+                        
+                        <div class="border-top mx-3 my-2"></div>
+
+                        <a href="/admin/profile" 
+                            class="list-group-item list-group-item-action {{#if (eq activeAdmin 'profile')}}active{{/if}}">
+                            <i class="bi bi-person-circle me-2"></i>Profile
+                        </a>
+                        
+                        <a href="/admin/settings"
+                            class="list-group-item list-group-item-action {{#if (eq activeAdmin 'settings')}}active{{/if}}">
+                            <i class="bi bi-gear me-2"></i>Settings
+                        </a>
                         
                     </div>
                 </div>

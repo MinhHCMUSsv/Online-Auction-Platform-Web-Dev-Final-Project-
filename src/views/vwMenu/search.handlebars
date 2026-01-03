@@ -94,12 +94,47 @@
 </div>
 
 <!-- PRODUCT GRID -->
-<h5 class="header">Search results for "{{query}}"</h5>
-
-{{#if (eq empty 0)}}
-    <div>No products found.</div>
-{{else}}
 <div class="container-fluid px-4 py-4">
+    <!-- Header with search and sort -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0">
+            {{#if empty}}
+                No products found for "{{query}}"
+            {{else}}
+                Search results for "{{query}}" ({{products.length}} items)
+            {{/if}}
+        </h5>
+        
+        {{#unless empty}}
+        <!-- Sort dropdown -->
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+              aria-expanded="false">
+              <i class="bi bi-arrow-up-down"></i>
+              Sort
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item {{#unless sortBy}}active{{/unless}}" href="?q={{query}}">Default</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><h6 class="dropdown-header">By End Time</h6></li>
+              <li><a class="dropdown-item {{#if (eq sortBy 'end_time_asc')}}active{{/if}}" href="?q={{query}}&sort=end_time_asc">End Time (Earliest First)</a></li>
+              <li><a class="dropdown-item {{#if (eq sortBy 'end_time_desc')}}active{{/if}}" href="?q={{query}}&sort=end_time_desc">End Time (Latest First)</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><h6 class="dropdown-header">By Start Price</h6></li>
+              <li><a class="dropdown-item {{#if (eq sortBy 'start_price_asc')}}active{{/if}}" href="?q={{query}}&sort=start_price_asc">Price (Low to High)</a></li>
+              <li><a class="dropdown-item {{#if (eq sortBy 'start_price_desc')}}active{{/if}}" href="?q={{query}}&sort=start_price_desc">Price (High to Low)</a></li>
+            </ul>
+        </div>
+        {{/unless}}
+    </div>
+
+{{#if empty}}
+    <div class="text-center py-5">
+        <i class="bi bi-search" style="font-size: 3rem; color: #ccc;"></i>
+        <p class="mt-3 text-muted">No products found matching your search.</p>
+        <a href="/menu" class="btn btn-primary">Browse All Products</a>
+    </div>
+{{else}}
     <div class="row g-3">
         {{#each products}}
         <div class="col-sm-6 col-md-4 col-lg-3">
@@ -150,24 +185,10 @@
             </div>
         </div>
         {{/each}}
-        <nav aria-label="...">
-            <ul class="pagination">
+        <nav aria-label="Search pagination" class="mt-4">
+            <ul class="pagination justify-content-center">
                 <li class="page-item disabled">
-                    <a class="page-link">Previous</a>
-                </li>
-                {{#each pageNumbers}}
-                {{#if isCurrent}}
-                <li class="page-item active">
-                    <a class="page-link" href="javascript:;">{{value}}</a>
-                </li>
-                {{else}}
-                <li class="page-item">
-                    <a class="page-link" href="/products?page={{value}}">{{value}}</a>
-                </li>
-                {{/if}}
-                {{/each}}
-                <li class="page-item">
-                    <a class="page-link" href="#">Next</a>
+                    <span class="page-link">No pagination for search results</span>
                 </li>
             </ul>
         </nav>

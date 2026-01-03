@@ -64,8 +64,17 @@ app.engine('handlebars', engine({
             return dateObj.format(format);
         },
 
+        formatCurrency: function (value) {
+            if (isNaN(value)) return value;
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value).replace(/\.00$/, '');
+        },
+
         ifEquals (a, b, options) {
             return (a === b) ? options.fn(this) : options.inverse(this);
+        },
+
+        add (a, b) {
+            return a + b;
         }
 
     }

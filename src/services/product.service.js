@@ -18,8 +18,32 @@ export function getByCategory(categoryId) {
     return db('product').where('categoryId', categoryId).select();
 } 
 
-export function findPage(limit, offset) {
-    return db('product').limit(limit).offset(offset);
+export function findPage(limit, offset, sortBy = null) {
+    let query = db('product').limit(limit).offset(offset);
+    
+    if (sortBy) {
+        switch (sortBy) {
+            case 'end_time_asc':
+                query = query.orderBy('end_time', 'asc');
+                break;
+            case 'end_time_desc':
+                query = query.orderBy('end_time', 'desc');
+                break;
+            case 'start_price_asc':
+                query = query.orderBy('start_price', 'asc');
+                break;
+            case 'start_price_desc':
+                query = query.orderBy('start_price', 'desc');
+                break;
+            default:
+                // Default sorting by product_id desc (newest first)
+                query = query.orderBy('product_id', 'desc');
+        }
+    } else {
+        query = query.orderBy('product_id', 'desc');
+    }
+    
+    return query;
 }
 
 export function findPageByCat(catId, limit, offset) {
@@ -30,6 +54,39 @@ export function findPageByCat(catId, limit, offset) {
 export function countByCat(catId) {
     return db('product').where('category_id', catId)
         .count('product_id as count').first();
+}
+
+export function countByCatID(catId) {
+    return db('product').where('category_id', catId)
+        .count('product_id as count').first();
+}
+
+export function findPageByCatID(catId, limit, offset, sortBy = null) {
+    let query = db('product').where('category_id', catId)
+        .limit(limit).offset(offset);
+    
+    if (sortBy) {
+        switch (sortBy) {
+            case 'end_time_asc':
+                query = query.orderBy('end_time', 'asc');
+                break;
+            case 'end_time_desc':
+                query = query.orderBy('end_time', 'desc');
+                break;
+            case 'start_price_asc':
+                query = query.orderBy('start_price', 'asc');
+                break;
+            case 'start_price_desc':
+                query = query.orderBy('start_price', 'desc');
+                break;
+            default:
+                query = query.orderBy('product_id', 'desc');
+        }
+    } else {
+        query = query.orderBy('product_id', 'desc');
+    }
+    
+    return query;
 }
 
 export function getByCategoryID(categories_id) {
@@ -57,8 +114,8 @@ export function getBidder(product_id) {
     return db('bid as b')
         .join('app_user as u', 'b.bidder_id', 'u.user_id')
         .where('b.product_id', product_id)
-        .orderBy('b.max_auto_bid', 'desc')
-        .select('u.*', 'b.bid_amount', 'b.max_auto_bid')
+        .orderBy('b.created_at')
+        .select('u.*', 'b.bid_amount', 'b.max_auto_bid', 'b.created_at');
 }
 
 // Get comments with nested replies organized by structure
@@ -121,9 +178,33 @@ export function findWonItems(userId) {
         .orderBy('end_time', 'desc'); 
 }
 
-export function search(keyword) {
-    return db('product')
+export function search(keyword, sortBy = null) {
+    let query = db('product')
         .whereRaw(`fts @@ to_tsquery(remove_accents('${keyword}'))`);
+    
+    if (sortBy) {
+        switch (sortBy) {
+            case 'end_time_asc':
+                query = query.orderBy('end_time', 'asc');
+                break;
+            case 'end_time_desc':
+                query = query.orderBy('end_time', 'desc');
+                break;
+            case 'start_price_asc':
+                query = query.orderBy('start_price', 'asc');
+                break;
+            case 'start_price_desc':
+                query = query.orderBy('start_price', 'desc');
+                break;
+            default:
+                // Default sorting
+                query = query.orderBy('product_id', 'desc');
+        }
+    } else {
+        query = query.orderBy('product_id', 'desc');
+    }
+    
+    return query;
 }
 
 export function getProductByParentID(parent_id) {
@@ -133,13 +214,36 @@ export function getProductByParentID(parent_id) {
         .select('p.*');
 }
 
-export function findPageByParentID(parent_id, limit, offset) {
-    return db('product as p')
+export function findPageByParentID(parent_id, limit, offset, sortBy = null) {
+    let query = db('product as p')
         .join('category as c', 'p.category_id', 'c.category_id')
         .where('c.parent_id', parent_id)
         .limit(limit)
         .offset(offset)
         .select('p.*');
+    
+    if (sortBy) {
+        switch (sortBy) {
+            case 'end_time_asc':
+                query = query.orderBy('p.end_time', 'asc');
+                break;
+            case 'end_time_desc':
+                query = query.orderBy('p.end_time', 'desc');
+                break;
+            case 'start_price_asc':
+                query = query.orderBy('p.start_price', 'asc');
+                break;
+            case 'start_price_desc':
+                query = query.orderBy('p.start_price', 'desc');
+                break;
+            default:
+                query = query.orderBy('p.product_id', 'desc');
+        }
+    } else {
+        query = query.orderBy('p.product_id', 'desc');
+    }
+    
+    return query;
 }
 
 export function countByParentID(parent_id) {
@@ -154,4 +258,25 @@ export function updateCurrentPriceAndLeader(productId, updateProductData) {
     return db('product')
         .where('product_id', productId)
         .update(updateProductData);
+}
+
+export function getProductsByCategory(categoryId) {
+    return db('product as p')
+        .join('app_user as u', 'p.seller_id', 'u.user_id')
+        .where('p.category_id', categoryId)
+        .select('p.*', 'u.full_name as seller_name');
+}
+
+export function getProductsByParentCategory(parentCategoryId) {
+    return db('product as p')
+        .join('app_user as u', 'p.seller_id', 'u.user_id')
+        .join('category as c', 'p.category_id', 'c.category_id')
+        .where('c.parent_id', parentCategoryId)
+        .select('p.*', 'u.full_name as seller_name');
+}
+
+export function deleteProduct(productId) {
+    return db('product')
+        .where('product_id', productId)
+        .del();
 }

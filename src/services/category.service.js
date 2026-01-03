@@ -30,6 +30,18 @@ export function getAllChild() {
         .select();
 }
 
+export function getCategoryBySlug(slug) {
+    return db('category')
+        .where('slug', slug)
+        .first();
+}
+
+export function getCategoryById(category_id) {
+    return db('category')
+        .where('category_id', category_id)
+        .first();
+}
+
 export function addCategory(category) {
     return db('category').insert(category);
 }

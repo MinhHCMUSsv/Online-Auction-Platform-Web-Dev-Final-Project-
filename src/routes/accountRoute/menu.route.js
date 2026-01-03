@@ -3,6 +3,10 @@ import * as productService from '../../services/product.service.js';
 import * as watchlistService from '../../services/watchlist.service.js';
 import * as userService from '../../services/user.service.js';
 import * as categoriesService from '../../services/category.service.js';
+import db from '../../utils/db.js';
+
+import { sendBidderRejectedNotification, sendOutbidNotification, sendWinningNotification, sendPriceUpdateNotification } from '../../utils/email.js';
+
 
 const router = express.Router();
 
@@ -14,6 +18,7 @@ router.get('/', async function (req, res) {
     req.session.fatherCategories = fatherCategories;
     
     const page = req.query.page || 1;
+    const sortBy = req.query.sort || null;
     const limit = 12;
     const offset = (page - 1) * limit;
 
@@ -28,7 +33,7 @@ router.get('/', async function (req, res) {
         });
     }
 
-    let list = await productService.findPage(limit, offset);
+    let list = await productService.findPage(limit, offset, sortBy);
 
     if (req.session.isAuthenticated) {
         const userId = req.session.authUser.user_id;
@@ -52,7 +57,14 @@ router.get('/', async function (req, res) {
         currentPage: +page,
         totalPages: nPages,
         prevPage: +page > 1 ? +page - 1 : null,
-        nextPage: +page < nPages ? +page + 1 : null
+        nextPage: +page < nPages ? +page + 1 : null,
+        fatherCategories: fatherCategories,
+        parentCategories: fatherCategories,
+        childCategories: [],
+        currentParent: null,
+        parentSlug: null,
+        childSlug: null,
+        sortBy: sortBy
     });
 });
 
@@ -68,14 +80,16 @@ router.get('/detail', async function (req, res) {
     const bidder = await productService.getBidder(product_id);
     
     let winBidder = [];
-    if (product.leader_id !== null) {
-        winBidder = await productService.getBidder(product.leader_id);
+    if (product.leader_id) {
+        winBidder = await userService.getUserById(product.leader_id);
     }
 
+    const suggestedPrice = +product.current_price + +product.bid_step;
     res.render('vwMenu/detail', {
         product: product,
         seller: seller,
         bidder: bidder,
+        suggestedPrice: suggestedPrice,
         winBidder: winBidder,
         comments: comments,
         related_products: related_products
@@ -89,12 +103,28 @@ router.post('/place-bid', async function (req, res) {
         const bidderId = req.body.bidder_id; // Đảm bảo chuyển về kiểu số hoặc khớp với DB
         const inputMaxAutoBid = Number(req.body.max_auto_bid);
 
+        // Check if user is banned from bidding on this product
+        const banCheck = await db('ban_user')
+            .where('product_id', productId)
+            .andWhere('bidder_id', bidderId)
+            .first();
+            
+        if (banCheck) {
+            return res.status(403).json({
+                success: false,
+                message: 'You have been restricted from bidding on this item by the seller.'
+            });
+        }
+
         // BƯỚC 1: Lấy thông tin sản phẩm hiện tại từ DB
         // (Giả sử bạn có hàm getDetail để lấy thông tin sản phẩm)
         const product = await productService.getProductById(productId); 
         
         if (!product) {
-            return res.status(404).send('Sản phẩm không tồn tại');
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found.'
+            });
         }
 
         let finalBidAmount = 0;
@@ -103,47 +133,49 @@ router.post('/place-bid', async function (req, res) {
         const step = Number(product.bid_step);
         const currentLeaderId = product.leader_id; // ID người đang thắng
 
-        let isChange = false;
+        
+
+        let isChange = true;
+        let sendNotification = false;
 
         // BƯỚC 2: LOGIC TÍNH GIÁ BID_AMOUNT ĐỂ LƯU VÀO LỊCH SỬ
         
         // Trường hợp A: Sản phẩm chưa có ai đấu giá
         if (!currentLeaderId) {
             finalBidAmount = startPrice;
-            isChange = true;
-        } 
-        else {
+            sendNotification = true;
+        }
+        
+        else  
+        {
             // Trường hợp B: Đã có người đấu giá
             
-            if (currentLeaderId == bidderId) {
-                // >>> QUAN TRỌNG: NGƯỜI DÙNG TỰ NÂNG CẤP (Self-Bidding) <<<
-                // Nếu mình đang thắng mà đặt tiếp -> Giữ nguyên giá hiện tại (chỉ update Max Bid ngầm)
-                // Để lịch sử hiện: 30.5tr (Max 40tr) thay vì nhảy lên 35tr
-                finalBidAmount = currentPrice;
-                if (inputMaxAutoBid > product.leader_max) {
-                    isChange = true;
-                }
-                else {
-                    
-                    
-
+            if (currentLeaderId == bidderId) 
+                finalBidAmount = currentPrice; // Đặt giá cao hơn giá của chính mình --> giữ nguyên giá hiện tại
                 
-            } else {
-                // >>> QUAN TRỌNG: ĐẤU VỚI NGƯỜI KHÁC <<<
-                // Giá vào lệnh = Giá hiện tại + Bước giá
-
-                if (inputMaxAutoBid < product.leader_max) {
-                    // Trường hợp 1: Người dùng nhập Max Auto Bid thấp hơn người đang thắng
-                    // Giữ nguyên giá hiện tại, không đổi người thắng
-                    finalBidAmount = currentPrice; // Không đổi giá
+            else 
+            {
+                if (inputMaxAutoBid <= product.leader_max) 
+                {
+                    finalBidAmount = inputMaxAutoBid; // TH1: Người B đặt giá thấp hơn hoặc bằng người đang thắng
+                    isChange = false; 
                 }
                 else {
-                    // Trường hợp 2: Người dùng nhập Max Auto Bid cao hơn hoặc bằng người đang thắng
-                    // Cập nhật người thắng mới và giá hiện tại
-                    finalBidAmount = Math.min(inputMaxAutoBid, product.leader_max + step);
-                    isChange = true; 
-                }
+                    finalBidAmount = Math.min(inputMaxAutoBid, +product.leader_max + step); // TH2: Người B đặt giá cao hơn người đang thắng
+                    sendNotification = true;
+
+                    const previousLeaderInfo = await userService.getUserById(currentLeaderId);
+                    await sendOutbidNotification(previousLeaderInfo.email, product.name);
+
+                }    
             }
+        }
+
+        if (sendNotification) {
+            const sellerInfo = await userService.getUserById(product.seller_id);
+            const bidderInfo = await userService.getUserById(bidderId);
+            await sendWinningNotification(bidderInfo.email, product.name, finalBidAmount);
+            await sendPriceUpdateNotification(sellerInfo.email, product.name, finalBidAmount, inputMaxAutoBid, bidderInfo.name);
         }
         
         if (isChange) {
@@ -165,10 +197,29 @@ router.post('/place-bid', async function (req, res) {
 
         await productService.placeBid(placeBidData);
         
+        // Check if this is an AJAX request
+        if (req.headers['content-type'] === 'application/x-www-form-urlencoded' && 
+            req.xhr || req.headers.accept && req.headers.accept.indexOf('json') > -1) {
+            return res.json({
+                success: true,
+                message: 'Bid placed successfully!'
+            });
+        }
+        
         res.redirect('/menu/detail?product_id=' + productId);
 
     } catch (error) {
         console.error(error);
+        
+        // Check if this is an AJAX request
+        if (req.headers['content-type'] === 'application/x-www-form-urlencoded' && 
+            req.xhr || req.headers.accept && req.headers.accept.indexOf('json') > -1) {
+            return res.status(500).json({
+                success: false,
+                message: 'An error occurred while placing your bid.'
+            });
+        }
+        
         res.status(500).send('Server error');
     }
 });
@@ -204,33 +255,40 @@ router.post('/watchlist/toggle', async function (req, res) {
 
 router.get('/search', async function (req, res) {
     const query = req.query.q || '';
+    const sortBy = req.query.sort || null;
     
     if (query.length === 0) {
         return res.render('vwMenu/search', {
             products: [],
             empty: true,   
             query: query,
-            activeNav: 'Menu'
+            activeNav: 'Menu',
+            sortBy: sortBy
         });
     }
 
     const keywords = query.replace(/ /g, '&');
 
-    const products = await productService.search(keywords);
+    const products = await productService.search(keywords, sortBy);
 
     res.render('vwMenu/search', {
         products: products,
         query: query,
         empty: products.length === 0,
-        activeNav: 'Menu'
+        activeNav: 'Menu',
+        sortBy: sortBy
     });
 });
 
 router.get('/:slug', async function (req, res) {
     const slug = req.params.slug;
     const cat_id = await categoriesService.getCategory(slug); 
+    const sortBy = req.query.sort || null;
 
-    const childCategories = await categoriesService.getChildCategories(cat_id);  
+    const childCategories = await categoriesService.getChildCategories(cat_id);
+    const currentParent = await categoriesService.getCategoryBySlug(slug);
+    const fatherCategories = await categoriesService.getFatherCategories();
+
 
     const page = req.query.page || 1;
     const limit = 8;
@@ -250,7 +308,7 @@ router.get('/:slug', async function (req, res) {
         });
     }
 
-    let list = await productService.findPageByParentID(cat_id, limit, offset);
+    let list = await productService.findPageByParentID(cat_id, limit, offset, sortBy);
     console.log(list);
 
     if (req.session.isAuthenticated) {
@@ -272,14 +330,190 @@ router.get('/:slug', async function (req, res) {
         products: list,
         activeNav: 'Menu',
         childCategories: childCategories,
+        fatherCategories: fatherCategories,
+        parentCategories: fatherCategories,
+        currentParent: currentParent,
         pageNumbers: pageNumbers,
         catID: cat_id,
         currentPage: +page,
         totalPages: nPages,
         prevPage: +page > 1 ? +page - 1 : null,
         nextPage: +page < nPages ? +page + 1 : null,
-        slug: slug
+        slug: slug,
+        parentSlug: slug,
+        childSlug: null,
+        sortBy: sortBy
     });
+});
+
+// Route for child category filter
+router.get('/:parentSlug/:childSlug', async function (req, res) {
+    const parentSlug = req.params.parentSlug;
+    const childSlug = req.params.childSlug;
+    const sortBy = req.query.sort || null;
+    
+    // Get child category ID
+    const childCategoryId = await categoriesService.getCategory(childSlug);
+    const childCategory = await categoriesService.getCategoryBySlug(childSlug);
+    
+    // Get parent category info
+    const currentParent = await categoriesService.getCategoryById(childCategory.parent_id);
+    const childCategories = await categoriesService.getChildCategories(childCategory.parent_id);
+    const fatherCategories = await categoriesService.getFatherCategories();
+
+    const page = req.query.page || 1;
+    const limit = 8;
+    const offset = (page - 1) * limit;
+
+    const total = await productService.countByCatID(childCategoryId);
+    const nPages = Math.ceil(+total.count / limit);
+    const pageNumbers = [];
+
+    for (let i = 1; i <= nPages; i++) {
+        pageNumbers.push({
+            value: i,
+            isCurrent: i === +page,
+        });
+    }
+
+    let list = await productService.findPageByCatID(childCategoryId, limit, offset, sortBy);
+
+    if (req.session.isAuthenticated) {
+        const user_id = req.session.authUser.user_id;
+        
+        const watchlist = await watchlistService.findByUserId(user_id);
+        const watchlistIds = watchlist.map(item => item.product_id);
+
+        list = list.map(item => {
+            if (watchlistIds.includes(item.product_id)) {
+                return { ...item, is_liked: true };
+            }
+            return item;
+        });
+    }
+
+    res.render('vwMenu/byCat', {
+        products: list,
+        activeNav: 'Menu',
+        childCategories: childCategories,
+        fatherCategories: fatherCategories,
+        parentCategories: fatherCategories,
+        currentParent: currentParent,
+        pageNumbers: pageNumbers,
+        catID: childCategoryId,
+        currentPage: +page,
+        totalPages: nPages,
+        prevPage: +page > 1 ? +page - 1 : null,
+        nextPage: +page < nPages ? +page + 1 : null,
+        slug: childSlug,
+        parentSlug: parentSlug,
+        childSlug: childSlug,
+        sortBy: sortBy
+    });
+});
+
+// Check if user is banned from bidding on a product
+router.get('/check-ban', async function (req, res) {
+    try {
+        const { product_id, bidder_id } = req.query;
+        
+        const banCheck = await db('ban_user')
+            .where('product_id', product_id)
+            .andWhere('bidder_id', bidder_id)
+            .first();
+            
+        res.json({ isBanned: !!banCheck });
+    } catch (error) {
+        console.error('Error checking ban status:', error);
+        res.status(500).json({ isBanned: false });
+    }
+});
+
+// Reject bidder route
+router.post('/reject-bidder', async function (req, res) {
+    try {
+        const { bidder_id, product_id } = req.body;
+        const sellerId = req.session.authUser.user_id;
+        
+        // Verify seller owns the product
+        const product = await productService.getProductById(product_id);
+        if (!product || product.seller_id !== sellerId) {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'You are not authorized to reject bidders for this product.' 
+            });
+        }
+        
+        // Get bidder and seller info for email
+        const bidder = await userService.getUserById(bidder_id);
+        const seller = await userService.getUserById(sellerId);
+        
+        if (!bidder || !seller) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'User not found.' 
+            });
+        }
+        
+        // Check if bidder is currently the leader
+        const wasLeader = (product.leader_id === parseInt(bidder_id));
+        
+        // Add to ban list
+        await db('ban_user').insert({
+            product_id: product_id,
+            bidder_id: bidder_id,
+        });
+        
+        // If banned user was the leader, find next highest bidder
+        if (wasLeader) {
+            const nextBidder = await db('bid as b')
+                .join('app_user as u', 'b.bidder_id', 'u.user_id')
+                .where('b.product_id', product_id)
+                .andWhere('b.bidder_id', '!=', bidder_id)
+                .orderBy('b.bid_amount', 'desc')
+                .select('b.*', 'u.email', 'u.full_name')
+                .first();
+                
+            if (nextBidder) {
+                // Update product with new leader
+                await productService.updateCurrentPriceAndLeader(product_id, {
+                    current_price: nextBidder.bid_amount,
+                    leader_id: nextBidder.bidder_id,
+                    leader_max: nextBidder.max_auto_bid
+                });
+                
+                // Send email to new leader
+                await sendWinningNotification(
+                    nextBidder.email,
+                    product.name,
+                    nextBidder.bid_amount
+                );
+            } else {
+                // No other bidders, reset to starting price
+                await productService.updateCurrentPriceAndLeader(product_id, {
+                    current_price: product.start_price,
+                    leader_id: null,
+                    leader_max: null
+                });
+            }
+        }
+        
+        // Send rejection email to banned bidder
+        await sendBidderRejectedNotification(
+            bidder.email,
+            product.name,
+            seller.full_name
+        );
+        
+        res.json({ success: true });
+        
+    } catch (error) {
+        console.error('Error rejecting bidder:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'An error occurred while rejecting the bidder.' 
+        });
+    }
 });
 
 export default router; 

@@ -197,51 +197,6 @@
     </div>
 </div>
 
-<div class="row g-4 mb-4">
-    <div class="col-12 col-md-4">
-        <div class="kpi-card">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="kpi-label mb-1">Total Categories</div>
-                    <div class="kpi-value">{{#if categories}}{{categories.length}}{{else}}0{{/if}}</div>
-                </div>
-                <div class="kpi-icon">
-                    <i class="bi bi-folder"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-4">
-        <div class="kpi-card">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="kpi-label mb-1">Total Linked Products</div>
-                    <div class="kpi-value">
-                        124
-                    </div>
-                </div>
-                <div class="kpi-icon" style="background: rgba(31, 154, 84, 0.1); color: #1f9a54;">
-                    <i class="bi bi-box-seam"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-4">
-        <div class="kpi-card">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <div class="kpi-label mb-1">Top Category</div>
-                    <div class="kpi-value h4 mb-0 text-truncate" style="max-width: 150px;">Electronics</div>
-                    <small class="text-success fw-bold"><i class="bi bi-arrow-up"></i> 45 items</small>
-                </div>
-                <div class="kpi-icon" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
-                    <i class="bi bi-graph-up-arrow"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="card shadow-sm border-0 rounded-3">
     <div class="card-header-actions d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div class="d-flex align-items-center gap-2">
@@ -249,14 +204,6 @@
                 <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
                 <input type="search" class="form-control border-start-0 ps-0" name="q" placeholder="Search categories...">
             </div>
-        </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-filter me-1"></i> Filter
-            </button>
-            <button class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-download me-1"></i> Export
-            </button>
         </div>
     </div>
 
@@ -267,8 +214,7 @@
                     <th style="width: 50px;" class="ps-4"></th>
                     <th style="width: 80px;">#ID</th>
                     <th>Category Name</th>
-                    <th style="width: 200px;">Created At</th>
-                    <th style="width: 200px;" class="text-end pe-4">Actions</th>
+                    <th style="width: 400px;" class="text-end pe-4">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -291,16 +237,8 @@
                             <div class="fw-bold text-dark">{{name}}</div>
                         </div>
                     </td>
-                    <td>
-                        <div class="text-muted small">
-                            <i class="bi bi-calendar3 me-1"></i>
-                            {{#if created_at}}{{created_at}}{{else}}N/A{{/if}}
-                        </div>
-                    </td>
+                    
                     <td class="text-end pe-4">
-                        <button class="btn-action-icon me-1" data-bs-toggle="modal" data-bs-target="#modalAddSubcategory" data-parent-id="{{category_id}}" data-parent-name="{{name}}">
-                            <i class="bi bi-plus-circle"></i>
-                        </button>
                         <button class="btn-action-icon me-1" data-bs-toggle="modal" data-bs-target="#modalEditCategory" data-id="{{category_id}}" data-name="{{name}}">
                             <i class="bi bi-pencil"></i>
                         </button>
@@ -330,12 +268,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td>
-                            <div class="text-muted small">
-                                <i class="bi bi-calendar3 me-1"></i>
-                                {{#if created_at}}{{created_at}}{{else}}N/A{{/if}}
-                            </div>
-                        </td>
+                        
                         <td class="text-end pe-4">
                             <button class="btn-action-icon me-1" data-bs-toggle="modal" data-bs-target="#modalEditCategory" data-id="{{category_id}}" data-name="{{name}}">
                                 <i class="bi bi-pencil"></i>
