@@ -1,4 +1,5 @@
 import db from '../utils/db.js';
+import bcrypt from 'bcryptjs';
 
 export function getAllUsers() {
     return db('app_user');
@@ -76,4 +77,16 @@ export function updateUser(userId, updates) {
     return db('app_user')
         .where('user_id', userId)
         .update(updates);
+}
+
+export function deleteUser(userId) {
+    return db('app_user')
+        .where('user_id', userId)
+        .del();
+}
+
+export function updateUserPassword(userId, newPassword) {
+    return db('app_user')
+        .where('user_id', userId)
+        .update({ password_hash: newPassword });
 }

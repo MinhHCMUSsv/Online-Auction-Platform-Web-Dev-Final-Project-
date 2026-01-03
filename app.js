@@ -10,8 +10,8 @@ import authRouter from './src/routes/accountRoute/auth.route.js';
 import sellerRouter from './src/routes/seller.route.js';
 
 import adminCategoryRouter from './src/routes/adminRoute/category.route.js';
-import adminProductRouter from './src/routes/adminRoute/product.route.js';
 import adminUserRouter from './src/routes/adminRoute/user.route.js';
+import adminSettingRouter from './src/routes/adminRoute/setting.route.js';
 
 import passport from './src/utils/passport.js';
 
@@ -111,8 +111,8 @@ app.use('/profile', isAuth, profileRouter);
 app.use('/seller', sellerRouter);
 
 app.use('/admin/categories', adminCategoryRouter);
-app.use('/admin/products', adminProductRouter);
 app.use('/admin/users', adminUserRouter);
+app.use('/admin/settings', adminSettingRouter);
 
 app.use((req, res) => {
     res.status(403).render('vwError/403');

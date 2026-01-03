@@ -187,3 +187,31 @@ export const sendBidderRejectedNotification = async function (toEmail, productNa
     
     return await sendMailBase(toEmail, subject, htmlContent);
 };
+
+export const sendPasswordResetEmail = async function (toEmail, fullName, newPassword) {
+    const subject = 'Password Reset - Your New Password';
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background-color: #ff8c00; color: white; padding: 20px; text-align: center;">
+                <h2>Password Reset</h2>
+            </div>
+            <div style="padding: 30px; background-color: #f9f9f9;">
+                <h3>Hello ${fullName},</h3>
+                <p>Your password has been reset by an administrator.</p>
+                <p><strong>Your new password is:</strong></p>
+                <div style="background-color: #fff; border: 2px solid #ff8c00; padding: 15px; text-align: center; font-size: 18px; font-weight: bold; color: #ff8c00; margin: 20px 0;">
+                    ${newPassword}
+                </div>
+                <p><strong>Important:</strong> Please change this password after logging in for security purposes.</p>
+                <p>If you did not request this password reset, please contact the administrator immediately.</p>
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+                <p style="color: #666; font-size: 12px;">
+                    This is an automated message. Please do not reply to this email.
+                </p>
+            </div>
+        </div>
+    `;
+    
+    
+    return await sendMailBase(toEmail, subject, html);
+}

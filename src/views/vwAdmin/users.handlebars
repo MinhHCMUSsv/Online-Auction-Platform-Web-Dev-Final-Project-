@@ -130,49 +130,16 @@
     </div>
 </div>
 
-<div class="card shadow-sm border-0 rounded-3">
-    <div class="card-header bg-white border-bottom p-3">
-        <form class="row g-3" action="/admin/users" method="get">
-            <div class="col-12 col-md-4">
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" class="form-control border-start-0 bg-light" name="q" placeholder="Search name, email...">
-                </div>
-            </div>
-            
-            <div class="col-6 col-md-3">
-                <select class="form-select" name="role">
-                    <option value="all" selected>All Roles</option>
-                    <option value="bidder">Bidder</option>
-                    <option value="seller">Seller</option>
-                    <option value="admin">Administrator</option>
-                </select>
-            </div>
-
-            <div class="col-6 col-md-3">
-                <select class="form-select" name="status">
-                    <option value="all" selected>All Status</option>
-                    <option value="active">Active</option>
-                    <option value="pending">Pending</option>
-                    <option value="banned">Banned</option>
-                </select>
-            </div>
-
-            <div class="col-12 col-md-2">
-                <button type="submit" class="btn btn-outline-dark w-100">Apply Filter</button>
-            </div>
-        </form>
-    </div>
-
+<div class="card shadow-sm border-0 rounded-3"> 
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
                     <th class="ps-4">User</th>
                     <th>Role</th>
-                    <th>Status</th>
                     <th>Joined Date</th>
-                    <th>Points/Rating</th>
+                    <th>Positive point</th>
+                    <th>Negative point</th>
                     <th class="text-end pe-4">Actions</th>
                 </tr>
             </thead>
@@ -202,58 +169,35 @@
                                 <span class="badge badge-role-bidder rounded-pill px-2 py-1"><i class="bi bi-person me-1"></i>Bidder</span>
                             {{/if}}
                         </td>
-                        <td>
-                            {{#if (eq status 'active')}}
-                                <span class="d-flex align-items-center text-success fw-medium font-monospace small">
-                                    <span class="status-dot status-active"></span>Active
-                                </span>
-                            {{else if (eq status 'banned')}}
-                                <span class="d-flex align-items-center text-danger fw-medium font-monospace small">
-                                    <span class="status-dot status-banned"></span>Banned
-                                </span>
-                            {{else}}
-                                <span class="d-flex align-items-center text-warning fw-medium font-monospace small">
-                                    <span class="status-dot status-pending"></span>Pending
-                                </span>
-                            {{/if}}
-                        </td>
+                
                         <td class="text-muted small">
                             {{#if created_at}}{{formatDate created_at "DD/MM/YYYY"}}{{else}}N/A{{/if}}
                         </td>
                         <td>
                             <div class="d-flex align-items-center">
-                                <i class="bi bi-star-fill text-warning small me-1"></i>
-                                <span class="fw-semibold">{{#if rating}}{{rating}}{{else}}0.0{{/if}}</span>
-                                <span class="text-muted small ms-1">({{points}} pts)</span>
+                                <span class="text-muted small ms-1">{{positive_point}}</span>
                             </div>
                         </td>
+
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <span class="text-muted small ms-1">{{negative_point}}</span>
+                            </div>
+                        </td>
+
                         <td class="text-end pe-4">
-                            <button class="btn-icon me-1" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#modalEditUser"
-                                    data-id="{{user_id}}"
-                                    data-name="{{full_name}}"
-                                    data-role="{{role}}"
-                                    data-status="{{status}}"
-                                    title="Edit User">
-                                <i class="bi bi-pencil-square"></i>
+                            <button class="btn-icon me-1" data-bs-toggle="tooltip" title="Reset Password"
+                                    onclick="resetPassword('{{user_id}}', '{{email}}', '{{full_name}}')">
+                                <i class="bi bi-key"></i>
                             </button>
                             
-                            {{#if (eq status 'banned')}}
-                            <form action="/admin/users/unban" method="post" class="d-inline-block m-0">
-                                <input type="hidden" name="user_id" value="{{user_id}}">
-                                <button type="submit" class="btn-icon text-success" title="Unban User">
-                                    <i class="bi bi-unlock"></i>
-                                </button>
-                            </form>
-                            {{else}}
-                            <form action="/admin/users/ban" method="post" class="d-inline-block m-0">
-                                <input type="hidden" name="user_id" value="{{user_id}}">
-                                <button type="submit" class="btn-icon btn-icon-danger" title="Ban User" onclick="return confirm('Ban this user?');">
-                                    <i class="bi bi-slash-circle"></i>
-                                </button>
-                            </form>
-                            {{/if}}
+                            <button class="btn-icon btn-icon-danger delete-user-btn" 
+                                    title="Remove User" 
+                                    data-user-id="{{user_id}}" 
+                                    data-user-name="{{full_name}}" 
+                                    data-user-email="{{email}}">
+                                <i class="bi bi-trash"></i>
+                            </button>
                         </td>
                     </tr>
                     {{/each}}
@@ -334,13 +278,13 @@
                                     <td class="text-end pe-4">
                                         <div class="d-flex gap-2 justify-content-end">
                                             <form action="/admin/users/upgrade/reject" method="post" class="d-inline">
-                                                <input type="hidden" name="user_id" value="{{user_id}}">
+                                                <input type="hidden" name="user_id" value="{{bidder_id}}">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Reject this seller request?');">
                                                     <i class="bi bi-x-circle"></i>
                                                 </button>
                                             </form>
                                             <form action="/admin/users/upgrade/approve" method="post" class="d-inline">
-                                                <input type="hidden" name="user_id" value="{{user_id}}">
+                                                <input type="hidden" name="user_id" value="{{bidder_id}}">
                                                 <button type="submit" class="btn btn-sm btn-warning-accent">
                                                     <i class="bi bi-check-circle"></i>
                                                 </button>
@@ -410,23 +354,172 @@
 </div>
 
 {{#section 'js'}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+
+    // Edit User Modal Handler
     const editUserModal = document.getElementById('modalEditUser');
     if (editUserModal) {
         editUserModal.addEventListener('show.bs.modal', event => {
             const button = event.relatedTarget;
             
-            // Extract info from data attributes
             const id = button.getAttribute('data-id');
             const name = button.getAttribute('data-name');
             const role = button.getAttribute('data-role');
             const status = button.getAttribute('data-status');
             
-            // Update modal inputs
             editUserModal.querySelector('#editUserId').value = id;
             editUserModal.querySelector('#editUserName').value = name;
             editUserModal.querySelector('#editUserRole').value = role;
             editUserModal.querySelector('#editUserStatus').value = status;
+        });
+    }
+
+    // Delete User Handler
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.delete-user-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const userName = this.getAttribute('data-user-name');
+                const userEmail = this.getAttribute('data-user-email');
+                
+                Swal.fire({
+                    title: 'Delete User?',
+                    html: `Are you sure you want to delete <strong>${userName}</strong>?<br><small class="text-muted">${userEmail}</small><br><br><span class="text-danger">This action cannot be undone!</span>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, delete user!',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading
+                        Swal.fire({
+                            title: 'Deleting User...',
+                            text: 'Please wait while we remove the user.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                        
+                        // Send delete request
+                        fetch('/admin/users/remove', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ user_id: userId })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    title: 'Deleted!',
+                                    text: data.message || 'User has been deleted successfully',
+                                    icon: 'success',
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Cannot Delete',
+                                    text: data.message || 'Unable to delete user',
+                                    icon: 'error',
+                                    confirmButtonColor: '#ff8c00'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Delete error:', error);
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'Failed to delete user. Please try again.',
+                                icon: 'error',
+                                confirmButtonColor: '#ff8c00'
+                            });
+                        });
+                    }
+                });
+            });
+        });
+    });
+
+    // Reset Password Function
+    function resetPassword(userId, userEmail, userName) {
+        Swal.fire({
+            title: 'Reset Password?',
+            html: `Send a new password to <strong>${userName}</strong>?<br><small class="text-muted">${userEmail}</small><br><br>A new password will be generated and sent via email.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#ff8c00',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, reset password!',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading
+                Swal.fire({
+                    title: 'Resetting Password...',
+                    text: 'Generating new password and sending email...',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Send reset password request
+                fetch('/admin/users/reset-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Password Reset!',
+                            html: `New password has been sent to <strong>${userEmail}</strong><br><br><small class="text-muted">The user will receive an email with their new password shortly.</small>`,
+                            icon: 'success',
+                            confirmButtonColor: '#ff8c00',
+                            timer: 3000,
+                            timerProgressBar: true
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Reset Failed',
+                            text: data.message || 'Unable to reset password',
+                            icon: 'error',
+                            confirmButtonColor: '#ff8c00'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Reset error:', error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Failed to reset password. Please try again.',
+                        icon: 'error',
+                        confirmButtonColor: '#ff8c00'
+                    });
+                });
+            }
         });
     }
 </script>

@@ -3,6 +3,8 @@ import db from '../utils/db.js';
 export function getAllUpgradeRequests() {
     return db('upgrade_request as ur')
         .join('app_user as u', 'ur.bidder_id', 'u.user_id')
+        .where('ur.status', 'pending')
+        .orderBy('ur.request_time', 'asc')
         .select('ur.*', 'u.full_name', 'u.email', 'u.points');
 }
 
@@ -13,6 +15,12 @@ export function approveUpgrade(requestId, adminId) {
                   admin_id: adminId
          }
         );
+}
+
+export function updateRequest(userId) {
+    return db('upgrade_request')
+        .where('bidder_id', userId)
+        .update({ status: 'approved' });
 }
 
 export function addUpgrade(user) {
@@ -29,5 +37,6 @@ export function getUpgradeStatus(userId) {
 export function deleteUpgradeRequest(userId) {
     return db('upgrade_request')
         .where('bidder_id', userId)
-        .del();
+        .update({ status: 'rejected' });
+        
 }

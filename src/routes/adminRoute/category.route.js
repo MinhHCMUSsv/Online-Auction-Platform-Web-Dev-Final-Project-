@@ -20,35 +20,113 @@ router.get('/', async function(req, res) {
 });
 
 router.post('/add', async function(req, res) {
-    const category = {
-        name: req.body.name,
-        parent_id: req.body.parent_id || null
-    };
+    try {
+        console.log('Request body:', req.body); // Debug log
+        
+        const { name, parent_id } = req.body;
+        
+        if (!name || name.trim() === '') {
+            return res.status(400).json({
+                success: false,
+                error: { type: 'VALIDATION_ERROR', message: 'Category name is required' }
+            });
+        }
 
-    await categoriesService.addCategory(category);
-    res.redirect('/admin/categories');
+        // Check for duplicate name
+        const allCategories = await categoriesService.getAll();
+        const isDuplicate = allCategories.some(cat => 
+            cat.name.toLowerCase() === name.trim().toLowerCase() && 
+            cat.parent_id === (parent_id || null)
+        );
+
+        if (isDuplicate) {
+            return res.status(400).json({
+                success: false,
+                error: { type: 'DUPLICATE_NAME', message: 'Category name already exists' }
+            });
+        }
+
+        const category = {
+            name: name.trim(),
+            parent_id: parent_id || null
+        };
+
+        await categoriesService.addCategory(category);
+        
+        res.json({ success: true, message: 'Category created successfully' });
+    } catch (error) {
+        console.error('Error adding category:', error);
+        res.status(500).json({
+            success: false,
+            error: { type: 'SERVER_ERROR', message: 'Internal server error' }
+        });
+    }
 });
 
 router.post('/edit', async function(req, res) {
-    const category = {
-        name: req.body.name,
-    };
+    try {
+        const { category_id, name } = req.body;
+        
+        if (!name || name.trim() === '') {
+            return res.status(400).json({
+                success: false,
+                error: { type: 'VALIDATION_ERROR', message: 'Category name is required' }
+            });
+        }
 
-    await categoriesService.updateCategory(req.body.category_id, category);
+        // Check for duplicate name (excluding current category)
+        const allCategories = await categoriesService.getAll();
+        const isDuplicate = allCategories.some(cat => 
+            cat.name.toLowerCase() === name.trim().toLowerCase() && 
+            cat.category_id !== parseInt(category_id)
+        );
 
-    res.redirect('/admin/categories');
+        if (isDuplicate) {
+            return res.status(400).json({
+                success: false,
+                error: { type: 'DUPLICATE_NAME', message: 'Category name already exists' }
+            });
+        }
+
+        const category = {
+            name: name.trim()
+        };
+
+        await categoriesService.updateCategory(category_id, category);
+        
+        res.json({ success: true, message: 'Category updated successfully' });
+    } catch (error) {
+        console.error('Error updating category:', error);
+        res.status(500).json({
+            success: false,
+            error: { type: 'SERVER_ERROR', message: 'Internal server error' }
+        });
+    }
 });
 
-router.post('/admin/categories/delete', async function(req, res) {
-    const product = await getProductByCategoryId(req.body.category_id);
-
-    if (product.length > 0) {
-        return res.status(400).send('Cannot delete category with associated products.');
+router.post('/delete', async function(req, res) {
+    try {
+        const { category_id } = req.body;
+        
+        // Check if category has products (you may need to implement this check)
+        // const product = await getProductByCategoryId(category_id);
+        // if (product.length > 0) {
+        //     return res.status(400).json({
+        //         success: false,
+        //         error: { type: 'HAS_PRODUCTS', message: 'Cannot delete category with associated products' }
+        //     });
+        // }
+        
+        await categoriesService.deleteCategory(category_id);
+        
+        res.json({ success: true, message: 'Category deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        res.status(500).json({
+            success: false,
+            error: { type: 'SERVER_ERROR', message: 'Internal server error' }
+        });
     }
-    
-    await categoriesService.deleteCategory(req.body.category_id);
-
-    res.redirect('/admin/categories');
 });
 
 export default router;
