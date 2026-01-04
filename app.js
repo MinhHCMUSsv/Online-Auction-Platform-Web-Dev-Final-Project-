@@ -113,6 +113,7 @@ app.use(function (req, res, next) {
     res.locals.authUser = req.session.authUser;
 
     res.locals.fatherCategories = req.session.fatherCategories || [];
+    res.locals.config = req.session.config || [];
     next();
 });
 

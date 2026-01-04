@@ -4,8 +4,7 @@ import * as watchlistService from '../../services/watchlist.service.js';
 import * as userService from '../../services/user.service.js';
 import * as categoriesService from '../../services/category.service.js';
 
-import { sendBidderRejectedNotification, sendOutbidNotification, sendWinningNotification, sendPriceUpdateNotification } from '../../utils/email.js';
-
+import { sendBidderRejectedNotification, sendOutbidNotification, sendBidSuccessfullyNotification, sendPriceUpdateNotification } from '../../utils/email.js';
 
 const router = express.Router();
 
@@ -103,10 +102,12 @@ router.post('/place-bid', async function (req, res) {
         const inputMaxAutoBid = Number(req.body.max_auto_bid);
 
         // Check if user is banned from bidding on this product
-        const banCheck = await db('ban_user')
-            .where('product_id', productId)
-            .andWhere('bidder_id', bidderId)
-            .first();
+        const banUser = { 
+            product_id: productId,
+            bidder_id: bidderId
+        };
+
+        const banCheck = await userService.checkBanUser(banUser);
             
         if (banCheck) {
             return res.status(403).json({
@@ -116,7 +117,6 @@ router.post('/place-bid', async function (req, res) {
         }
 
         // BƯỚC 1: Lấy thông tin sản phẩm hiện tại từ DB
-        // (Giả sử bạn có hàm getDetail để lấy thông tin sản phẩm)
         const product = await productService.getProductById(productId); 
         
         if (!product) {
@@ -126,13 +126,34 @@ router.post('/place-bid', async function (req, res) {
             });
         }
 
+        // BƯỚC 2: Kiểm tra điều kiện rating nếu sản phẩm yêu cầu (is_accepted = true)
+        if (product.is_accepted) {
+            const userRating = await userService.getUserRating(bidderId);
+            
+            if (!userRating.hasRating) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'This product requires users to have a rating history. Please participate in other auctions and receive ratings first.',
+                    errorCode: 'NO_RATING_HISTORY'
+                });
+            }
+            
+            if (userRating.rating < 80) {
+                return res.status(403).json({
+                    success: false,
+                    message: `This product requires users to have at least 80% positive rating. Your current rating is ${userRating.rating.toFixed(1)}% (${userRating.positivePoints}/${userRating.totalPoints}).`,
+                    errorCode: 'INSUFFICIENT_RATING',
+                    currentRating: userRating.rating,
+                    requiredRating: 80
+                });
+            }
+        }
+
         let finalBidAmount = 0;
         const currentPrice = Number(product.current_price);
         const startPrice = Number(product.start_price);
         const step = Number(product.bid_step);
         const currentLeaderId = product.leader_id; // ID người đang thắng
-
-        
 
         let isChange = true;
         let sendNotification = false;
@@ -157,7 +178,7 @@ router.post('/place-bid', async function (req, res) {
                 if (inputMaxAutoBid <= product.leader_max) 
                 {
                     finalBidAmount = inputMaxAutoBid; // TH1: Người B đặt giá thấp hơn hoặc bằng người đang thắng
-                    isChange = false; 
+                    isChange = false;   
                 }
                 else {
                     finalBidAmount = Math.min(inputMaxAutoBid, +product.leader_max + step); // TH2: Người B đặt giá cao hơn người đang thắng
@@ -173,7 +194,7 @@ router.post('/place-bid', async function (req, res) {
         if (sendNotification) {
             const sellerInfo = await userService.getUserById(product.seller_id);
             const bidderInfo = await userService.getUserById(bidderId);
-            await sendWinningNotification(bidderInfo.email, product.name, finalBidAmount);
+            await sendBidSuccessfullyNotification(bidderInfo.email, product.name, finalBidAmount);
             await sendPriceUpdateNotification(sellerInfo.email, product.name, finalBidAmount, inputMaxAutoBid, bidderInfo.name);
         }
         
@@ -277,6 +298,102 @@ router.get('/search', async function (req, res) {
         activeNav: 'Menu',
         sortBy: sortBy
     });
+});
+
+// Check if user is banned from bidding on a product
+router.get('/check-ban', async function (req, res) {
+    try {
+        const banUse = { 
+            product_id: req.body.product_id,
+            bidder_id: req.body.bidder_id
+        };
+        
+        const banCheck = await userService.checkBanUser(banUser);
+            
+        res.json({ isBanned: !!banCheck });
+    } catch (error) {
+        console.error('Error checking ban status:', error);
+        res.status(500).json({ isBanned: false });
+    }
+});
+
+// Reject bidder route
+router.post('/reject-bidder', async function (req, res) {
+    try {
+        const { bidder_id, product_id } = req.body;
+        const sellerId = req.session.authUser.user_id;
+        
+        // Verify seller owns the product
+        const product = await productService.getProductById(product_id);
+        if (!product || product.seller_id !== sellerId) {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'You are not authorized to reject bidders for this product.' 
+            });
+        }
+        
+        // Get bidder and seller info for email
+        const bidder = await userService.getUserById(bidder_id);
+        const seller = await userService.getUserById(sellerId);
+        
+        if (!bidder || !seller) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'User not found.' 
+            });
+        }
+        
+        // Check if bidder is currently the leader
+        const wasLeader = (product.leader_id === parseInt(bidder_id));
+        
+        // Add to ban list
+        const banUser = {
+            product_id: product_id,
+            bidder_id: bidder_id
+        }
+
+        await userService.banUser(banUser);
+        
+        // If banned user was the leader, find next highest bidder
+        if (wasLeader) {
+            const nextBidder = await userService.findNextHighestBidder(banUser);
+                
+            if (nextBidder) {
+                // Update product with new leader
+                await productService.updateCurrentPriceAndLeader(product_id, {
+                    current_price: nextBidder.bid_amount,
+                    leader_id: nextBidder.bidder_id,
+                    leader_max: nextBidder.max_auto_bid
+                });
+                
+                // Send email to new leader
+                await sendWinningNotification(nextBidder.email, product.name, nextBidder.bid_amount);
+            } else {
+                // No other bidders, reset to starting price
+                await productService.updateCurrentPriceAndLeader(product_id, {
+                    current_price: null,
+                    leader_id: null,
+                    leader_max: null
+                });
+            }
+        }
+        
+        // Send rejection email to banned bidder
+        await sendBidderRejectedNotification(
+            bidder.email,
+            product.name,
+            seller.full_name
+        );
+        
+        res.json({ success: true });
+        
+    } catch (error) {
+        console.error('Error rejecting bidder:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'An error occurred while rejecting the bidder.' 
+        });
+    }
 });
 
 router.get('/:slug', async function (req, res) {
@@ -409,102 +526,6 @@ router.get('/:parentSlug/:childSlug', async function (req, res) {
         childSlug: childSlug,
         sortBy: sortBy
     });
-});
-
-// Check if user is banned from bidding on a product
-router.get('/check-ban', async function (req, res) {
-    try {
-        const banUse = { 
-            product_id: req.body.product_id,
-            bidder_id: req.body.bidder_id
-        };
-        
-        const banCheck = await userService.checkBanUser(banUser);
-            
-        res.json({ isBanned: !!banCheck });
-    } catch (error) {
-        console.error('Error checking ban status:', error);
-        res.status(500).json({ isBanned: false });
-    }
-});
-
-// Reject bidder route
-router.post('/reject-bidder', async function (req, res) {
-    try {
-        const { bidder_id, product_id } = req.body;
-        const sellerId = req.session.authUser.user_id;
-        
-        // Verify seller owns the product
-        const product = await productService.getProductById(product_id);
-        if (!product || product.seller_id !== sellerId) {
-            return res.status(403).json({ 
-                success: false, 
-                message: 'You are not authorized to reject bidders for this product.' 
-            });
-        }
-        
-        // Get bidder and seller info for email
-        const bidder = await userService.getUserById(bidder_id);
-        const seller = await userService.getUserById(sellerId);
-        
-        if (!bidder || !seller) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'User not found.' 
-            });
-        }
-        
-        // Check if bidder is currently the leader
-        const wasLeader = (product.leader_id === parseInt(bidder_id));
-        
-        // Add to ban list
-        const banUser = {
-            product_id: product_id,
-            bidder_id: bidder_id
-        }
-
-        await userService.banUser(banUser);
-        
-        // If banned user was the leader, find next highest bidder
-        if (wasLeader) {
-            const nextBidder = await userService.findNextHighestBidder(banUser);
-                
-            if (nextBidder) {
-                // Update product with new leader
-                await productService.updateCurrentPriceAndLeader(product_id, {
-                    current_price: nextBidder.bid_amount,
-                    leader_id: nextBidder.bidder_id,
-                    leader_max: nextBidder.max_auto_bid
-                });
-                
-                // Send email to new leader
-                await sendWinningNotification(nextBidder.email, product.name, nextBidder.bid_amount);
-            } else {
-                // No other bidders, reset to starting price
-                await productService.updateCurrentPriceAndLeader(product_id, {
-                    current_price: null,
-                    leader_id: null,
-                    leader_max: null
-                });
-            }
-        }
-        
-        // Send rejection email to banned bidder
-        await sendBidderRejectedNotification(
-            bidder.email,
-            product.name,
-            seller.full_name
-        );
-        
-        res.json({ success: true });
-        
-    } catch (error) {
-        console.error('Error rejecting bidder:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'An error occurred while rejecting the bidder.' 
-        });
-    }
 });
 
 export default router; 

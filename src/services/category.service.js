@@ -53,3 +53,11 @@ export function updateCategory(category_id, category) {
 export function deleteCategory(category_id) {
     return db('category').where('category_id', category_id).del();
 }
+
+export function countProductsByCategory(category_id) {
+    return db('product')
+        .where('category_id', category_id)
+        .count('product_id as count')
+        .first()
+        .then(result => result.count);
+}

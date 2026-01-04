@@ -130,3 +130,28 @@ export function findNextHighestBidder(banUser) {
         .select('b.*', 'u.email', 'u.full_name')
         .first();
 }
+
+export function getUserRating(userId) {
+    return db('app_user')
+        .where('user_id', userId)
+        .select('points', 'positive_point')
+        .first()
+        .then(user => {
+            if (!user || !user.points || user.points === 0) {
+                return {
+                    rating: 0,
+                    totalPoints: user ? user.points : 0,
+                    positivePoints: user ? user.positive_point : 0,
+                    hasRating: false
+                };
+            }
+            
+            const rating = (user.positive_point / user.points) * 100;
+            return {
+                rating: rating,
+                totalPoints: user.points,
+                positivePoints: user.positive_point,
+                hasRating: true
+            };
+        });
+}

@@ -14,7 +14,7 @@ router.get('/', async function(req, res) {
     
     res.render('vwAdmin/categories', { 
         categories: categoriesWithChildren,
-        activeNav: 'categories',
+        activeAdmin: 'categories',
         layout: 'admin-layout'
     });
 });
@@ -104,18 +104,95 @@ router.post('/edit', async function(req, res) {
     }
 });
 
+router.get('/check-delete/:id', async function(req, res) {
+    try {
+        const categoryId = req.params.id;
+        
+        // Kiểm tra category có tồn tại không
+        const category = await categoriesService.getCategoryById(categoryId);
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                error: { type: 'CATEGORY_NOT_FOUND', message: 'Category not found' }
+            });
+        }
+        
+        // Đếm số sản phẩm trong category
+        const productCount = await categoriesService.countProductsByCategory(categoryId);
+        
+        if (productCount > 0) {
+            return res.json({
+                canDelete: false,
+                productCount: productCount,
+                message: `Category has ${productCount} product(s)`
+            });
+        }
+        
+        // Nếu là parent category, kiểm tra có subcategories không
+        const allCategories = await categoriesService.getAll();
+        const subcategoryCount = allCategories.filter(cat => cat.parent_id === parseInt(categoryId)).length;
+        
+        if (subcategoryCount > 0) {
+            return res.json({
+                canDelete: false,
+                subcategoryCount: subcategoryCount,
+                message: `Category has ${subcategoryCount} subcategory(ies)`
+            });
+        }
+        
+        res.json({
+            canDelete: true,
+            message: 'Category can be deleted'
+        });
+    } catch (error) {
+        console.error('Error checking category:', error);
+        res.status(500).json({
+            success: false,
+            error: { type: 'SERVER_ERROR', message: 'Internal server error' }
+        });
+    }
+});
+
 router.post('/delete', async function(req, res) {
     try {
         const { category_id } = req.body;
         
-        // Check if category has products (you may need to implement this check)
-        // const product = await getProductByCategoryId(category_id);
-        // if (product.length > 0) {
-        //     return res.status(400).json({
-        //         success: false,
-        //         error: { type: 'HAS_PRODUCTS', message: 'Cannot delete category with associated products' }
-        //     });
-        // }
+        // Kiểm tra category có tồn tại không
+        const category = await categoriesService.getCategoryById(category_id);
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                error: { type: 'CATEGORY_NOT_FOUND', message: 'Category not found' }
+            });
+        }
+        
+        // Kiểm tra category có sản phẩm không
+        const productCount = await categoriesService.countProductsByCategory(category_id);
+        if (productCount > 0) {
+            return res.status(400).json({
+                success: false,
+                error: { 
+                    type: 'HAS_PRODUCTS', 
+                    message: 'Cannot delete category with associated products',
+                    productCount: productCount
+                }
+            });
+        }
+        
+        // Nếu là parent category, kiểm tra có subcategories không
+        const allCategories = await categoriesService.getAll();
+        const subcategoryCount = allCategories.filter(cat => cat.parent_id === parseInt(category_id)).length;
+        
+        if (subcategoryCount > 0) {
+            return res.status(400).json({
+                success: false,
+                error: { 
+                    type: 'HAS_SUBCATEGORIES', 
+                    message: 'Cannot delete category with subcategories',
+                    subcategoryCount: subcategoryCount
+                }
+            });
+        }
         
         await categoriesService.deleteCategory(category_id);
         

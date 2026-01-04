@@ -204,15 +204,65 @@ document.getElementById('settingsForm').addEventListener('submit', function(e) {
         return;
     }
     
-    // If all validations pass
+    // Show confirmation dialog
     Swal.fire({
-        icon: 'success',
-        title: 'Settings Saved!',
-        text: 'All settings have been updated successfully',
-        confirmButtonColor: '#ff8c00'
-    }).then(() => {
-        // Submit form after confirmation
-        this.submit();
+        title: 'Save Settings?',
+        text: 'Do you want to apply these system settings?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#ff8c00',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, save settings!',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+        
+        // Show loading
+        Swal.fire({
+            title: 'Saving Settings...',
+            text: 'Please wait while we update the system settings.',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading()
+            }
+        });
+        
+        // Submit form
+        const form = document.getElementById('settingsForm');
+        const formData = new FormData(form);
+        
+        fetch(form.action || window.location.pathname, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Settings Saved!',
+                    text: 'All settings have been updated successfully',
+                    confirmButtonColor: '#ff8c00',
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                throw new Error('Failed to save settings');
+            }
+        })
+        .catch(error => {
+            console.error('Save error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Save Failed',
+                text: 'Unable to save settings. Please check your connection and try again.',
+                confirmButtonColor: '#ff8c00'
+            });
+        });
     });
 });
 </script>

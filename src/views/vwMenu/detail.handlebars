@@ -1,8 +1,6 @@
 <!-- Breadcrumb -->
 <div class="bg-white border-bottom">
-    <div class="container-fluid px-4 py-2 small text-muted">
-        Menu / Category1 / {{product.name}}
-    </div>
+
 </div>
 
 <main class="container-fluid px-4 py-4">
@@ -421,13 +419,34 @@
                             window.location.reload();
                         });
                     } else if (response.status === 403) {
-                        // Banned or unauthorized
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Bidding Restricted',
-                            text: 'You have been restricted from bidding on this item by the seller.',
-                            confirmButtonColor: '#dc3545',
-                            confirmButtonText: 'OK'
+                        // Handle different types of 403 errors
+                        return response.json().then(data => {
+                            if (data.errorCode === 'NO_RATING_HISTORY') {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Rating Required',
+                                    html: '<strong>This premium auction requires a rating history.</strong><br><br>To participate in this auction, you need to:<br>• Participate in other auctions first<br>• Receive ratings from sellers<br>• Build your reputation on the platform',
+                                    confirmButtonColor: '#ffc107',
+                                    confirmButtonText: 'Understood'
+                                });
+                            } else if (data.errorCode === 'INSUFFICIENT_RATING') {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Rating Too Low',
+                                    html: `<strong>This premium auction requires at least 80% positive rating.</strong><br><br>Your current rating: <span class="text-danger">${data.currentRating.toFixed(1)}%</span><br>Required rating: <span class="text-success">80%</span><br><br>Continue participating in auctions and providing excellent service to improve your rating!`,
+                                    confirmButtonColor: '#ffc107',
+                                    confirmButtonText: 'Understood'
+                                });
+                            } else {
+                                // Generic ban message
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Bidding Restricted',
+                                    text: data.message || 'You have been restricted from bidding on this item by the seller.',
+                                    confirmButtonColor: '#dc3545',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
                         });
                     } else {
                         // Other error

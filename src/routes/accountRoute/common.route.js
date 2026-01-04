@@ -7,6 +7,7 @@ import { generateOTP } from '../../utils/genOTP.js';
 
 import * as homeService from '../../services/home.service.js';
 import * as userService from '../../services/user.service.js';
+import * as settingService from '../../services/setting.service.js';
 
 const router = express.Router();
 const CAPTCHA_SECRET_KEY = process.env.CAPTCHA_SECRET_KEY;
@@ -26,7 +27,13 @@ router.get('/', async function (req, res) {
                 mostActiveProducts: mostActive,
                 endingSoonProducts: endingSoon
             });
-        } catch (err) {
+
+
+
+
+        } 
+    
+    catch (err) {
             console.error(err);
             res.status(500).send('Internal Server Error');
         }

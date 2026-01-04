@@ -73,19 +73,18 @@ export const sendOTP = async function (toEmail, otp) {
     return await sendMailBase(toEmail, subject, htmlContent);
 };
 
-export const sendWinningNotification = async function (toEmail, productName, bidAmount) {
-    const subject = "MNGo Auction - Congratulations on Winning the Auction!";
+export const sendBidSuccessfullyNotification = async function (toEmail, productName, bidAmount) {
+    const subject = "MNGo Auction - Bidding Successfully!";
     const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 8px;">
             <h2 style="color: #FF8C00; text-align: center;">MNGo Auction</h2>
-            <h2 style="color: #28a745; text-align: center;">🎉 Congratulations! You're Now Leading!</h2>
+            <h2 style="color: #28a745; text-align: center;">🎉 Congratulations! You're bidding successfully!</h2>
             <p>Hello,</p>
-            <p>Great news! You are now the highest bidder for:</p>
+            <p>Great news! You are bidding successfully for:</p>
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
                 <h3 style="color: #0d6efd; margin: 0;">${productName}</h3>
                 <p style="margin: 5px 0 0 0;"><strong>Your bid:</strong> $${bidAmount}</p>
             </div>
-            <p>Keep an eye on the auction - other bidders might try to outbid you!</p>
             <div style="text-align: center; margin: 20px 0;">
                 <a href="${process.env.BASE_URL}/menu" style="background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
                     View Auction
@@ -266,3 +265,30 @@ export const sendFailedAuctionNotification = async function (toEmail, productNam
     `;  
     return await sendMailBase(toEmail, subject, htmlContent);
 };
+
+export const sendFinalSellerNotification = async function (toEmail, productName, finalPrice, winnerName) {
+    const subject = "MNGo Auction - Your Item Has Been Sold!";
+    const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 8px;">
+            <h2 style="color: #FF8C00; text-align: center;">MNGo Auction</h2>
+            <h2 style="color: #28a745; text-align: center;">🎉 Your Item Has Been Sold!</h2>
+            <p>Hello,</p>
+            <p>Congratulations! Your auction item has been sold:</p>
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <h3 style="color: #0d6efd; margin: 0;">${productName}</h3>
+                <p style="margin: 5px 0 0 0;"><strong>Final price:</strong> $${finalPrice}</p>
+                <p style="margin: 5px 0 0 0;"><strong>Winning bidder:</strong> ${winnerName}</p>
+            </div>  
+            <p>Please contact the winning bidder to arrange payment and delivery of your item.</p>
+            <div style="text-align: center; margin: 20px 0;">
+                <a href="${process.env.BASE_URL}/menu" style="background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                    View Auction
+                </a>
+            </div>
+            <p style="color: #666; font-size: 0.9em;">Thank you for using MNGo Auction. We look forward to your next auction!</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+            <p style="text-align: center; color: #999; font-size: 0.8em;">© 2025 MNGo Auction Team</p>
+        </div>
+    `;  
+    return await sendMailBase(toEmail, subject, htmlContent);
+}

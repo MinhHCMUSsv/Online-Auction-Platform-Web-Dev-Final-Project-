@@ -10,14 +10,14 @@
     /* KPI Cards (Reused style for consistency) */
     .kpi-card {
         background: #fff;
-        border: 1px solid rgba(0,0,0,0.05);
+        border: 1px solid rgba(0, 0, 0, 0.05);
         border-radius: 12px;
         padding: 1.5rem;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
         height: 100%;
         transition: transform 0.2s;
     }
-    
+
     .kpi-card:hover {
         transform: translateY(-3px);
         border-color: rgba(255, 140, 0, 0.3);
@@ -154,59 +154,59 @@
     }
 
     .expand-toggle {
-    display: inline-block; /* Đảm bảo icon có thể xoay */
-    cursor: pointer;
-    transition: transform 0.3s ease; /* Chuyển động mượt 0.3 giây */
-    color: var(--text-muted);
-    font-size: 1.1rem;
-}
+        display: inline-block;
+        /* Đảm bảo icon có thể xoay */
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        /* Chuyển động mượt 0.3 giây */
+        color: var(--text-muted);
+        font-size: 1.1rem;
+    }
 
-/* Khi có class expanded, icon sẽ xoay 90 độ xuống dưới */
-.expand-toggle.expanded {
-    transform: rotate(90deg);
-    color: var(--accent); /* Đổi màu khi mở để làm nổi bật */
-}
+    /* Khi có class expanded, icon sẽ xoay 90 độ xuống dưới */
+    .expand-toggle.expanded {
+        transform: rotate(90deg);
+        color: var(--accent);
+        /* Đổi màu khi mở để làm nổi bật */
+    }
 
-/* Hiệu ứng mờ dần cho hàng con khi xuất hiện */
-.subcategory-row {
-    background-color: #fdfdfd;
-    display: none;
-    animation: fadeIn 0.2s ease-in-out;
-}
+    /* Hiệu ứng mờ dần cho hàng con khi xuất hiện */
+    .subcategory-row {
+        background-color: #fdfdfd;
+        display: none;
+        animation: fadeIn 0.2s ease-in-out;
+    }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
 
-.subcategory-row.show {
-    display: table-row;
-}
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .subcategory-row.show {
+        display: table-row;
+    }
 </style>
 {{/section}}
 
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
     <div>
-        <h1 class="h3 fw-bold mb-1">🗂️ Category Management</h1>
-        <p class="text-muted mb-0">Organize your products for better discoverability.</p>
+        <h1 class="h3 fw-bold mb-1">Category Management</h1>
     </div>
     <div>
-        <button class="btn btn-warning-accent shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAddCategory">
+        <button class="btn btn-outline-warning shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAddCategory">
             <i class="bi bi-plus-lg me-1"></i> New Category
         </button>
     </div>
 </div>
 
 <div class="card shadow-sm border-0 rounded-3">
-    <div class="card-header-actions d-flex justify-content-between align-items-center flex-wrap gap-3">
-        <div class="d-flex align-items-center gap-2">
-            <div class="input-group" style="width: 300px;">
-                <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                <input type="search" class="form-control border-start-0 ps-0" name="q" placeholder="Search categories...">
-            </div>
-        </div>
-    </div>
-
     <div class="table-responsive">
         <table class="table table-hover mb-0">
             <thead>
@@ -218,15 +218,14 @@
                 </tr>
             </thead>
             <tbody>
-    {{#if categories}}
-        {{#each categories}}
-            {{!-- Chỉ duyệt các Category Cha trước --}}
-            {{#unless parent_id}}
+                {{#if categories}}
+                {{#each categories}}
+                {{!-- Chỉ duyệt các Category Cha trước --}}
+                {{#unless parent_id}}
                 <tr class="parent-category border-bottom-0" data-category-id="{{category_id}}">
                     <td class="ps-4">
                         {{!-- Kiểm tra nếu category này có con thì hiện nút bấm --}}
-                        <i class="bi bi-chevron-right expand-toggle" 
-                           data-parent-id="{{category_id}}"></i>
+                        <i class="bi bi-chevron-right expand-toggle" data-parent-id="{{category_id}}"></i>
                     </td>
                     <td><span class="text-muted fw-mono small">#{{category_id}}</span></td>
                     <td>
@@ -237,57 +236,65 @@
                             <div class="fw-bold text-dark">{{name}}</div>
                         </div>
                     </td>
-                    
+
                     <td class="text-end pe-4">
-                        <button class="btn-action-icon me-1" data-bs-toggle="modal" data-bs-target="#modalEditCategory" data-id="{{category_id}}" data-name="{{name}}">
+                        <button class="btn-action-icon me-1" data-bs-toggle="modal" data-bs-target="#modalEditCategory"
+                            data-id="{{category_id}}" data-name="{{name}}">
                             <i class="bi bi-pencil"></i>
                         </button>
                         <form action="/admin/categories/delete" method="post" class="d-inline-block m-0">
                             <input type="hidden" name="category_id" value="{{category_id}}">
-                            <button type="submit" class="btn-action-icon danger" onclick="return confirm('Are you sure?');">
+                            <button type="submit" class="btn-action-icon danger" data-category-name="{{name}}"
+                                data-category-type="parent">
                                 <i class="bi bi-trash"></i>
                             </button>
+                        </form>
                         </form>
                     </td>
                 </tr>
 
                 {{!-- VÒNG LẶP CON: Tìm các con của category cha hiện tại --}}
                 {{#each ../categories}}
-                    {{#ifEquals parent_id ../category_id}}
-                    <tr class="subcategory-row" data-parent-id="{{parent_id}}">
-                        <td class="ps-4"></td>
-                        <td><span class="text-muted fw-mono small">#{{category_id}}</span></td>
-                        <td class="subcategory-indent">
-                            <div class="d-flex align-items-center">
-                                <div class="category-icon-placeholder me-3" style="background-color: #e3f2fd;">
-                                    <i class="bi bi-arrow-return-right" style="font-size: 0.8rem;"></i>
-                                </div>
-                                <div>
-                                    <div class="fw-semibold text-dark">{{name}}</div>
-                                    <small class="text-muted">Subcategory</small>
-                                </div>
+                {{#ifEquals parent_id ../category_id}}
+                <tr class="subcategory-row" data-parent-id="{{parent_id}}">
+                    <td class="ps-4"></td>
+                    <td><span class="text-muted fw-mono small">#{{category_id}}</span></td>
+                    <td class="subcategory-indent">
+                        <div class="d-flex align-items-center">
+                            <div class="category-icon-placeholder me-3" style="background-color: #e3f2fd;">
+                                <i class="bi bi-arrow-return-right" style="font-size: 0.8rem;"></i>
                             </div>
-                        </td>
-                        
-                        <td class="text-end pe-4">
-                            <button class="btn-action-icon me-1" data-bs-toggle="modal" data-bs-target="#modalEditCategory" data-id="{{category_id}}" data-name="{{name}}">
-                                <i class="bi bi-pencil"></i>
-                            </button>
+                            <div>
+                                <div class="fw-semibold text-dark">{{name}}</div>
+                                <small class="text-muted">Subcategory</small>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td class="text-end pe-4">
+                        <button class="btn-action-icon me-1" data-bs-toggle="modal" data-bs-target="#modalEditCategory"
+                            data-id="{{category_id}}" data-name="{{name}}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
                             <form action="/admin/categories/delete" method="post" class="d-inline-block m-0">
                                 <input type="hidden" name="category_id" value="{{category_id}}">
-                                <button type="submit" class="btn-action-icon danger" onclick="return confirm('Are you sure?');">
+                                <button type="submit" class="btn-action-icon danger" data-category-name="{{name}}"
+                                    data-category-type="subcategory">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
-                        </td>
-                    </tr>
-                    {{/ifEquals}}
+                        
+                        </button>
+                        </form>
+                    </td>
+                </tr>
+                {{/ifEquals}}
                 {{/each}}
-            {{/unless}}
-        {{/each}}
-    {{else}}
-        {{/if}}
-</tbody>
+                {{/unless}}
+                {{/each}}
+                {{else}}
+                {{/if}}
+            </tbody>
         </table>
     </div>
 </div>
@@ -302,12 +309,14 @@
             <div class="modal-body pt-4">
                 <div class="mb-3">
                     <label class="form-label fw-semibold text-muted small text-uppercase">Category Name</label>
-                    <input name="name" type="text" class="form-control form-control-lg" placeholder="e.g. Laptops, Furniture..." required maxlength="100">
+                    <input name="name" type="text" class="form-control form-control-lg"
+                        placeholder="e.g. Laptops, Furniture..." required maxlength="100">
                     <div class="invalid-feedback" id="add-name-error"></div>
                     <small class="text-muted">Category name must be unique and between 1-100 characters</small>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-semibold text-muted small text-uppercase">Parent Category (Optional)</label>
+                    <label class="form-label fw-semibold text-muted small text-uppercase">Parent Category
+                        (Optional)</label>
                     <select name="parent_id" class="form-select">
                         <option value="">None (Root Category)</option>
                         {{#each categories}}
@@ -338,7 +347,8 @@
                 <input type="hidden" name="category_id" id="editCategoryId">
                 <div class="mb-3">
                     <label class="form-label fw-semibold text-muted small text-uppercase">Category Name</label>
-                    <input name="name" id="editCategoryName" type="text" class="form-control form-control-lg" required maxlength="100">
+                    <input name="name" id="editCategoryName" type="text" class="form-control form-control-lg" required
+                        maxlength="100">
                     <div class="invalid-feedback" id="edit-name-error"></div>
                     <small class="text-muted">Category name must be unique and between 1-100 characters</small>
                 </div>
@@ -361,7 +371,7 @@
             const button = event.relatedTarget;
             const id = button.getAttribute('data-id');
             const name = button.getAttribute('data-name');
-            
+
             editModal.querySelector('#editCategoryId').value = id;
             editModal.querySelector('#editCategoryName').value = name;
         });
@@ -374,7 +384,7 @@
             const button = event.relatedTarget;
             const parentId = button.getAttribute('data-parent-id');
             const parentName = button.getAttribute('data-parent-name');
-            
+
             // If opening from subcategory button, pre-select parent
             if (parentId && parentName) {
                 const parentSelect = addModal.querySelector('select[name="parent_id"]');
@@ -393,14 +403,14 @@
 
     // Handle form submissions with SweetAlert
     document.querySelectorAll('form[action="/admin/categories/add"]').forEach(form => {
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             const formData = new FormData(this);
             const categoryName = formData.get('name');
             const parentId = formData.get('parent_id');
             const isSubcategory = parentId && parentId.trim() !== '';
-            
+
             // Validate required fields
             if (!categoryName || categoryName.trim() === '') {
                 Swal.fire({
@@ -411,241 +421,75 @@
                 });
                 return;
             }
-            
-            // Show loading
-            const loadingTitle = isSubcategory ? 'Creating Subcategory...' : 'Creating Category...';
-            Swal.fire({
-                title: loadingTitle,
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                willOpen: () => {
-                    Swal.showLoading()
-                }
-            });
-            
-            // Debug: Log form data
-            console.log('Form Data:', {
-                name: categoryName,
-                parent_id: parentId,
-                is_subcategory: isSubcategory
-            });
-            
-            // API call with detailed error handling
-            const requestBody = {
-                name: categoryName,
-                parent_id: parentId || null
-            };
-            
-            fetch(this.action, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestBody)
-            })
-            .then(response => {
-                return response.json().then(data => ({
-                    status: response.status,
-                    ok: response.ok,
-                    data: data
-                }));
-            })
-            .then(result => {
-                if (result.ok) {
-                    const successTitle = isSubcategory ? 'Subcategory Created!' : 'Category Created!';
-                    const successText = isSubcategory 
-                        ? `Subcategory "${categoryName}" has been added successfully`
-                        : `Category "${categoryName}" has been added successfully`;
-                        
-                    Swal.fire({
-                        icon: 'success',
-                        title: successTitle,
-                        text: successText,
-                        confirmButtonColor: '#ff8c00',
-                        timer: 2000,
-                        timerProgressBar: true
-                    }).then(() => {
-                        window.location.reload();
-                    });
-                } else {
-                    // Handle specific error types
-                    let errorTitle = 'Creation Failed';
-                    let errorText = 'Unable to create category. Please try again.';
-                    
-                    if (result.data && result.data.error) {
-                        switch (result.data.error.type) {
-                            case 'DUPLICATE_NAME':
-                                errorTitle = 'Duplicate Category Name';
-                                errorText = isSubcategory 
-                                    ? `A subcategory with the name "${categoryName}" already exists in this parent category. Please choose a different name.`
-                                    : `A category with the name "${categoryName}" already exists. Please choose a different name.`;
-                                break;
-                            case 'INVALID_PARENT':
-                                errorTitle = 'Invalid Parent Category';
-                                errorText = 'The selected parent category is invalid or does not exist.';
-                                break;
-                            case 'VALIDATION_ERROR':
-                                errorTitle = 'Validation Error';
-                                errorText = result.data.error.message || 'Please check your input and try again.';
-                                break;
-                            default:
-                                errorText = result.data.error.message || errorText;
-                        }
-                    }
-                    
-                    Swal.fire({
-                        icon: 'error',
-                        title: errorTitle,
-                        text: errorText,
-                        confirmButtonColor: '#ff8c00'
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Creation Failed',
-                    text: 'Unable to create category. Please check your connection and try again.',
-                    confirmButtonColor: '#ff8c00'
-                });
-            });
-        });
-    });
 
-    // Handle edit form
-    document.querySelector('form[action="/admin/categories/edit"]').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const categoryName = formData.get('name');
-        const categoryId = formData.get('category_id');
-        
-        // Show loading
-        Swal.fire({
-            title: 'Updating Category...',
-            allowOutsideClick: false,
-            showConfirmButton: false,
-            willOpen: () => {
-                Swal.showLoading()
-            }
-        });
-        
-        // API call with detailed error handling
-        const requestBody = {
-            category_id: categoryId,
-            name: categoryName
-        };
-        
-        fetch(this.action, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody)
-        })
-        .then(response => {
-            return response.json().then(data => ({
-                status: response.status,
-                ok: response.ok,
-                data: data
-            }));
-        })
-        .then(result => {
-            if (result.ok) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Category Updated!',
-                    text: `"${categoryName}" has been updated successfully`,
-                    confirmButtonColor: '#ff8c00',
-                    timer: 2000,
-                    timerProgressBar: true
-                }).then(() => {
-                    window.location.reload();
-                });
-            } else {
-                // Handle specific error types
-                let errorTitle = 'Update Failed';
-                let errorText = 'Unable to update category. Please try again.';
-                
-                if (result.data && result.data.error) {
-                    switch (result.data.error.type) {
-                        case 'DUPLICATE_NAME':
-                            errorTitle = 'Duplicate Category Name';
-                            errorText = `A category with the name "${categoryName}" already exists. Please choose a different name.`;
-                            break;
-                        case 'CATEGORY_NOT_FOUND':
-                            errorTitle = 'Category Not Found';
-                            errorText = 'The category you are trying to update no longer exists.';
-                            break;
-                        case 'VALIDATION_ERROR':
-                            errorTitle = 'Validation Error';
-                            errorText = result.data.error.message || 'Please check your input and try again.';
-                            break;
-                        default:
-                            errorText = result.data.error.message || errorText;
-                    }
-                }
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: errorTitle,
-                    text: errorText,
-                    confirmButtonColor: '#ff8c00'
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Update Failed',
-                text: 'Unable to update category. Please check your connection and try again.',
-                confirmButtonColor: '#ff8c00'
-            });
-        });
-    });
+            // Show confirmation dialog
+            const confirmTitle = isSubcategory ? 'Create New Subcategory?' : 'Create New Category?';
+            const confirmText = isSubcategory
+                ? `Create subcategory "${categoryName}"?`
+                : `Create category "${categoryName}"?`;
 
-    // Handle delete forms with confirmation
-    document.querySelectorAll('form[action="/admin/categories/delete"]').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
             Swal.fire({
-                title: 'Delete Category?',
-                text: "This action cannot be undone!",
-                icon: 'warning',
+                title: confirmTitle,
+                text: confirmText,
+                icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#dc3545',
+                confirmButtonColor: '#ff8c00',
                 cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Yes, delete it!'
+                confirmButtonText: 'Yes, create it!',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true
             }).then((result) => {
-                if (result.isConfirmed) {
-                    // Show loading
-                    Swal.fire({
-                        title: 'Deleting Category...',
-                        allowOutsideClick: false,
-                        showConfirmButton: false,
-                        willOpen: () => {
-                            Swal.showLoading()
-                        }
-                    });
-                    
-                    const categoryId = this.querySelector('input[name="category_id"]').value;
-                    
-                    fetch(this.action, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ category_id: categoryId })
-                    })
+                if (!result.isConfirmed) return;
+
+                // Show loading
+                const loadingTitle = isSubcategory ? 'Creating Subcategory...' : 'Creating Category...';
+                Swal.fire({
+                    title: loadingTitle,
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    willOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
+
+                // Debug: Log form data
+                console.log('Form Data:', {
+                    name: categoryName,
+                    parent_id: parentId,
+                    is_subcategory: isSubcategory
+                });
+
+                // API call with detailed error handling
+                const requestBody = {
+                    name: categoryName,
+                    parent_id: parentId || null
+                };
+
+                fetch(this.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                })
                     .then(response => {
-                        if (response.ok) {
+                        return response.json().then(data => ({
+                            status: response.status,
+                            ok: response.ok,
+                            data: data
+                        }));
+                    })
+                    .then(result => {
+                        if (result.ok) {
+                            const successTitle = isSubcategory ? 'Subcategory Created!' : 'Category Created!';
+                            const successText = isSubcategory
+                                ? `Subcategory "${categoryName}" has been added successfully`
+                                : `Category "${categoryName}" has been added successfully`;
+
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Deleted!',
-                                text: 'Category has been deleted successfully',
+                                title: successTitle,
+                                text: successText,
                                 confirmButtonColor: '#ff8c00',
                                 timer: 2000,
                                 timerProgressBar: true
@@ -653,33 +497,358 @@
                                 window.location.reload();
                             });
                         } else {
-                            throw new Error('Failed to delete category');
+                            // Handle specific error types
+                            let errorTitle = 'Creation Failed';
+                            let errorText = 'Unable to create category. Please try again.';
+
+                            if (result.data && result.data.error) {
+                                switch (result.data.error.type) {
+                                    case 'DUPLICATE_NAME':
+                                        errorTitle = 'Duplicate Category Name';
+                                        errorText = isSubcategory
+                                            ? `A subcategory with the name "${categoryName}" already exists in this parent category. Please choose a different name.`
+                                            : `A category with the name "${categoryName}" already exists. Please choose a different name.`;
+                                        break;
+                                    case 'INVALID_PARENT':
+                                        errorTitle = 'Invalid Parent Category';
+                                        errorText = 'The selected parent category is invalid or does not exist.';
+                                        break;
+                                    case 'VALIDATION_ERROR':
+                                        errorTitle = 'Validation Error';
+                                        errorText = result.data.error.message || 'Please check your input and try again.';
+                                        break;
+                                    default:
+                                        errorText = result.data.error.message || errorText;
+                                }
+                            }
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: errorTitle,
+                                text: errorText,
+                                confirmButtonColor: '#ff8c00'
+                            });
                         }
                     })
                     .catch(error => {
+                        console.error('Error:', error);
                         Swal.fire({
                             icon: 'error',
-                            title: 'Delete Failed',
-                            text: 'Unable to delete category. It may have products assigned to it.',
+                            title: 'Creation Failed',
+                            text: 'Unable to create category. Please check your connection and try again.',
                             confirmButtonColor: '#ff8c00'
                         });
                     });
-                }
-            });
+
+            }); // Close confirmation dialog
         });
     });
 
+    // Handle edit form
+    document.querySelector('form[action="/admin/categories/edit"]').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const categoryName = formData.get('name');
+        const categoryId = formData.get('category_id');
+
+        // Show confirmation dialog
+        Swal.fire({
+            title: 'Update Category?',
+            text: `Save changes to "${categoryName}"?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#ff8c00',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, update it!',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+
+            // Show loading
+            Swal.fire({
+                title: 'Updating Category...',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                willOpen: () => {
+                    Swal.showLoading()
+                }
+            });
+
+            // API call with detailed error handling
+            const requestBody = {
+                category_id: categoryId,
+                name: categoryName
+            };
+
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+            })
+                .then(response => {
+                    return response.json().then(data => ({
+                        status: response.status,
+                        ok: response.ok,
+                        data: data
+                    }));
+                })
+                .then(result => {
+                    if (result.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Category Updated!',
+                            text: `"${categoryName}" has been updated successfully`,
+                            confirmButtonColor: '#ff8c00',
+                            timer: 2000,
+                            timerProgressBar: true
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        // Handle specific error types
+                        let errorTitle = 'Update Failed';
+                        let errorText = 'Unable to update category. Please try again.';
+
+                        if (result.data && result.data.error) {
+                            switch (result.data.error.type) {
+                                case 'DUPLICATE_NAME':
+                                    errorTitle = 'Duplicate Category Name';
+                                    errorText = `A category with the name "${categoryName}" already exists. Please choose a different name.`;
+                                    break;
+                                case 'CATEGORY_NOT_FOUND':
+                                    errorTitle = 'Category Not Found';
+                                    errorText = 'The category you are trying to update no longer exists.';
+                                    break;
+                                case 'VALIDATION_ERROR':
+                                    errorTitle = 'Validation Error';
+                                    errorText = result.data.error.message || 'Please check your input and try again.';
+                                    break;
+                                default:
+                                    errorText = result.data.error.message || errorText;
+                            }
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: errorTitle,
+                            text: errorText,
+                            confirmButtonColor: '#ff8c00'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Update Failed',
+                        text: 'Unable to update category. Please check your connection and try again.',
+                        confirmButtonColor: '#ff8c00'
+                    });
+                });
+
+        }); // Close edit confirmation dialog
+    });
+
+    // Handle delete forms with confirmation and validation
+    document.querySelectorAll('form[action="/admin/categories/delete"]').forEach(form => {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const categoryId = this.querySelector('input[name="category_id"]').value;
+            const categoryRow = this.closest('tr');
+            const isSubcategory = categoryRow.classList.contains('subcategory-row');
+            const categoryName = categoryRow.querySelector('.fw-bold, .fw-semibold').textContent.trim();
+
+            // Different validation based on category type
+            if (isSubcategory) {
+                // For subcategory: Check if it has products
+                checkCategoryCanBeDeleted(categoryId, categoryName, 'subcategory', this);
+            } else {
+                // For parent category: Check if it has subcategories first
+                const hasSubcategories = document.querySelectorAll(`.subcategory-row[data-parent-id="${categoryId}"]`).length > 0;
+
+                if (hasSubcategories) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Cannot Delete Category',
+                        html: `Cannot delete <strong>"${categoryName}"</strong> because it contains subcategories.<br><br><small class="text-muted">Please delete all subcategories first, then try again.</small>`,
+                        confirmButtonColor: '#ff8c00'
+                    });
+                } else {
+                    // Check if parent category has products
+                    checkCategoryCanBeDeleted(categoryId, categoryName, 'category', this);
+                }
+            }
+        });
+    });
+
+    // Check if category can be deleted (has products or not)
+    function checkCategoryCanBeDeleted(categoryId, categoryName, type, formElement) {
+        // Show loading while checking
+        Swal.fire({
+            title: 'Checking...',
+            text: `Checking if ${type} can be deleted...`,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading()
+            }
+        });
+
+        // Check with backend if category has products
+        fetch(`/admin/categories/check-delete/${categoryId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.canDelete) {
+                // Category can be deleted, show confirmation
+                showDeleteConfirmation(categoryId, categoryName, type, formElement);
+            } else {
+                // Category has products, cannot delete
+                let errorTitle = `Cannot Delete ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+                let errorText = `Cannot delete "${categoryName}" because it contains ${data.productCount} product(s).`;
+                
+                
+
+                Swal.fire({
+                    icon: 'error',
+                    title: errorTitle,
+                    html: errorText,
+                    confirmButtonColor: '#ff8c00'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error checking category:', error);
+            // Don't allow deletion if we can't check - show error instead
+            Swal.fire({
+                icon: 'error',
+                title: 'Unable to Check Category Status',
+                html: `Cannot verify if "${categoryName}" has products.<br><br><small class="text-muted">Please try again later or contact administrator.</small>`,
+                confirmButtonColor: '#ff8c00'
+            });
+        });
+    }
+
+    // Show delete confirmation dialog
+    function showDeleteConfirmation(categoryId, categoryName, type, formElement) {
+        const title = type === 'subcategory' ? 'Delete Subcategory?' : 'Delete Category?';
+        const confirmText = type === 'subcategory' ? 'Yes, delete subcategory!' : 'Yes, delete category!';
+        
+        Swal.fire({
+            title: title,
+            html: `Are you sure you want to delete the ${type} <strong>"${categoryName}"</strong>?<br><br><small class="text-muted">This action cannot be undone.</small>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: confirmText,
+            cancelButtonText: 'Cancel',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                performDelete(categoryId, categoryName, type, formElement);
+            }
+        });
+    }
+
+    // Perform the actual deletion
+    function performDelete(categoryId, categoryName, type, formElement) {
+        // Show loading
+        Swal.fire({
+            title: `Deleting ${type.charAt(0).toUpperCase() + type.slice(1)}...`,
+            text: 'Please wait while we delete the category.',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading()
+            }
+        });
+
+        fetch(formElement.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ category_id: categoryId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted Successfully!',
+                        text: `${type.charAt(0).toUpperCase() + type.slice(1)} "${categoryName}" has been deleted`,
+                        confirmButtonColor: '#ff8c00',
+                        timer: 2000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    // Handle specific errors from backend
+                    let errorTitle = 'Delete Failed';
+                    let errorText = `Unable to delete ${type}. Please try again.`;
+
+                    if (data.error) {
+                        switch (data.error.type) {
+                            case 'HAS_PRODUCTS':
+                                errorTitle = `${type.charAt(0).toUpperCase() + type.slice(1)} Has Products`;
+                                errorText = `Cannot delete "${categoryName}" because it contains ${data.error.productCount} product(s).`;
+                                break;
+                            case 'HAS_SUBCATEGORIES':
+                                errorTitle = 'Category Has Subcategories';
+                                errorText = `Cannot delete "${categoryName}" because it contains ${data.error.subcategoryCount} subcategory(ies). Please delete all subcategories first.`;
+                                break;
+                            case 'CATEGORY_NOT_FOUND':
+                                errorTitle = 'Category Not Found';
+                                errorText = 'The category you are trying to delete no longer exists.';
+                                break;
+                            default:
+                                errorText = data.error.message || errorText;
+                        }
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: errorTitle,
+                        html: errorText,
+                        confirmButtonColor: '#ff8c00'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Delete error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Delete Failed',
+                    text: `Unable to delete ${type}. Please check your connection and try again.`,
+                    confirmButtonColor: '#ff8c00'
+                });
+            });
+    }
+
     document.querySelectorAll('.expand-toggle').forEach(toggle => {
-        toggle.addEventListener('click', function(e) {
+        toggle.addEventListener('click', function (e) {
             const parentId = this.getAttribute('data-parent-id');
             // Tìm tất cả các hàng subcategory có parent-id tương ứng
             const subcategoryRows = document.querySelectorAll(`.subcategory-row[data-parent-id="${parentId}"]`);
-            
+
             // Toggle class show cho các hàng con
             subcategoryRows.forEach(row => {
                 row.classList.toggle('show');
             });
-            
+
             // Xoay mũi tên
             this.classList.toggle('expanded');
         });
