@@ -3,7 +3,6 @@ import * as productService from '../../services/product.service.js';
 import * as watchlistService from '../../services/watchlist.service.js';
 import * as userService from '../../services/user.service.js';
 import * as categoriesService from '../../services/category.service.js';
-import db from '../../utils/db.js';
 
 import { sendBidderRejectedNotification, sendOutbidNotification, sendWinningNotification, sendPriceUpdateNotification } from '../../utils/email.js';
 
@@ -415,12 +414,12 @@ router.get('/:parentSlug/:childSlug', async function (req, res) {
 // Check if user is banned from bidding on a product
 router.get('/check-ban', async function (req, res) {
     try {
-        const { product_id, bidder_id } = req.query;
+        const banUse = { 
+            product_id: req.body.product_id,
+            bidder_id: req.body.bidder_id
+        };
         
-        const banCheck = await db('ban_user')
-            .where('product_id', product_id)
-            .andWhere('bidder_id', bidder_id)
-            .first();
+        const banCheck = await userService.checkBanUser(banUser);
             
         res.json({ isBanned: !!banCheck });
     } catch (error) {
@@ -459,20 +458,16 @@ router.post('/reject-bidder', async function (req, res) {
         const wasLeader = (product.leader_id === parseInt(bidder_id));
         
         // Add to ban list
-        await db('ban_user').insert({
+        const banUser = {
             product_id: product_id,
-            bidder_id: bidder_id,
-        });
+            bidder_id: bidder_id
+        }
+
+        await userService.banUser(banUser);
         
         // If banned user was the leader, find next highest bidder
         if (wasLeader) {
-            const nextBidder = await db('bid as b')
-                .join('app_user as u', 'b.bidder_id', 'u.user_id')
-                .where('b.product_id', product_id)
-                .andWhere('b.bidder_id', '!=', bidder_id)
-                .orderBy('b.bid_amount', 'desc')
-                .select('b.*', 'u.email', 'u.full_name')
-                .first();
+            const nextBidder = await userService.findNextHighestBidder(banUser);
                 
             if (nextBidder) {
                 // Update product with new leader
@@ -483,15 +478,11 @@ router.post('/reject-bidder', async function (req, res) {
                 });
                 
                 // Send email to new leader
-                await sendWinningNotification(
-                    nextBidder.email,
-                    product.name,
-                    nextBidder.bid_amount
-                );
+                await sendWinningNotification(nextBidder.email, product.name, nextBidder.bid_amount);
             } else {
                 // No other bidders, reset to starting price
                 await productService.updateCurrentPriceAndLeader(product_id, {
-                    current_price: product.start_price,
+                    current_price: null,
                     leader_id: null,
                     leader_max: null
                 });

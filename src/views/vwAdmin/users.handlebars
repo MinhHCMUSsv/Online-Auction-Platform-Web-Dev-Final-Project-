@@ -99,6 +99,7 @@
     }
     .btn-icon:hover { background-color: #f1f3f5; color: var(--accent); }
     .btn-icon-danger:hover { background-color: #fff5f5; color: #dc3545; }
+    .btn-icon-success:hover { background-color: #f0f8ff; color: #28a745; }
 
     .btn-warning-accent {
         background-color: var(--accent);
@@ -137,6 +138,7 @@
                 <tr>
                     <th class="ps-4">User</th>
                     <th>Role</th>
+                    <th>Status</th>
                     <th>Joined Date</th>
                     <th>Positive point</th>
                     <th>Negative point</th>
@@ -161,12 +163,21 @@
                             </div>
                         </td>
                         <td>
-                            {{#if (eq role 'seller')}}
-                                <span class="badge badge-role-seller rounded-pill px-2 py-1"><i class="bi bi-shop me-1"></i>Seller</span>
-                            {{else if (eq role 'admin')}}               
-                                <span class="badge badge-role-admin rounded-pill px-2 py-1"><i class="bi bi-shield-lock me-1"></i>Admin</span>
+                            {{#if (eq role 0)}}
+                                <span class="badge badge-role-seller rounded-pill px-2 py-1"><i class="bi bi-shop me-1"></i>Bidder</span>
+                            {{else if (eq role 1)}}               
+                                <span class="badge badge-role-admin rounded-pill px-2 py-1"><i class="bi bi-shield-lock me-1"></i>Seller</span>
                             {{else}}
-                                <span class="badge badge-role-bidder rounded-pill px-2 py-1"><i class="bi bi-person me-1"></i>Bidder</span>
+                                <span class="badge badge-role-bidder rounded-pill px-2 py-1"><i class="bi bi-person me-1"></i>Admin</span>
+                            {{/if}}
+                        </td>
+                        <td>
+                            {{#if (eq status 1)}}
+                                <span class="badge bg-success rounded-pill px-2 py-1"><i class="bi bi-check-circle me-1"></i>Active</span>
+                            {{else if (eq status 2)}}
+                                <span class="badge bg-danger rounded-pill px-2 py-1"><i class="bi bi-x-circle me-1"></i>Disabled</span>
+                            {{else}}
+                                <span class="badge bg-warning rounded-pill px-2 py-1"><i class="bi bi-clock me-1"></i>Pending</span>
                             {{/if}}
                         </td>
                 
@@ -186,17 +197,29 @@
                         </td>
 
                         <td class="text-end pe-4">
+                            {{#if (eq status 1)}}
+                                <button class="btn-icon btn-icon-danger toggle-status-btn" 
+                                        title="Disable User" 
+                                        data-user-id="{{user_id}}" 
+                                        data-user-name="{{full_name}}" 
+                                        data-user-email="{{email}}"
+                                        data-action="disable">
+                                    <i class="bi bi-person-x"></i>
+                                </button>
+                            {{else if (eq status 2)}}
+                                <button class="btn-icon btn-icon-success toggle-status-btn" 
+                                        title="Enable User" 
+                                        data-user-id="{{user_id}}" 
+                                        data-user-name="{{full_name}}" 
+                                        data-user-email="{{email}}"
+                                        data-action="enable">
+                                    <i class="bi bi-person-check"></i>
+                                </button>
+                            {{/if}}
+                            
                             <button class="btn-icon me-1" data-bs-toggle="tooltip" title="Reset Password"
                                     onclick="resetPassword('{{user_id}}', '{{email}}', '{{full_name}}')">
                                 <i class="bi bi-key"></i>
-                            </button>
-                            
-                            <button class="btn-icon btn-icon-danger delete-user-btn" 
-                                    title="Remove User" 
-                                    data-user-id="{{user_id}}" 
-                                    data-user-name="{{full_name}}" 
-                                    data-user-email="{{email}}">
-                                <i class="bi bi-trash"></i>
                             </button>
                         </td>
                     </tr>
@@ -214,17 +237,46 @@
         </table>
     </div>
     
+    {{#if pagination}}
     <div class="card-footer bg-white py-3 d-flex justify-content-between align-items-center border-top-0">
-        <div class="small text-muted">Showing 1 to 10 of 2,845 users</div>
+        <div class="small text-muted">
+            Showing {{pagination.showingFrom}} to {{pagination.showingTo}} of {{pagination.totalUsers}} users
+        </div>
         <nav>
             <ul class="pagination pagination-sm mb-0">
-                <li class="page-item disabled"><a class="page-link" href="#">Prev</a></li>
-                <li class="page-item active"><a class="page-link bg-secondary border-secondary text-white" href="#">1</a></li>
-                <li class="page-item"><a class="page-link text-dark" href="#">2</a></li>
-                <li class="page-item"><a class="page-link text-dark" href="#">Next</a></li>
+                {{#if pagination.hasPrev}}
+                    <li class="page-item">
+                        <a class="page-link" href="javascript:void(0)" data-page="{{#math pagination.currentPage "-" 1}}{{/math}}" onclick="goToPage({{#math pagination.currentPage "-" 1}}{{/math}})">Prev</a>
+                    </li>
+                {{else}}
+                    <li class="page-item disabled"><span class="page-link">Prev</span></li>
+                {{/if}}
+                
+                {{#each pagination.pages}}
+                    {{#if this.isCurrent}}
+                        <li class="page-item active">
+                            <span class="page-link bg-warning border-warning text-dark">{{this.page}}</span>
+                        </li>
+                    {{else if this.isEllipsis}}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {{else}}
+                        <li class="page-item">
+                            <a class="page-link text-dark" href="javascript:void(0)" data-page="{{this.page}}" onclick="goToPage({{this.page}})">{{this.page}}</a>
+                        </li>
+                    {{/if}}
+                {{/each}}
+                
+                {{#if pagination.hasNext}}
+                    <li class="page-item">
+                        <a class="page-link" href="javascript:void(0)" data-page="{{#math pagination.currentPage "+" 1}}{{/math}}" onclick="goToPage({{#math pagination.currentPage "+" 1}}{{/math}})">Next</a>
+                    </li>
+                {{else}}
+                    <li class="page-item disabled"><span class="page-link">Next</span></li>
+                {{/if}}
             </ul>
         </nav>
     </div>
+    {{/if}}
 </div>
 
 <div class="modal fade" id="modalUpgradeRequests" tabindex="-1" aria-labelledby="modalUpgradeRequestsLabel" aria-hidden="true">
@@ -239,6 +291,7 @@
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+
             <div class="modal-body p-0">
                 {{#if upgradeRequests}}
                     <div class="table-responsive">
@@ -380,30 +433,37 @@
         });
     }
 
-    // Delete User Handler
+    // Toggle Status User Handler
     document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.delete-user-btn').forEach(function(btn) {
+        document.querySelectorAll('.toggle-status-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 const userId = this.getAttribute('data-user-id');
                 const userName = this.getAttribute('data-user-name');
                 const userEmail = this.getAttribute('data-user-email');
+                const action = this.getAttribute('data-action');
+                
+                const isDisabling = action === 'disable';
+                const actionText = isDisabling ? 'disable' : 'enable';
+                const actionPast = isDisabling ? 'disabled' : 'enabled';
+                const actionColor = isDisabling ? '#dc3545' : '#28a745';
+                const actionIcon = isDisabling ? 'warning' : 'question';
                 
                 Swal.fire({
-                    title: 'Delete User?',
-                    html: `Are you sure you want to delete <strong>${userName}</strong>?<br><small class="text-muted">${userEmail}</small><br><br><span class="text-danger">This action cannot be undone!</span>`,
-                    icon: 'warning',
+                    title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} User?`,
+                    html: `Are you sure you want to ${actionText} <strong>${userName}</strong>?<br><small class="text-muted">${userEmail}</small><br><br>${isDisabling ? '<span class="text-warning">User will not be able to login when disabled.</span>' : '<span class="text-success">User will be able to login again when enabled.</span>'}`,
+                    icon: actionIcon,
                     showCancelButton: true,
-                    confirmButtonColor: '#dc3545',
+                    confirmButtonColor: actionColor,
                     cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Yes, delete user!',
+                    confirmButtonText: `Yes, ${actionText} user!`,
                     cancelButtonText: 'Cancel',
                     reverseButtons: true
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // Show loading
                         Swal.fire({
-                            title: 'Deleting User...',
-                            text: 'Please wait while we remove the user.',
+                            title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)}ing User...`,
+                            text: `Please wait while we ${actionText} the user.`,
                             allowOutsideClick: false,
                             allowEscapeKey: false,
                             showConfirmButton: false,
@@ -412,40 +472,44 @@
                             }
                         });
                         
-                        // Send delete request
-                        fetch('/admin/users/remove', {
+                        // Send toggle request
+                        fetch('/admin/users/toggle-status', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
-                            body: JSON.stringify({ user_id: userId })
+                            body: JSON.stringify({ 
+                                user_id: userId,
+                                action: action
+                            })
                         })
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
                                 Swal.fire({
-                                    title: 'Deleted!',
-                                    text: data.message || 'User has been deleted successfully',
+                                    title: `User ${actionPast.charAt(0).toUpperCase() + actionPast.slice(1)}!`,
+                                    html: `<strong>${userName}</strong> has been ${actionPast} successfully.<br><small class="text-muted">${userEmail}</small>`,
                                     icon: 'success',
-                                    timer: 1500,
-                                    showConfirmButton: false
+                                    confirmButtonColor: '#ff8c00',
+                                    timer: 2000,
+                                    timerProgressBar: true
                                 }).then(() => {
                                     window.location.reload();
                                 });
                             } else {
                                 Swal.fire({
-                                    title: 'Cannot Delete',
-                                    text: data.message || 'Unable to delete user',
+                                    title: `Cannot ${actionText.charAt(0).toUpperCase() + actionText.slice(1)}`,
+                                    text: data.message || `Unable to ${actionText} user`,
                                     icon: 'error',
                                     confirmButtonColor: '#ff8c00'
                                 });
                             }
                         })
                         .catch(error => {
-                            console.error('Delete error:', error);
+                            console.error(`${actionText} error:`, error);
                             Swal.fire({
                                 title: 'Error',
-                                text: 'Failed to delete user. Please try again.',
+                                text: `Failed to ${actionText} user. Please try again.`,
                                 icon: 'error',
                                 confirmButtonColor: '#ff8c00'
                             });
@@ -521,6 +585,11 @@
                 });
             }
         });
+    }
+    
+    // Pagination Functions
+    function goToPage(page) {
+        window.location.href = window.location.pathname + '?page=' + page;
     }
 </script>
 {{/section}}

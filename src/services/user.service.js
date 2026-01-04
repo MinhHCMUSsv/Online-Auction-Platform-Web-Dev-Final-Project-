@@ -1,8 +1,20 @@
 import db from '../utils/db.js';
-import bcrypt from 'bcryptjs';
 
 export function getAllUsers() {
     return db('app_user');
+}
+
+export function getUsersPaginated(limit = 10, offset = 0) {
+    return db('app_user')
+        .limit(limit)
+        .offset(offset)
+        .orderBy('created_at', 'desc');
+}
+
+export function getUsersCount() {
+    return db('app_user')
+        .count('user_id as count')
+        .first();
 }
 
 export function getUserById(user_id) {
@@ -89,4 +101,32 @@ export function updateUserPassword(userId, newPassword) {
     return db('app_user')
         .where('user_id', userId)
         .update({ password_hash: newPassword });
+}
+
+export function toggleUserStatus(userId, status) {
+    return db('app_user')
+        .where('user_id', userId)
+        .update({ status: status });
+}
+
+export function checkBanUser(banUser) {
+    return db('ban_user')
+        .where('product_id', banUser.product_id)
+        .andWhere('bidder_id', banUser.bidder_id)
+        .first();
+}
+
+export function banUser(banUser) {
+    return db('ban_user')
+        .insert({ product_id: banUser.product_id, bidder_id: banUser.bidder_id });
+}
+
+export function findNextHighestBidder(banUser) {
+    return db('bid as b')
+        .join('app_user as u', 'b.bidder_id', 'u.user_id')
+        .where('b.product_id', banUser.product_id)
+        .andWhere('b.bidder_id', '!=', banUser.bidder_id)
+        .orderBy('b.bid_amount', 'desc')
+        .select('b.*', 'u.email', 'u.full_name')
+        .first();
 }

@@ -3,8 +3,8 @@ import { engine } from 'express-handlebars';
 import hbs_helpers from 'handlebars-helpers';
 import expressHandlebarsSections from 'express-handlebars-sections';
 import session from 'express-session';
-import { isAuth, isAdmin, isUpgradePending } from './src/middlewares/auth.mdw.js';
 import moment from 'moment';
+import passport from './src/utils/passport.js';
 
 import authRouter from './src/routes/accountRoute/auth.route.js';
 import sellerRouter from './src/routes/seller.route.js';
@@ -13,11 +13,15 @@ import adminCategoryRouter from './src/routes/adminRoute/category.route.js';
 import adminUserRouter from './src/routes/adminRoute/user.route.js';
 import adminSettingRouter from './src/routes/adminRoute/setting.route.js';
 
-import passport from './src/utils/passport.js';
-
 import commonRouter from './src/routes/accountRoute/common.route.js';
 import profileRouter from './src/routes/accountRoute/profile.route.js';
 import menuRouter from './src/routes/accountRoute/menu.route.js';
+
+import { isAuth, isAdmin, isUpgradePending } from './src/middlewares/auth.mdw.js';
+import startAuctionCheckCronJob from './src/utils/checkAuction.js';
+
+// Khởi động cron job kiểm tra đấu giá
+startAuctionCheckCronJob();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -75,8 +79,20 @@ app.engine('handlebars', engine({
 
         add (a, b) {
             return a + b;
-        }
+        },
 
+        math: function(lvalue, operator, rvalue) {
+            lvalue = parseFloat(lvalue);
+            rvalue = parseFloat(rvalue);
+            
+            return {
+                "+": lvalue + rvalue,
+                "-": lvalue - rvalue,
+                "*": lvalue * rvalue,
+                "/": lvalue / rvalue,
+                "%": lvalue % rvalue
+            }[operator];
+        },
     }
      
 }));

@@ -7,15 +7,60 @@ import { sendPasswordResetEmail } from '../../utils/email.js';
 const router = express.Router();
 
 router.get('/', async function(req, res) {
-    const list = await userService.getAllUsers();
-    const upgradeRequests = await upgradeService.getAllUpgradeRequests();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
 
-    res.render('vwAdmin/users', { 
-        users: list,
-        upgradeRequests: upgradeRequests,
-        activeAdmin: 'users',
-        layout: 'admin-layout'
-    });
+    try {
+        const [users, countResult, upgradeRequests] = await Promise.all([
+            userService.getUsersPaginated(limit, offset),
+            userService.getUsersCount(),
+            upgradeService.getAllUpgradeRequests()
+        ]);
+
+        const totalUsers = countResult.count;
+        const totalPages = Math.ceil(totalUsers / limit);
+
+        // Generate pages array for pagination
+        const pages = [];
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+        // Adjust start if we're near the end
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pages.push({
+                page: i,
+                isCurrent: i === page,
+                isEllipsis: false
+            });
+        }
+
+        res.render('vwAdmin/users', { 
+            users: users,
+            upgradeRequests: upgradeRequests,
+            activeAdmin: 'users',
+            layout: 'admin-layout',
+            pagination: {
+                currentPage: page,
+                totalPages: totalPages,
+                totalUsers: totalUsers,
+                limit: limit,
+                hasNext: page < totalPages,
+                hasPrev: page > 1,
+                showingFrom: offset + 1,
+                showingTo: Math.min(offset + limit, totalUsers),
+                pages: pages
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).send('Error loading users');
+    }
 });
 
 router.get('/upgrade', async function(req, res) {
@@ -61,14 +106,14 @@ router.post('/upgrade/reject', async function(req, res) {
     }
 });
 
-router.post('/remove', async function(req, res) {
+router.post('/toggle-status', async function(req, res) {
     try {
-        const { user_id } = req.body;
+        const { user_id, action } = req.body;
         
-        if (!user_id) {
+        if (!user_id || !action) {
             return res.status(400).json({
                 success: false,
-                message: 'User ID is required'
+                message: 'User ID and action are required'
             });
         }
         
@@ -81,19 +126,22 @@ router.post('/remove', async function(req, res) {
             });
         }
         
-        // Delete the user
-        await userService.deleteUser(user_id);
+        // Toggle user status
+        const newStatus = action === 'disable' ? 2 : 1;
+        await userService.toggleUserStatus(user_id, newStatus);
+        
+        const actionText = action === 'disable' ? 'disabled' : 'enabled';
         
         res.json({
             success: true,
-            message: 'User deleted successfully'
+            message: `User ${actionText} successfully`
         });
         
     } catch (error) {
-        console.error('Error deleting user:', error);
+        console.error('Error toggling user status:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to delete user. Please try again.'
+            message: 'Failed to update user status. Please try again.'
         });
     }
 });

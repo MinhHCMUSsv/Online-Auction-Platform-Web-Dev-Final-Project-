@@ -11,10 +11,7 @@ export function getAllUpgradeRequests() {
 export function approveUpgrade(requestId, adminId) {
     return db('upgrade_request')
         .where('id', requestId)
-        .update({ status: 'approved',
-                  admin_id: adminId
-         }
-        );
+        .update({ status: 'approved', admin_id: adminId});
 }
 
 export function updateRequest(userId) {
@@ -38,5 +35,4 @@ export function deleteUpgradeRequest(userId) {
     return db('upgrade_request')
         .where('bidder_id', userId)
         .update({ status: 'rejected' });
-        
 }

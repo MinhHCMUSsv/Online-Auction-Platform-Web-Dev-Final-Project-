@@ -275,8 +275,16 @@ export function getProductsByParentCategory(parentCategoryId) {
         .select('p.*', 'u.full_name as seller_name');
 }
 
-export function deleteProduct(productId) {
+// Additional functions for auction checking
+export function getExpiredActiveAuctions() {
     return db('product')
-        .where('product_id', productId)
-        .del();
+        .where('end_time', '<=', db.fn.now())
+        .andWhere('status', 'active')
+        .select();
+}
+
+export function updateAuctionStatus(product_id, status) {
+    return db('product')
+        .where('product_id', product_id)
+        .update({ status });
 }
