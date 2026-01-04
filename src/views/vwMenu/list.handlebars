@@ -124,7 +124,7 @@
           <p class="mb-1 small">
             <span class="fw-semibold">
               {{#if current_bidder_name}}
-              {{current_bidder_name}}
+              Highest Bidder: {{current_bidder_name}}
               {{else}}
               No Bids
               {{/if}}
@@ -145,10 +145,10 @@
                 this.buy_now_price}}
                 {{else}}
                 None {{/if}}</span></span><br>
-            <span>Listed: {{formatDate this.start_time "DD/MM/YYYY HH:mm"}}</span><br> <span>Time left:
+            <span>Listed: {{formatDate this.created_at "DD/MM/YYYY HH:mm"}}</span><br> <span>Time left:
               {{formatAuctionTime
               this.end_time "DD/MM/YYYY HH:mm"}}</span><br>
-            <span>Bids: 0</span>
+            <span>Bids: {{this.bid_count}}</span>
           </p>
 
           <div class="mt-2">

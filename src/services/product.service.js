@@ -14,15 +14,31 @@ export function getIDCategoryByName(categoryName) {
 
 export function getByCategory(categoryId) {
     return db('product').where('categoryId', categoryId).select();
-} 
+}
 
 export function findPage(limit, offset) {
-    return db('product').limit(limit).offset(offset);
+    return db('product as p')
+        .leftJoin('bid as b', 'p.product_id', 'b.product_id')
+        .leftJoin('app_user as u', 'p.leader_id', 'u.user_id')
+        .select('p.*', 'u.full_name as current_bidder_name')
+        .count('b.product_id as bid_count')
+        .groupBy('p.product_id', 'u.full_name')
+        .orderBy('p.product_id', 'desc')
+        .limit(limit)
+        .offset(offset);
 }
 
 export function findPageByCat(catId, limit, offset) {
-    return db('product').where('category_id', catId)
-        .limit(limit).offset(offset);
+    return db('product as p')
+        .leftJoin('bid as b', 'p.product_id', 'b.product_id')
+        .leftJoin('app_user as u', 'p.leader_id', 'u.user_id')
+        .where('p.category_id', catId)
+        .select('p.*', 'u.full_name as current_bidder_name')
+        .count('b.product_id as bid_count')
+        .groupBy('p.product_id', 'u.full_name')
+        .orderBy('p.product_id', 'desc')
+        .limit(limit)
+        .offset(offset);
 }
 
 export function countByCat(catId) {
@@ -49,7 +65,7 @@ export function getSellerById(seller_id) {
         .where('user_id', seller_id)
         .select('full_name as seller_name', 'points as seller_point', 'email as seller_email')
         .first();
-}   
+}
 
 export function getBidder(product_id) {
     return db('bid as b')
@@ -74,23 +90,23 @@ export async function getCommentsWithReplies(product_id) {
             'pc.user_id',
             db.raw("SUBSTR(u.full_name, 1, 1) as reviewer_initials")
         );
-    
+
     // Organize comments into tree structure
     const commentMap = {};
     const rootComments = [];
-    
+
     // First pass: create map and identify root comments
     comments.forEach(comment => {
         commentMap[comment.comment_id] = {
             ...comment,
             replies: []
         };
-        
+
         if (!comment.parent_comment_id) {
             rootComments.push(commentMap[comment.comment_id]);
         }
     });
-    
+
     // Second pass: attach replies to their parent comments
     comments.forEach(comment => {
         if (comment.parent_comment_id && commentMap[comment.parent_comment_id]) {
@@ -99,7 +115,7 @@ export async function getCommentsWithReplies(product_id) {
             );
         }
     });
-    
+
     return rootComments;
 }
 
@@ -118,12 +134,17 @@ export function findWonItems(userId) {
     return db('product')
         .where('status', 'end')
         .andWhere('leader_id', userId)
-        .orderBy('end_time', 'desc'); 
+        .orderBy('end_time', 'desc');
 }
 
 export function search(keyword) {
-    return db('product')
-        .whereRaw(`fts @@ to_tsquery(remove_accents('${keyword}'))`);
+    return db('product as p')
+        .leftJoin('bid as b', 'p.product_id', 'b.product_id')
+        .leftJoin('app_user as u', 'p.leader_id', 'u.user_id')
+        .select('p.*', 'u.full_name as current_bidder_name')
+        .count('b.product_id as bid_count')
+        .whereRaw(`fts @@ to_tsquery(remove_accents('${keyword}'))`)
+        .groupBy('p.product_id', 'u.full_name');
 }
 
 export function getProductByParentID(parent_id) {
@@ -136,10 +157,14 @@ export function getProductByParentID(parent_id) {
 export function findPageByParentID(parent_id, limit, offset) {
     return db('product as p')
         .join('category as c', 'p.category_id', 'c.category_id')
+        .leftJoin('bid as b', 'p.product_id', 'b.product_id')
+        .leftJoin('app_user as u', 'p.leader_id', 'u.user_id')
         .where('c.parent_id', parent_id)
+        .select('p.*', 'u.full_name as current_bidder_name')
+        .count('b.product_id as bid_count')
+        .groupBy('p.product_id', 'u.full_name')
         .limit(limit)
-        .offset(offset)
-        .select('p.*');
+        .offset(offset);
 }
 
 export function countByParentID(parent_id) {
@@ -163,4 +188,20 @@ export function getDescriptionLogs(productId) {
 
 export function addDescriptionLog(entity) {
     return db('product_description_log').insert(entity);
+}
+
+export function getInterestedEmails(productId, sellerId) {
+    const bidderEmails = db('bid')
+        .join('app_user', 'bid.bidder_id', 'app_user.user_id')
+        .where('bid.product_id', productId)
+        .andWhereNot('app_user.user_id', sellerId)
+        .select('app_user.email');
+
+    const commenterEmails = db('product_comment')
+        .join('app_user', 'product_comment.user_id', 'app_user.user_id')
+        .where('product_comment.product_id', productId)
+        .andWhereNot('app_user.user_id', sellerId)
+        .select('app_user.email');
+
+    return bidderEmails.union(commenterEmails);
 }

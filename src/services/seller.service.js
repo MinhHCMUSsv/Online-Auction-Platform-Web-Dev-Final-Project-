@@ -9,12 +9,17 @@ export function countActiveBySeller(sellerId) {
 }
 
 export function findActiveBySeller(sellerId, limit, offset) {
-    return db('product')
-        .where('seller_id', sellerId)
-        .andWhere('status', 'active')
+    return db('product as p')
+        .leftJoin('bid as b', 'p.product_id', 'b.product_id')
+        .leftJoin('app_user as u', 'p.leader_id', 'u.user_id')
+        .select('p.*', 'u.full_name as current_bidder_name')
+        .count('b.bid_id as bid_count')
+        .where('p.seller_id', sellerId)
+        .andWhere('p.status', 'active')
+        .groupBy('p.product_id', 'u.full_name')
         .limit(limit)
         .offset(offset)
-        .orderBy('end_time', 'asc');
+        .orderBy('p.end_time', 'asc');
 }
 
 export function countFinishedBySeller(sellerId) {
@@ -30,7 +35,7 @@ export function findFinishedBySeller(sellerId, limit, offset) {
         .leftJoin('app_user as u', 'p.leader_id', 'u.user_id')
         .select(
             'p.*',
-            'u.full_name as winner_name', 
+            'u.full_name as winner_name',
             'u.user_id as winner_id'
         )
         .where('p.seller_id', sellerId)

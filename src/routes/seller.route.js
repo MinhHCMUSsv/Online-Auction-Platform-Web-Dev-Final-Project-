@@ -113,7 +113,6 @@ router.get('/active-auctions', async function (req, res) {
     }
 
     const list = await sellerService.findActiveBySeller(sellerId, limit, offset);
-
     res.render('vwSellers/activeAuction', {
         title: 'Active Auctions',
         layout: 'account-layout',

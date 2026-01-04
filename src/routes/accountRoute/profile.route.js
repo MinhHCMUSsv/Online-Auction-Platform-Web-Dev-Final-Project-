@@ -73,12 +73,34 @@ router.post('/', async function (req, res) {
 
 router.get('/watchlist', async function (req, res) {
     const user = req.session.authUser;
-    const watchlist = await watchlistService.findByUserId(user.user_id);
+    const limit = 6;
+    const page = req.query.page || 1;
+    const offset = (page - 1) * limit;
+
+    const totalState = await watchlistService.countByUserId(user.user_id);
+    const total = totalState.count;
+    
+    let nPages = Math.floor(total / limit);
+    if (total % limit > 0) nPages++;
+
+    const pageNumbers = [];
+    for (let i = 1; i <= nPages; i++) {
+        pageNumbers.push({
+            value: i,
+            isCurrent: i === +page
+        });
+    }
+
+    const watchlist = await watchlistService.findByUserId(user.user_id, limit, offset);
     res.render('vwAccounts/watchlist', {
         layout: 'account-layout',
         title: 'My Watchlist',
         activeNav: 'Watchlist',
-        watchlist: watchlist
+        watchlist: watchlist,
+        empty: watchlist.length === 0,
+        pageNumbers: pageNumbers,
+        prevPage: +page > 1 ? +page - 1 : null,
+        nextPage: +page < nPages ? +page + 1 : null
     });
 });
 

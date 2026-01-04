@@ -127,7 +127,7 @@
                     </div>
 
                     <p class="mb-1 small">
-                        <span class="fw-semibold">{{#if current_bidder_name}}{{current_bidder_name}}{{else}}No
+                        <span class="fw-semibold">{{#if current_bidder_name}}Highest Bidder: {{current_bidder_name}}{{else}}No
                             Bids{{/if}}</span><br>
                     </p>
 
@@ -144,10 +144,10 @@
                                 this.buy_now_price}}${{formatCurrency this.buy_now_price}}
                                 {{else}}
                                 None {{/if}}</span></span><br>
-                        <span>Listed: {{formatDate this.start_time "DD/MM/YYYY HH:mm"}}</span><br> <span>Time left:
+                        <span>Listed: {{formatDate this.created_at "DD/MM/YYYY HH:mm"}}</span><br> <span>Time left:
                             {{formatDate
                             this.end_time "DD/MM/YYYY HH:mm"}}</span><br>
-                        <span>Bids: 0</span>
+                        <span>Bids: {{this.bid_count}}</span>
                     </p>
 
                     <div class="mt-2">
@@ -206,7 +206,7 @@
             } else {
                 alert(data.message || 'Something went wrong!');
                 if (data.message === 'Please login first!') {
-                    window.location.href = '/account/signin';
+                    window.location.href = '/signin';
                 }
             }
         }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -214,7 +214,7 @@
                 const msg = jqXHR.responseJSON ? jqXHR.responseJSON.message : 'Please login first!';
                 alert(msg);
 
-                window.location.href = '/account/signin';
+                window.location.href = '/signin';
             } else {
                 alert('Cannot connect to server!');
             }

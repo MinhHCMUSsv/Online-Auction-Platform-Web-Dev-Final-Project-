@@ -3,7 +3,7 @@ import { engine } from 'express-handlebars';
 import hbs_helpers from 'handlebars-helpers';
 import expressHandlebarsSections from 'express-handlebars-sections';
 import session from 'express-session';
-import { isAuth, isSeller, isAdmin, isUpgradePending } from './src/middlewares/auth.mdw.js';
+import { isAuth, isSeller, isAdmin, isUpgradePending, isBanned } from './src/middlewares/auth.mdw.js';
 import moment from 'moment';
 
 import authRouter from './src/routes/accountRoute/auth.route.js';
@@ -91,11 +91,11 @@ app.use(passport.session());
 app.use(function (req, res, next) {
     res.locals.isAuthenticated = req.session.isAuthenticated;
     res.locals.authUser = req.session.authUser;
-
     res.locals.fatherCategories = req.session.fatherCategories || [];
     next();
 });
 
+app.use(isBanned);
 app.use(isUpgradePending);
 
 app.use('/', commonRouter);

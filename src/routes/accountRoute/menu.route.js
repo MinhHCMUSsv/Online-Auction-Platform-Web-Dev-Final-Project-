@@ -7,7 +7,6 @@ import { sendSellerReplyNotification, sendNewQuestionNotification } from '../../
 const router = express.Router();
 
 router.get('/', async function (req, res) {
-
     const products = await productService.getAll();
     const fatherCategories = await categoriesService.getFatherCategories();
 
@@ -113,6 +112,9 @@ router.post('/place-bid', async function (req, res) {
 
         if (!product) {
             return res.status(404).send('Sản phẩm không tồn tại');
+        }
+        if (product.status !== 'active') {
+            return res.status(400).send('Sản phẩm này đã kết thúc đấu giá!');
         }
 
         let finalBidAmount = 0;
@@ -225,8 +227,10 @@ router.post('/comment', async function (req, res) {
                     const emailList = await productService.getInterestedEmails(product_id, sellerId);
 
                     if (emailList.length > 0) {
+                        const emails = emailList.map(item => item.email);
+                        console.log('Email list:', emails);
                         await sendSellerReplyNotification(
-                            emailList,
+                            emails,
                             productName,
                             productLink,
                             content

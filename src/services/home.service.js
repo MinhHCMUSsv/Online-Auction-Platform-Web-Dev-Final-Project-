@@ -2,17 +2,27 @@ import db from '../utils/db.js';
 
 // 1. Lấy top 5 sản phẩm có giá hiện tại cao nhất
 export function findTopPrice(limit = 5) {
-    return db('product')
-        .where('status', 'active') // Sửa điều kiện: chỉ lấy status là 'active'
-        .orderBy('current_price', 'desc')
+    return db('product as p')
+        .leftJoin('bid as b', 'p.product_id', 'b.product_id')
+        .leftJoin('app_user as u', 'p.leader_id', 'u.user_id')
+        .select('p.*', 'u.full_name as current_bidder_name')
+        .count('b.bid_id as bid_count')
+        .where('p.status', 'active')
+        .groupBy('p.product_id', 'u.full_name')
+        .orderBy('p.current_price', 'desc')
         .limit(limit);
 }
 
 // 2. Lấy top 5 sản phẩm sắp kết thúc
 export function findEndingSoon(limit = 5) {
-    return db('product')
-        .where('status', 'active') // Chỉ lấy sản phẩm đang active
-        .orderBy('end_time', 'asc') // Sắp xếp ai kết thúc trước thì lên đầu
+    return db('product as p')
+        .leftJoin('bid as b', 'p.product_id', 'b.product_id')
+        .leftJoin('app_user as u', 'p.leader_id', 'u.user_id')
+        .select('p.*', 'u.full_name as current_bidder_name')
+        .count('b.bid_id as bid_count')
+        .where('p.status', 'active')
+        .groupBy('p.product_id', 'u.full_name')
+        .orderBy('p.end_time', 'asc')
         .limit(limit);
 }
 
@@ -20,10 +30,11 @@ export function findEndingSoon(limit = 5) {
 export function findMostActive(limit = 5) {
     return db('product as p')
         .leftJoin('bid as b', 'p.product_id', 'b.product_id')
-        .select('p.*')
+        .leftJoin('app_user as u', 'p.leader_id', 'u.user_id')
+        .select('p.*', 'u.full_name as current_bidder_name')
         .count('b.bid_id as bid_count')
-        .where('p.status', 'active') // Dùng alias p.status
-        .groupBy('p.product_id')
+        .where('p.status', 'active')
+        .groupBy('p.product_id', 'u.full_name')
         .orderBy('bid_count', 'desc')
         .limit(limit);
 }

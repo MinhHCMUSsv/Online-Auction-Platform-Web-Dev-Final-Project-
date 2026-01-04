@@ -91,6 +91,7 @@ export const sendSellerReplyNotification = async function (toEmails, productName
                 View Details
             </a>
             
+            <p style="margin-top: 20px; font-size: 12px; color: #888;">If the button doesn't work, copy this link: ${productLink}</p>
             <p style="margin-top: 20px; font-size: 12px; color: #888;">You received this email because you placed a bid or commented on this product.</p>
         </div>
     `;

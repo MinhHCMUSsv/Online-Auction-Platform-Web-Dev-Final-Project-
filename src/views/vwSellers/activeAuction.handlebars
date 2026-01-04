@@ -78,7 +78,7 @@
                     </div>
 
                     <p class="mb-1 small">
-                        <span class="fw-semibold">{{#if current_bidder_name}}{{current_bidder_name}}{{else}}No
+                        <span class="fw-semibold">{{#if this.current_bidder_name}}Highest Bidder: {{this.current_bidder_name}}{{else}}No
                             Bids{{/if}}</span><br>
                     </p>
 
@@ -103,7 +103,7 @@
                         </span>
                         <br>
 
-                        <span>Listed: {{formatDate this.start_time "DD/MM/YYYY HH:mm"}}</span><br>
+                        <span>Listed: {{formatDate this.created_at "DD/MM/YYYY HH:mm"}}</span><br>
                         <span>Time left:
                             {{formatAuctionTime
                             this.end_time "DD/MM/YYYY HH:mm"}}</span><br>

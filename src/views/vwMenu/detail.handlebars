@@ -188,13 +188,13 @@
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     }
 
     .related-img a {
-        display: block;       
+        display: block;
         width: 100%;
-        height: 100%;        
+        height: 100%;
     }
 
     .related-img img {
@@ -286,14 +286,15 @@
             </div>
 
             <div class="mb-2">
-                <span class="fw-bold fs-5">{{#if product.current_price}}Highest bid:{{else}}Starting price:{{/if}}</span>
+                <span class="fw-bold fs-5">{{#if product.current_price}}Highest bid:{{else}}Starting
+                    price:{{/if}}</span>
                 <span class="fw-bold fs-4 text-warning">
                     {{#if product.current_price}}
                     ${{formatCurrency product.current_price}}
                     {{else}}
                     ${{formatCurrency product.start_price}}
                     {{/if}}
-                    </span>
+                </span>
             </div>
 
             {{#if bidder}}
@@ -311,7 +312,7 @@
             {{/if}}
 
             <div class="text-muted small mb-4 lh-lg">
-                <div>Listed: <strong>{{formatDate product.start_time "DD/MM/YYYY"}}</strong></div>
+                <div>Listed: <strong>{{formatDate product.created_at "DD/MM/YYYY"}}</strong></div>
                 <div>Time left: <strong>{{formatAuctionTime product.end_time "DD/MM/YYYY"}}</strong></div>
                 <div>Bids: <strong>10</strong></div>
                 <div class="fs-5 mt-2 text-dark">
@@ -326,7 +327,7 @@
 
             {{#if isAuthenticated}}
 
-            {{!-- LOGIC MỚI: Check xem user đang đăng nhập CÓ PHẢI là chủ sản phẩm không --}}
+            {{!-- LOGIC: Check xem user đang đăng nhập CÓ PHẢI là chủ sản phẩm không --}}
             {{#if (eq authUser.user_id product.seller_id)}}
 
             <div class="alert alert-info border-info">
@@ -341,6 +342,7 @@
 
             {{else}}
 
+            {{#if (eq product.status 'active')}}
             <form method="POST" action="/menu/place-bid">
                 <input type="hidden" name="product_id" value="{{product.product_id}}">
                 <input type="hidden" name="bidder_id" value="{{authUser.user_id}}">
@@ -349,8 +351,7 @@
                     <label class="fw-bold me-3">Your max bid:</label>
                     <div class="input-group" style="width: 200px;">
                         <span class="input-group-text fw-bold">$</span>
-                        <input type="text" class="form-control fw-bold currency-input" name="max_auto_bid"
-                            placeholder="{{formatCurrency product.current_price}}" required>
+                        <input type="text" class="form-control fw-bold currency-input" name="max_auto_bid" required>
                     </div>
                 </div>
 
@@ -362,6 +363,12 @@
                 <input type="hidden" name="product_id" value="{{product.product_id}}">
                 <button class="btn-action-outline">Buy it now</button>
             </form>
+            {{/if}}
+
+            {{else}}
+            <div class="alert alert-danger text-center fw-bold">
+                <i class="bi bi-exclamation-circle-fill"></i> This auction has ended.
+            </div>
             {{/if}}
 
             <button class="btn-action-outline wishlist-toggle" data-id="{{product.product_id}}">
@@ -639,7 +646,7 @@
                         <div class="text-muted small" style="line-height: 1.6;">
                             <div>Buy now: <span class="text-primary fw-bold">{{#if this.buy_now_price}}${{formatCurrency
                                     this.buy_now_price}}{{else}}None{{/if}}</span></div>
-                            <div>Listed: {{formatDate this.start_time "DD/MM/YYYY"}}</div>
+                            <div>Listed: {{formatDate this.created_at "DD/MM/YYYY"}}</div>
                             <div>Time left: {{formatAuctionTime this.end_time "DD/MM/YYYY"}}</div>
                             <div>Bids: {{this.bid_count}}</div>
                         </div>
