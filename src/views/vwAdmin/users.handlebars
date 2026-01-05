@@ -140,8 +140,7 @@
                     <th>Role</th>
                     <th>Status</th>
                     <th>Joined Date</th>
-                    <th>Positive point</th>
-                    <th>Negative point</th>
+                    <th>Point</th>
                     <th class="text-end pe-4">Actions</th>
                 </tr>
             </thead>
@@ -184,15 +183,10 @@
                         <td class="text-muted small">
                             {{#if created_at}}{{formatDate created_at "DD/MM/YYYY"}}{{else}}N/A{{/if}}
                         </td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <span class="text-muted small ms-1">{{positive_point}}</span>
-                            </div>
-                        </td>
 
                         <td>
                             <div class="d-flex align-items-center">
-                                <span class="text-muted small ms-1">{{negative_point}}</span>
+                                <span class="text-muted small ms-1">{{positive_point}}/{{points}}</span>
                             </div>
                         </td>
 
