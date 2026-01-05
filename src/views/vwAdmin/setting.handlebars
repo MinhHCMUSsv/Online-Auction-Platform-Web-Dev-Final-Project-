@@ -1,0 +1,269 @@
+{{#section 'css'}}
+<style>
+    :root {
+        --accent: #ff8c00; /* Deep orange, used for primary buttons */
+        --accent-dark: #d66f00;
+        --secondary-bg: #f8f9fa; /* Light secondary background */
+        --accent-light: #fff6eb; /* Light background for active/hover */
+    }
+
+    /* Settings Cards */
+    .setting-card {
+        border: 1px solid rgba(255, 140, 0, 0.3); /* Light orange border */
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(255, 140, 0, 0.02), #ffffff);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .setting-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .setting-header {
+        background-color: var(--accent-light);
+        border-bottom: 1px solid rgba(255, 140, 0, 0.2);
+        color: #b35f00;
+        font-weight: 600;
+        padding: 1.25rem;
+    }
+
+    .setting-body {
+        padding: 1.5rem;
+    }
+
+    /* Form Styles */
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        padding: 0.75rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .form-control:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25);
+    }
+
+    .input-group-text {
+        background-color: var(--secondary-bg);
+        border: 1px solid #ced4da;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    /* Button Styles */
+    .btn-warning-accent {
+        background-color: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .btn-warning-accent:hover {
+        background-color: var(--accent-dark);
+        border-color: var(--accent-dark);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+</style>
+{{/section}}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-5">
+    <div>
+        <h1 class="h2 fw-bolder mb-0">System Settings</h1>
+    </div>
+</div>
+
+<form id="settingsForm" method="POST">
+    <div class="row g-4">
+        <!-- Auto Bid Extension Settings -->
+        <div class="col-lg-6">
+            <div class="card setting-card border-0 shadow-sm">
+                <div class="setting-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history me-2"></i>
+                        Auto Bid Extension
+                    </h5>
+                </div>
+                <div class="setting-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="triggerTime" class="form-label">
+                                <i class="bi bi-alarm me-1"></i>
+                                Trigger Time
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="triggerTime" name="extend_threshold_minutes" 
+                                       value="{{config.extend_threshold_minutes}}">
+                                <span class="input-group-text">minutes</span>
+                            </div>
+                            <small class="text-muted">Extension triggers when bids are placed within this time</small>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="extensionDuration" class="form-label">
+                                <i class="bi bi-plus-circle me-1"></i>
+                                Extension Duration
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="extensionDuration" name="extend_add_minutes" 
+                                       value="{{config.extend_add_minutes}}">
+                                <span class="input-group-text">minutes</span>
+                            </div>
+                            <small class="text-muted">How much time to add when extending</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Highlight Settings -->
+        <div class="col-lg-6">
+            <div class="card setting-card border-0 shadow-sm">
+                <div class="setting-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-star me-2"></i>
+                        Product Highlight
+                    </h5>
+                </div>
+                <div class="setting-body">
+                    <div class="mb-4">
+                        <label for="highlightDuration" class="form-label">
+                            <i class="bi bi-stopwatch me-1"></i>
+                            Highlight Duration
+                        </label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="highlightDuration" name="new_product_highlight_minutes" 
+                                   value="{{config.new_product_highlight_minutes}}" min="5" max="1440" required>
+                            <span class="input-group-text">minutes</span>
+                        </div>
+                        <small class="text-muted">How long products remain highlighted after being featured</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-flex justify-content-end gap-3 mt-4">
+        <button type="submit" class="btn btn-warning-accent">
+            <i class="bi bi-check-circle me-1"></i>
+            Save All Changes
+        </button>
+    </div>
+</form>
+
+{{#section 'js'}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.getElementById('settingsForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const triggerTime = parseInt(document.getElementById('triggerTime').value);
+    const extensionDuration = parseInt(document.getElementById('extensionDuration').value);
+    const highlightDuration = parseInt(document.getElementById('highlightDuration').value);
+    
+    // Validation with SweetAlert
+    if (triggerTime < 1 || triggerTime > 60) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Trigger Time',
+            text: 'Trigger time must be between 1 and 60 minutes',
+            confirmButtonColor: '#ff8c00'
+        });
+        return;
+    }
+    
+    if (extensionDuration < 1 || extensionDuration > 120) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Extension Duration',
+            text: 'Extension duration must be between 1 and 120 minutes',
+            confirmButtonColor: '#ff8c00'
+        });
+        return;
+    }
+    
+    if (highlightDuration < 5 || highlightDuration > 60) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Highlight Duration',
+            text: 'Highlight duration must be between 5 and 60 minutes',
+            confirmButtonColor: '#ff8c00'
+        });
+        return;
+    }
+    
+    // Show confirmation dialog
+    Swal.fire({
+        title: 'Save Settings?',
+        text: 'Do you want to apply these system settings?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#ff8c00',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, save settings!',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+        
+        // Show loading
+        Swal.fire({
+            title: 'Saving Settings...',
+            text: 'Please wait while we update the system settings.',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading()
+            }
+        });
+        
+        // Submit form
+        const form = document.getElementById('settingsForm');
+        const formData = new FormData(form);
+        
+        fetch(form.action || window.location.pathname, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Settings Saved!',
+                    text: 'All settings have been updated successfully',
+                    confirmButtonColor: '#ff8c00',
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                throw new Error('Failed to save settings');
+            }
+        })
+        .catch(error => {
+            console.error('Save error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Save Failed',
+                text: 'Unable to save settings. Please check your connection and try again.',
+                confirmButtonColor: '#ff8c00'
+            });
+        });
+    });
+});
+</script>
+{{/section}}

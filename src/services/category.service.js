@@ -14,6 +14,10 @@ export function getFatherCategories() {
         .select();
 }
 
+export function getAll() {
+    return db('category').select();
+}
+
 export function getChildCategories(parent_id) {
     return db('category')
         .where('parent_id', parent_id)
@@ -26,6 +30,18 @@ export function getAllChild() {
         .select();
 }
 
+export function getCategoryBySlug(slug) {
+    return db('category')
+        .where('slug', slug)
+        .first();
+}
+
+export function getCategoryById(category_id) {
+    return db('category')
+        .where('category_id', category_id)
+        .first();
+}
+
 export function addCategory(category) {
     return db('category').insert(category);
 }
@@ -36,4 +52,12 @@ export function updateCategory(category_id, category) {
 
 export function deleteCategory(category_id) {
     return db('category').where('category_id', category_id).del();
+}
+
+export function countProductsByCategory(category_id) {
+    return db('product')
+        .where('category_id', category_id)
+        .count('product_id as count')
+        .first()
+        .then(result => result.count);
 }

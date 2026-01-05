@@ -10,3 +10,17 @@ export function findActiveBidsByUserId(userId) {
         .count('all_bids.bid_id as bid_count')
         .groupBy('p.product_id', 'u.full_name');
 }
+
+export function checkProductHasBids(productId) {
+    return db('bid')
+        .where('product_id', productId)
+        .count('bid_id as count')
+        .first()
+        .then(result => result.count > 0);
+}
+
+export function deleteProductBids(productId) {
+    return db('bid')
+        .where('product_id', productId)
+        .del();
+}

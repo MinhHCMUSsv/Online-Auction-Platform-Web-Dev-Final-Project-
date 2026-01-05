@@ -5,21 +5,25 @@ import expressHandlebarsSections from 'express-handlebars-sections';
 import session from 'express-session';
 import { isAuth, isSeller, isAdmin, isUpgradePending, isBanned } from './src/middlewares/auth.mdw.js';
 import moment from 'moment';
+import passport from './src/utils/passport.js';
 
 import authRouter from './src/routes/accountRoute/auth.route.js';
 import sellerRouter from './src/routes/seller.route.js';
 
 import adminCategoryRouter from './src/routes/adminRoute/category.route.js';
-import adminProductRouter from './src/routes/adminRoute/product.route.js';
 import adminUserRouter from './src/routes/adminRoute/user.route.js';
-
-import passport from './src/utils/passport.js';
+import adminSettingRouter from './src/routes/adminRoute/setting.route.js';
 
 import commonRouter from './src/routes/accountRoute/common.route.js';
 import profileRouter from './src/routes/accountRoute/profile.route.js';
 import menuRouter from './src/routes/accountRoute/menu.route.js';
 
+import startAuctionCheckCronJob from './src/utils/checkAuction.js';
 import transactionRouter from './src/routes/transaction.route.js'
+
+
+// Khởi động cron job kiểm tra đấu giá
+startAuctionCheckCronJob();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -65,16 +69,32 @@ app.engine('handlebars', engine({
             // C. CÒN LÂU (Trên 3 ngày) -> Hiện ngày tháng cụ thể
             return dateObj.format(format);
         },
+
         formatCurrency: function (value) {
-            const number = Number(value);
-            if (isNaN(number)) {
-                return '0';
-            }
-            return new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(number);
-        }
+            if (isNaN(value)) return value;
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value).replace(/\.00$/, '');
+        },
+
+        ifEquals (a, b, options) {
+            return (a === b) ? options.fn(this) : options.inverse(this);
+        },
+
+        add (a, b) {
+            return a + b;
+        },
+
+        math: function(lvalue, operator, rvalue) {
+            lvalue = parseFloat(lvalue);
+            rvalue = parseFloat(rvalue);
+            
+            return {
+                "+": lvalue + rvalue,
+                "-": lvalue - rvalue,
+                "*": lvalue * rvalue,
+                "/": lvalue / rvalue,
+                "%": lvalue % rvalue
+            }[operator];
+        },
     }
      
 }));
@@ -94,6 +114,7 @@ app.use(function (req, res, next) {
     res.locals.isAuthenticated = req.session.isAuthenticated;
     res.locals.authUser = req.session.authUser;
     res.locals.fatherCategories = req.session.fatherCategories || [];
+    res.locals.config = req.session.config || [];
     next();
 });
 
@@ -111,8 +132,8 @@ app.use('/seller', isAuth, isSeller, sellerRouter);
 app.use('/transaction', transactionRouter);
 
 app.use('/admin/categories', adminCategoryRouter);
-app.use('/admin/products', adminProductRouter);
 app.use('/admin/users', adminUserRouter);
+app.use('/admin/settings', adminSettingRouter);
 
 app.use((req, res) => {
     res.status(403).render('vwError/403');

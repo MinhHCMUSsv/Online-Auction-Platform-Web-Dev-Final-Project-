@@ -227,11 +227,7 @@
 {{/section}}
 
 <div class="bg-white border-bottom">
-    <div class="container-fluid px-4 py-3 small text-muted">
-        <a href="/" class="text-decoration-none text-muted">Home</a> /
-        <a href="/menu" class="text-decoration-none text-muted">Menu</a> /
-        <span>{{product.name}}</span>
-    </div>
+
 </div>
 
 <div class="container-fluid px-4 py-5">
@@ -389,20 +385,145 @@
     </div>
 
     {{#if isAuthenticated}}
-    <div class="mt-5">
-        <h4 class="serif-font fw-bold mb-4">Bids History</h4>
+    
+    <section class="mt-5">
+        <div class="row g-4">
+            <!-- Bid Form -->
+            {{#if (eq product.seller_id authUser.user_id)}}
+            <div class="col-lg-6">
+                <div class="alert alert-info d-flex align-items-center" role="alert">
+                    <i class="bi bi-info-circle me-3" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <strong>You cannot place a bid on your own product.</strong> 
+                    </div>
+                </div>
+            </div>
+            {{else}}
 
-        <div class="table-responsive">
-            <table class="table bid-table align-middle">
-                <thead class="bg-light">
-                    <tr>
-                        <th style="width: 30%;">Bidder</th>
-                        <th style="width: 20%;">Bid amount</th>
-                        <th style="width: 25%;">Bid time</th>
+            <div class="col-lg-6">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Place Your Bid</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="/menu/place-bid" id="bidForm">
+                            <div class="mb-3">
+                                <label for="bidAmount" class="form-label">Bid Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="bidAmount" 
+                                           name="max_auto_bid" 
+                                           placeholder="Enter your bid amount">
 
-                        {{#if (eq authUser.user_id product.seller_id)}}
-                        <th style="width: 15%;">Bidder points</th>
-                        <th style="width: 10%;">Action</th>
+                                    <input type="hidden" name="product_id" value="{{product.product_id}}">
+                                    <input type="hidden" name="bidder_id" value="{{authUser.user_id}}">
+                                    <input type="hidden" id="minBid" value="{{product.start_price}}">
+                                    
+                                </div>
+                            </div>
+                            
+                            {{#if (eq product.current_price null)}}
+                                <div class="alert alert-info" role="alert">
+                                    <strong>Minimum bid:</strong> {{formatCurrency product.start_price}}<br>
+                                    <small class="text-muted">Bid step: {{formatCurrency product.bid_step}}</small>
+                                </div>
+                                
+                            {{else}}
+                                <div class="alert alert-info" role="alert">
+                                    <strong>Current highest bid:</strong> {{formatCurrency product.current_price}}<br>
+                                    <strong>Minimum next bid:</strong> {{formatCurrency suggestedPrice}}<br>
+                                    <small class="text-muted">Bid step: {{formatCurrency product.bid_step}}</small>
+                                    {{#if (eq authUser.user_id product.leader_id)}}
+                                        <br><span class="badge bg-success">You are currently leading!</span>
+                                    {{/if}}
+                                </div>
+                            {{/if}}
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary px-4" id="submitBidBtn">
+                                    <i class="bi bi-hammer"></i> Submit Bid
+                                </button>
+                                <button type="reset" class="btn btn-outline-secondary px-4">
+                                    Clear
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {{/if}}
+
+            <!-- Bidding History -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-list-ul"></i> Bidding History
+                        </h5>
+                    </div>
+                    <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                        {{#if bidder}}
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead>
+                                        <tr class="table-light">
+                                            <th>Time</th>
+                                            <th>Bidder</th>
+                                            <th class="text-end">Bid Amount</th>
+                                            {{#if (eq authUser.user_id product.seller_id)}}
+                                            <th class="text-center">Action</th>
+                                            {{/if}}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{#each bidder}}
+                                        <tr>
+                                            <td>{{formatDate this.created_at 'DD/MM/YYYY HH:mm:ss'}}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="badge bg-secondary text-white rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                                        {{#if this.full_name}}
+                                                            {{substr this.full_name 0 1}}
+                                                        {{else}}
+                                                            ?
+                                                        {{/if}}
+                                                    </div>
+                                                    <div>
+                                                        <span class="fw-semibold">
+                                                            {{#if this.full_name}}
+                                                                {{substr this.full_name 0 1}}***
+                                                            {{else}}
+                                                                Anonymous
+                                                            {{/if}}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-end">
+                                                <span class="badge {{#if @first}}bg-warning text-dark{{else}}bg-warning text-dark{{/if}}">{{formatCurrency this.bid_amount}}</span>
+                                            </td>
+                                            {{#if (eq ../authUser.user_id ../product.seller_id)}}
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-outline-danger reject-bidder-btn" 
+                                                        data-bidder-id="{{this.user_id}}"
+                                                        data-bidder-name="{{this.full_name}}"
+                                                        data-product-id="{{../product.product_id}}">
+                                                    <i class="bi bi-x-circle"></i> Reject
+                                                </button>
+                                            </td>
+                                            {{/if}}
+                                        </tr>
+                                        {{/each}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {{else}}
+                            <p class="text-muted text-center py-4">
+                                <i class="bi bi-inbox"></i><br>
+                                No bids yet. Be the first to bid!
+                            </p>
                         {{/if}}
                     </tr>
                 </thead>
@@ -655,6 +776,214 @@
             </div>
             {{/each}}
         </div>
+    </section>
+</main>
+
+<!-- SweetAlert2 Library -->
+{{#section 'js'}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.0/dist/sweetalert2.all.min.js"></script>
+
+<script>
+    // Bid form validation with SweetAlert
+    {{#if isAuthenticated}}
+        // Only attach bid form listener if form exists (user is not seller)
+        const bidForm = document.getElementById('bidForm');
+        if (bidForm) {
+            bidForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = this;
+                
+                const bidAmount = parseFloat(document.getElementById('bidAmount').value);
+                const minBid = parseFloat(document.getElementById('minBid').value);
+                const highestBid = {{#if product.current_price}}{{product.current_price}}{{else}}{{product.start_price}}{{/if}};
+                const maxBid = {{#if product.leader_max}}{{product.leader_max}}{{else}}0{{/if}};
+
+                const authUserId = {{authUser.user_id}};
+                const leaderId = {{#if product.leader_id}}{{product.leader_id}}{{else}}0{{/if}};
+                
+                // Basic client-side validation first
+                if (!bidAmount || isNaN(bidAmount)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Bid',
+                        text: 'Please enter a valid bid amount.',
+                        confirmButtonColor: '#dc3545',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+
+                if (bidAmount < minBid) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Bid Too Low',
+                        text: `Minimum bid is $${minBid}. Please enter a bid of at least $${minBid}.`,
+                        confirmButtonColor: '#dc3545',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+                
+                // Show loading state
+                Swal.fire({
+                    title: 'Processing your bid...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Send bid request to backend
+                fetch('/menu/place-bid', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams(new FormData(form))
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Successful bid placement
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Bid Placed Successfully!',
+                            text: 'Your bid has been submitted successfully.',
+                            confirmButtonColor: '#198754',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else if (response.status === 403) {
+                        // Handle different types of 403 errors
+                        return response.json().then(data => {
+                            if (data.errorCode === 'NO_RATING_HISTORY') {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Rating Required',
+                                    html: '<strong>This premium auction requires a rating history.</strong><br><br>To participate in this auction, you need to:<br>• Participate in other auctions first<br>• Receive ratings from sellers<br>• Build your reputation on the platform',
+                                    confirmButtonColor: '#ffc107',
+                                    confirmButtonText: 'Understood'
+                                });
+                            } else if (data.errorCode === 'INSUFFICIENT_RATING') {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Rating Too Low',
+                                    html: `<strong>This premium auction requires at least 80% positive rating.</strong><br><br>Your current rating: <span class="text-danger">${data.currentRating.toFixed(1)}%</span><br>Required rating: <span class="text-success">80%</span><br><br>Continue participating in auctions and providing excellent service to improve your rating!`,
+                                    confirmButtonColor: '#ffc107',
+                                    confirmButtonText: 'Understood'
+                                });
+                            } else {
+                                // Generic ban message
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Bidding Restricted',
+                                    text: data.message || 'You have been restricted from bidding on this item by the seller.',
+                                    confirmButtonColor: '#dc3545',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
+                        });
+                    } else {
+                        // Other error
+                        return response.text().then(text => {
+                            throw new Error(text || 'Failed to place bid');
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error placing bid:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || 'An error occurred while placing your bid. Please try again.',
+                        confirmButtonColor: '#dc3545',
+                        confirmButtonText: 'OK'
+                    });
+                });
+            });
+        }
+        
+        // Reject bidder functionality for seller - Always attach this
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('reject-bidder-btn') || e.target.closest('.reject-bidder-btn')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('Reject button clicked!'); // Debug log
+                
+                const btn = e.target.closest('.reject-bidder-btn');
+                const bidderId = btn.dataset.bidderId;
+                const bidderName = btn.dataset.bidderName;
+                const productId = btn.dataset.productId;
+                
+                console.log('Bidder ID:', bidderId, 'Product ID:', productId); // Debug log
+                
+                Swal.fire({
+                    title: 'Reject Bidder?',
+                    text: `Are you sure you want to reject ${bidderName ? bidderName.charAt(0) + '***' : 'this bidder'} from bidding on this item? This action cannot be undone.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, reject',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        console.log('Sending reject request...'); // Debug log
+                        
+                        // Send reject request
+                        fetch('/menu/reject-bidder', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({
+                                bidder_id: bidderId,
+                                product_id: productId
+                            })
+                        })
+                        .then(response => {
+                            console.log('Response status:', response.status); // Debug log
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('Response data:', data); // Debug log
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Bidder Rejected',
+                                    text: 'The bidder has been successfully rejected and notified via email.',
+                                    confirmButtonColor: '#198754'
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: data.message || 'Failed to reject bidder.',
+                                    confirmButtonColor: '#dc3545'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'An error occurred. Please try again.',
+                                confirmButtonColor: '#dc3545'
+                            });
+                        });
+                    }
+                });
+            }
+        });
+        
+    {{/if}}
+</script>
+
     </div>
 </div>
 

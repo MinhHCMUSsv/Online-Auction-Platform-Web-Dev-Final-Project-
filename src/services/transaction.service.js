@@ -1,5 +1,9 @@
 import db from '../utils/db.js';
 
+export function createTransaction(transaction) {
+    return db('transactions').insert(transaction);
+}
+
 export function getByProductId(productId) {
     return db('transaction').where('product_id', productId).first();
 }
