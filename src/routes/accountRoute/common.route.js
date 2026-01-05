@@ -48,10 +48,6 @@ router.get('/', async function (req, res) {
                 mostActiveProducts: mostActive,
                 endingSoonProducts: endingSoon
             });
-
-
-
-
         } 
     
     catch (err) {

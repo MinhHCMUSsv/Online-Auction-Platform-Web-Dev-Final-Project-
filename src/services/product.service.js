@@ -19,7 +19,7 @@ export function getByCategory(categoryId) {
 }
 
 export function findPage(limit, offset, sortBy = null) {
-    let query = db('product')
+    let query = db('product as p')
             .leftJoin('bid as b', 'p.product_id', 'b.product_id')
             .leftJoin('app_user as u', 'p.leader_id', 'u.user_id')
             .select('p.*', 'u.full_name as current_bidder_name')
@@ -114,8 +114,13 @@ export function add(product) {
 
 // Detail functions
 export function getProductById(product_id) {
-    return db('product')
-        .where('product_id', product_id).first();
+    return db('product as p')
+        .leftJoin('bid as b', 'p.product_id', 'b.product_id')
+        .select('p.*')
+        .count('b.bid_id as bid_count')
+        .where('p.product_id', product_id)
+        .groupBy('p.product_id')
+        .first();
 }
 
 export function getSellerById(seller_id) {
@@ -177,9 +182,13 @@ export async function getCommentsWithReplies(product_id) {
 }
 
 export function getRelatedProducts(category_id, limit) {
-    return db('product')
-        .where('category_id', category_id)
-        .select()
+    return db('product as p')
+        .leftJoin('bid as b', 'p.product_id', 'b.product_id')
+        .leftJoin('app_user as u', 'p.leader_id', 'u.user_id') 
+        .where('p.category_id', category_id)
+        .select('p.*', 'u.full_name as leader_name')
+        .count('b.bid_id as bid_count')
+        .groupBy('p.product_id', 'u.full_name')
         .limit(limit);
 }
 
@@ -195,12 +204,12 @@ export function findWonItems(userId) {
 }
 
 export function search(keyword, sortBy = null) {
-    let query = db('product')
+    let query = db('product as p')
         .leftJoin('bid as b', 'p.product_id', 'b.product_id')
         .leftJoin('app_user as u', 'p.leader_id', 'u.user_id')
         .select('p.*', 'u.full_name as current_bidder_name')
         .count('b.product_id as bid_count')
-        .whereRaw(`fts @@ to_tsquery(remove_accents('${keyword}'))`);
+        .whereRaw(`fts @@ to_tsquery(remove_accents('${keyword}'))`)
         .groupBy('p.product_id', 'u.full_name');
   
     if (sortBy) {
@@ -246,7 +255,6 @@ export function findPageByParentID(parent_id, limit, offset, sortBy = null) {
         .groupBy('p.product_id', 'u.full_name')
         .limit(limit)
         .offset(offset)
-        .select('p.*');
     
     if (sortBy) {
         switch (sortBy) {
@@ -313,6 +321,8 @@ export function updateAuctionStatus(product_id, status) {
     return db('product')
         .where('product_id', product_id)
         .update({ status });
+}
+
 export function addComment(entity) {
     return db('product_comment').insert(entity);
 }

@@ -6,8 +6,9 @@ export function findActiveBidsByUserId(userId) {
         .leftJoin('bid as all_bids', 'p.product_id', 'all_bids.product_id') // 2. Join để đếm tổng số bid
         .leftJoin('app_user as u', 'p.leader_id', 'u.user_id') // 3. Join để lấy tên người giữ giá
         .where('b.bidder_id', userId)
+        .andWhere('p.status', 'active')
         .select('p.*', 'u.full_name as current_bidder_name')
-        .count('all_bids.bid_id as bid_count')
+        .countDistinct('all_bids.bid_id as bid_count')
         .groupBy('p.product_id', 'u.full_name');
 }
 
