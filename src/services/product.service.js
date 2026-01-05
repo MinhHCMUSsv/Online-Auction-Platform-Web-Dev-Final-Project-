@@ -197,10 +197,16 @@ export function placeBid(bidData) {
 }
 
 export function findWonItems(userId) {
-    return db('product')
-        .where('status', 'end')
-        .andWhere('leader_id', userId)
-        .orderBy('end_time', 'desc');
+    return db('product as p')
+        .leftJoin('transaction as t', 'p.product_id', 't.product_id') 
+        .where('p.status', 'ended')
+        .andWhere('p.leader_id', userId)
+        .select(
+            'p.*', 
+            't.status as transaction_status',
+            't.transaction_id'
+        )
+        .orderBy('p.end_time', 'desc');
 }
 
 export function search(keyword, sortBy = null) {

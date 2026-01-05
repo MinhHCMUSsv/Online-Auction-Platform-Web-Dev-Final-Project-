@@ -45,3 +45,15 @@ export async function check(userId, productId) {
         .first();
     return row !== undefined;
 }
+
+export function search(userId, keyword) {
+    return db('wishlist as w')
+        .join('product as p', 'w.product_id', 'p.product_id')
+        .leftJoin('bid as b', 'p.product_id', 'b.product_id')
+        .leftJoin('app_user as u', 'p.leader_id', 'u.user_id')
+        .where('w.user_id', userId)
+        .whereRaw(`p.fts @@ to_tsquery(remove_accents('${keyword}'))`) 
+        .select('p.*', 'u.full_name as current_bidder_name')
+        .count('b.bid_id as bid_count')
+        .groupBy('p.product_id', 'u.full_name');
+}
