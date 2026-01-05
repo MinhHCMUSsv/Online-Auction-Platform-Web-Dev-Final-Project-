@@ -1,114 +1,127 @@
 import express from 'express';
 import fs from 'fs-extra';
 import path from 'path';
+import multer from 'multer';
 import * as transactionService from '../services/transaction.service.js';
 import * as productService from '../services/product.service.js';
 
 const router = express.Router();
 
-// Hàm hỗ trợ kiểm tra file tồn tại
-const checkFileExists = async (filePath) => {
-    try {
-        await fs.access(filePath);
-        return true;
-    } catch {
-        return false;
+// ==========================================
+// 1. CẤU HÌNH MULTER (Lưu ảnh tạm)
+// ==========================================
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = './src/static/uploads';
+        fs.ensureDirSync(dir);
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        cb(null, 'temp-' + Date.now() + '-' + file.originalname);
     }
-};
+});
+
+const upload = multer({ storage: storage });
+
+// API để Uppy gọi upload ảnh tạm
+router.post('/upload/temp', upload.single('imgs'), function (req, res) {
+    res.json({ filename: req.file.filename });
+});
 
 // ==========================================
-// GET: HIỂN THỊ WIZARD
+// 2. GET: HIỂN THỊ TRANG TRANSACTION
 // ==========================================
 router.get('/', async function (req, res) {
-
     const productId = req.query.product_id;
     const user = req.session.authUser;
 
-    // 1. Lấy thông tin
-    const product = await productService.getProductById(129);
+    if (!productId) return res.redirect('/');
+
+    // 1. Lấy thông tin sản phẩm để hiển thị
+    const product = await productService.getProductById(productId);
     if (!product) return res.redirect('/');
 
-    // 2. Tìm Transaction (Tạo mới nếu User là người thắng và chưa có trans)
-    let transaction = await transactionService.getByProductId(129);
-    
+    // 2. Tìm Transaction ĐÃ CÓ SẴN (Theo yêu cầu của bạn)
+    const transaction = await transactionService.getByProductId(productId);
+
+    // Nếu không tìm thấy transaction thì báo lỗi (Vì hệ thống phải tự tạo rồi)
     if (!transaction) {
-        if (product.status === 'end' && product.leader_id === user.user_id) {
-            const newTrans = {
-                product_id: productId,
-                buyer_id: user.user_id,
-                seller_id: product.seller_id,
-                final_price: product.current_price
-                // Các cờ mặc định là false
-            };
-            //const ids = await transactionService.add(newTrans);
-            // Fix cho knex trả về mảng object hoặc id
-            const newId = ids[0].transaction_id || ids[0];
-            //transaction = await transactionService.getById(newId);
-        } else {
-            return res.render('vwError/404', { layout: false, message: 'Transaction not found.' });
-        }
+        return res.render('vwError/404', {
+            layout: false,
+            message: 'Transaction not found. Please contact admin if you won this item.'
+        });
     }
 
-    // 3. Xác định Role
+    // 3. Xác định Role (Người mua hay Người bán)
     let role = '';
     if (user.user_id === transaction.seller_id) role = 'seller';
     else if (user.user_id === transaction.buyer_id) role = 'buyer';
-    else return res.redirect('/');
+    else return res.render('vwError/403', { layout: false }); // Không liên quan
 
-    // 4. Xác định Step dựa trên FILE ẢNH và DB Flags
-    // Đường dẫn kiểm tra file
-    const transDir = `./src/static/transactions/${transaction.transaction_id}`;
-    const hasPaymentImg = await checkFileExists(`${transDir}/payment.jpg`);
-    const hasShippingImg = await checkFileExists(`${transDir}/shipping.jpg`);
-
+    // 4. State Machine: Xác định Step hiện tại dựa trên dữ liệu DB
     let currentStep = 1;
-
-    // Logic: 
-    // Nếu chưa có ảnh payment -> Step 1
-    // Nếu có ảnh payment -> Step 2 (Chờ Seller confirm tiền & ship)
-    // Nếu Seller đã confirm ship (shipping_confirmed=true) -> Step 3
-    // Nếu Buyer đã confirm nhận (buyer_confirmed=true) -> Step 4
-
-    if (hasPaymentImg) {
-        currentStep = 2;
+    if (!transaction.shipping_address) {
+        currentStep = 1; // Chưa có địa chỉ -> Step 1
     }
-    if (transaction.shipping_confirmed) {
-        // Lưu ý: Có thể check thêm hasShippingImg cho chắc chắn
-        currentStep = 3;
+    else if (!transaction.payment_confirmed) {
+        currentStep = 2; // Có địa chỉ, chưa confirm tiền -> Step 2
     }
-    if (transaction.buyer_confirmed) {
-        currentStep = 4;
+    else if (!transaction.shipping_confirmed) {
+        currentStep = 3; // Tiền xong, chưa ship -> Step 3
+    }
+    else if (!transaction.buyer_confirmed) {
+        currentStep = 4; // Ship xong, chưa nhận -> Step 4
+    }
+    else {
+        currentStep = 5; // Hoàn tất
     }
 
-    // 5. Render
+    // 5. Kiểm tra file ảnh tồn tại để hiển thị lại cho user xem
+    const transDir = `./src/static/transactions/${transaction.transaction_id}`;
+    const hasPaymentImg = await fs.pathExists(`${transDir}/payment.jpg`);
+    const hasShippingImg = await fs.pathExists(`${transDir}/shipping.jpg`);
+
     res.render('transaction', {
         layout: 'transaction-layout',
-        title: 'Checkout',
+        title: 'Transaction Status',
         product: product,
         orderData: transaction,
         orderId: transaction.transaction_id,
         role: role,
         currentStep: currentStep,
-        authUser: user, // Để lấy address hiển thị read-only ở Step 1
-        
-        // Truyền thêm biến để View biết đã có ảnh chưa (để hiện ảnh preview)
-        hasPaymentImg: hasPaymentImg,
-        hasShippingImg: hasShippingImg
+        authUser: user,
+        hasPaymentImg,
+        hasShippingImg
     });
 });
 
 // ==========================================
-// POST: STEP 1 (BUYER UPLOAD ẢNH THANH TOÁN)
+// 3. POST: STEP 1 (Buyer Confirm Address)
 // ==========================================
 router.post('/step1', async function (req, res) {
-    const { order_id, payment_image } = req.body;
-    
-    if (!payment_image) {
-        return res.status(400).send('Please upload payment proof.');
-    }
+    const { order_id, address } = req.body;
+    if (!address) return res.status(400).send('Address is required');
 
-    // Di chuyển file từ Temp -> Transaction folder
-    // Tên file cố định là 'payment.jpg'
+    // Security check
+    const trans = await transactionService.getById(order_id);
+    if (req.session.authUser.user_id !== trans.buyer_id) return res.status(403).send('Unauthorized');
+
+    await transactionService.updateAddress(order_id, address);
+    res.redirect(`/transaction?product_id=${trans.product_id}`);
+});
+
+// ==========================================
+// 4. POST: STEP 2 (Buyer Upload Payment)
+// ==========================================
+router.post('/step2', async function (req, res) {
+    const { order_id, payment_image } = req.body; 
+    
+    if (!payment_image) return res.status(400).send('Please upload payment proof.');
+
+    const trans = await transactionService.getById(order_id);
+    if (req.session.authUser.user_id !== trans.buyer_id) return res.status(403).send('Unauthorized');
+
+    // Move file: Temp -> /static/transactions/{id}/payment.jpg
     const tempPath = path.resolve(`./src/static/uploads/${payment_image}`);
     const targetDir = path.resolve(`./src/static/transactions/${order_id}`);
     const targetPath = path.join(targetDir, 'payment.jpg'); 
@@ -118,31 +131,31 @@ router.post('/step1', async function (req, res) {
         if (await fs.pathExists(tempPath)) {
             await fs.move(tempPath, targetPath, { overwrite: true });
         }
-
-        // Không cần update DB vì bảng transaction không có cột nào thay đổi ở bước này
-        // Sự tồn tại của file 'payment.jpg' đánh dấu việc hoàn thành Step 1.
         
-        // Reload trang
-        //const transaction = await transactionService.getById(order_id);
-        res.redirect(`/order/checkout?product_id=${transaction.product_id}`);
+        await transactionService.updatePayment(order_id);
+        res.redirect(`/transaction?product_id=${trans.product_id}`);
 
     } catch (err) {
         console.error(err);
-        res.status(500).send('Error processing step 1.');
+        res.status(500).send('Error processing payment proof.');
     }
 });
 
 // ==========================================
-// POST: STEP 2 (SELLER CONFIRM TIỀN & SHIP)
+// 5. POST: STEP 3 (Seller Upload Shipping)
 // ==========================================
-router.post('/process/step2', async function (req, res) {
+router.post('/step3', async function (req, res) {
     const { order_id, shipping_image } = req.body;
 
-    if (!shipping_image) {
-        return res.status(400).send('Please upload shipping invoice.');
-    }
+    if (!shipping_image) return res.status(400).send('Please upload shipping proof.');
 
-    // Di chuyển file -> 'shipping.jpg'
+    const trans = await transactionService.getById(order_id);
+    if (req.session.authUser.user_id !== trans.seller_id) return res.status(403).send('Unauthorized');
+
+    // CHECK LOGIC: Phải thanh toán rồi mới được ship
+    if (!trans.payment_confirmed) return res.status(400).send('Buyer has not confirmed payment yet.');
+
+    // Move file: Temp -> /static/transactions/{id}/shipping.jpg
     const tempPath = path.resolve(`./src/static/uploads/${shipping_image}`);
     const targetDir = path.resolve(`./src/static/transactions/${order_id}`);
     const targetPath = path.join(targetDir, 'shipping.jpg');
@@ -153,17 +166,29 @@ router.post('/process/step2', async function (req, res) {
             await fs.move(tempPath, targetPath, { overwrite: true });
         }
 
-        // Cập nhật DB: Xác nhận tiền + Xác nhận ship
-        //await transactionService.updateStep2(order_id);
-
-        // Reload trang
-        //const transaction = await transactionService.getById(order_id);
-        res.redirect(`/order/checkout?product_id=${transaction.product_id}`);
+        await transactionService.updateShipping(order_id);
+        res.redirect(`/transaction?product_id=${trans.product_id}`);
 
     } catch (err) {
         console.error(err);
-        res.status(500).send('Error processing step 2.');
+        res.status(500).send('Error processing shipping proof.');
     }
+});
+
+// ==========================================
+// 6. POST: STEP 4 (Buyer Confirm Receipt)
+// ==========================================
+router.post('/step4', async function (req, res) {
+    const { order_id } = req.body;
+
+    const trans = await transactionService.getById(order_id);
+    if (req.session.authUser.user_id !== trans.buyer_id) return res.status(403).send('Unauthorized');
+
+    // CHECK LOGIC: Phải ship rồi mới nhận
+    if (!trans.shipping_confirmed) return res.status(400).send('Seller has not confirmed shipping yet.');
+
+    await transactionService.updateComplete(order_id);
+    res.redirect(`/transaction?product_id=${trans.product_id}`);
 });
 
 export default router;

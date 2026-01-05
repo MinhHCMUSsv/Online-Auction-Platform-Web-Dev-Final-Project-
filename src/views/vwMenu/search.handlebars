@@ -167,13 +167,16 @@
                             {{/if}}
                         </span>
                         <br>
-                        <span>Buy it now: <span class="fw-bold text-primary">{{#if
-                                this.buy_now_price}}{{formatCurrency this.buy_now_price}}
-                                {{else}}
-                                None {{/if}}</span></span><br>
+                        <span>Buy it now: <span class="fw-bold text-primary">
+                            {{#if this.buy_now_price}}
+                            {{formatCurrency this.buy_now_price}}
+                            {{else}}
+                            None 
+                            {{/if}}
+                        </span>
+                        </span><br>
                         <span>Listed: {{formatDate this.created_at "DD/MM/YYYY HH:mm"}}</span><br> <span>Time left:
-                            {{formatDate
-                            this.end_time "DD/MM/YYYY HH:mm"}}</span><br>
+                            {{formatDate this.end_time "DD/MM/YYYY HH:mm"}}</span><br>
                         <span>Bids: {{this.bid_count}}</span>
                     </p>
 

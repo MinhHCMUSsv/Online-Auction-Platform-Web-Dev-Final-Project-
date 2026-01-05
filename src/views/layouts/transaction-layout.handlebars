@@ -13,38 +13,54 @@
 
   <style>
     :root {
-      --color-purple: #6f42c1;
-      --color-purple-light: #e0cffc;
-      --color-purple-bg: #f3f0ff;
+      /* MÀU CAM CHỦ ĐẠO */
+      --color-primary: #FF8C00;
+      --color-primary-hover: #e07b00;
+      --color-primary-light: #ffe5b4;
+      --color-primary-bg: #fffbf5; /* Nền kem nhạt đặc trưng cho trang Checkout */
     }
 
     body {
-      background-color: var(--color-purple-bg);
+      background-color: var(--color-primary-bg);
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
-    /* Header tối giản */
-    .checkout-header {
+    /* --- Checkout Navbar (Đồng bộ Main Layout) --- */
+    .checkout-navbar {
       background: white;
-      padding: 15px 0;
-      box-shadow: 0 2px 10px rgba(111, 66, 193, 0.1);
+      box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); /* shadow-sm */
+      padding: 0.8rem 0;
     }
 
-    .brand-logo {
-      font-size: 1.8rem;
+    .brand-text {
       text-decoration: none;
-      font-weight: 800;
+      font-size: 2rem; /* Kích thước logo lớn hơn chút cho trang checkout */
+      line-height: 1;
     }
 
-    /* Hiệu ứng bồng bềnh cho Card chính */
+    .checkout-divider {
+      border-left: 2px solid #dee2e6;
+      height: 30px;
+      margin: 0 15px;
+    }
+
+    .checkout-title {
+      font-size: 1.2rem;
+      color: #495057;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+    }
+
+    /* --- Wizard Card Effect --- */
     .wizard-card {
       background: white;
       border-radius: 20px;
       border: none;
-      box-shadow: 0 10px 30px rgba(111, 66, 193, 0.15);
+      box-shadow: 0 10px 30px rgba(255, 140, 0, 0.15); /* Bóng màu cam nhạt */
       padding: 40px;
       margin-top: 30px;
       margin-bottom: 50px;
@@ -57,7 +73,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Timeline / Stepper Styles */
+    /* --- Stepper Styles --- */
     .stepper-wrapper {
       margin-top: auto;
       display: flex;
@@ -104,21 +120,21 @@
 
     /* Active Step */
     .stepper-item.active .step-counter {
-      border-color: var(--color-purple);
-      background-color: var(--color-purple);
+      border-color: var(--color-primary);
+      background-color: var(--color-primary);
       color: #fff;
-      box-shadow: 0 0 0 5px var(--color-purple-light);
+      box-shadow: 0 0 0 5px var(--color-primary-light);
     }
 
     .stepper-item.active .step-name {
-      color: var(--color-purple);
+      color: var(--color-primary);
       font-weight: 700;
     }
 
     /* Completed Step */
     .stepper-item.completed .step-counter {
-      border-color: var(--color-purple);
-      background-color: var(--color-purple);
+      border-color: var(--color-primary);
+      background-color: var(--color-primary);
       color: #fff;
     }
 
@@ -127,8 +143,8 @@
       position: absolute;
       width: 100%;
       height: 4px;
-      background-color: var(--color-purple);
-      top: 20px; /* Half of counter height */
+      background-color: var(--color-primary);
+      top: 20px;
       left: 50%;
       z-index: -1;
     }
@@ -144,8 +160,8 @@
     }
 
     /* Buttons */
-    .btn-purple {
-      background-color: var(--color-purple);
+    .btn-orange {
+      background-color: var(--color-primary);
       color: white;
       border-radius: 50px;
       padding: 12px 30px;
@@ -154,10 +170,10 @@
       transition: all 0.3s;
     }
 
-    .btn-purple:hover {
-      background-color: #5a32a3;
+    .btn-orange:hover {
+      background-color: var(--color-primary-hover);
       transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(111, 66, 193, 0.3);
+      box-shadow: 0 5px 15px rgba(255, 140, 0, 0.3);
       color: white;
     }
 
@@ -165,7 +181,7 @@
     .waiting-pulse {
       width: 80px;
       height: 80px;
-      background-color: var(--color-purple-light);
+      background-color: var(--color-primary-light);
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -175,9 +191,9 @@
     }
     
     @keyframes pulse {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(111, 66, 193, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(111, 66, 193, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(111, 66, 193, 0); }
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(255, 140, 0, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 140, 0, 0); }
     }
 
   </style>
@@ -186,16 +202,21 @@
 
 <body>
 
-  <header class="checkout-header">
-    <div class="container">
-      <div class="d-flex justify-content-between align-items-center">
-        <a class="brand-logo" href="/">
-          <span style="color: #FF8C00;">MN</span><span style="color: var(--color-purple);">Go</span> <span style="font-size: 1rem; color: #6c757d; font-weight: normal;">| Checkout</span>
-        </a>
-        <a href="/profile" class="btn btn-outline-secondary rounded-pill btn-sm">Exit</a>
+  <nav class="checkout-navbar">
+    <div class="container d-flex align-items-center">
+      
+      <a class="brand-text" href="/">
+        <span style="color: #FF8C00; font-weight: 800;">MN</span><span style="color: #212529; font-weight: 800;">Go</span>
+      </a>
+
+      <div class="checkout-divider"></div>
+      
+      <div class="checkout-title">
+        <i class="bi bi-shield-lock-fill text-success me-2 fs-4"></i> Secure Checkout
       </div>
-    </div>
-  </header>
+
+      </div>
+  </nav>
 
   <div class="container">
     {{{body}}}
