@@ -95,6 +95,24 @@ app.engine('handlebars', engine({
                 "%": lvalue % rvalue
             }[operator];
         },
+
+        // Mã hóa (mask) tên người dùng, ví dụ: "Nguyen Van A" -> "N****n V*n A"
+        maskName: function(name) {
+            if (!name || typeof name !== 'string') return '';
+            
+            const words = name.split(' ');
+            const maskedWords = words.map(word => {
+                if (word.length <= 2) {
+                    return word[0] + '*';
+                } else if (word.length <= 4) {
+                    return word[0] + '*'.repeat(word.length - 2) + word[word.length - 1];
+                } else {
+                    return word[0] + '*'.repeat(word.length - 2) + word[word.length - 1];
+                }
+            });
+            
+            return maskedWords.join(' ');
+        },
     }
      
 }));

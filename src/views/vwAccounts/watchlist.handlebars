@@ -43,6 +43,36 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
 
+  /* Style cho sản phẩm mới */
+  .product-card.product-new {
+    border: 2px solid #FF8C00 !important;
+    box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
+  }
+
+  .product-card.product-new:hover {
+    box-shadow: 0 4px 20px rgba(255, 140, 0, 0.4);
+  }
+
+  .badge-new {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #FF8C00;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    z-index: 10;
+    animation: pulse-new 2s infinite;
+  }
+
+  @keyframes pulse-new {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
   /* Watch list icon*/
   .text-gold {
     color: #ffc107 !important;
@@ -78,7 +108,10 @@
 <div class="row g-3">
   {{#each watchlist}}
   <div class="col-sm-6 col-md-4 watchlist-item">
-    <div class="product-card h-100 border rounded bg-white position-relative">
+    <div class="product-card h-100 border rounded bg-white position-relative {{#if isNew}}product-new{{/if}}">
+      {{#if isNew}}
+      <span class="badge-new"><i class="bi bi-lightning-fill me-1"></i>New</span>
+      {{/if}}
 
       <button class="wishlist-icon border-0 position-absolute top-0 end-0 m-2 bg-transparent active"
         data-id="{{this.product_id}}">
@@ -100,7 +133,7 @@
         </div>
 
         <p class="mb-1 small">
-          <span>{{#if this.current_bidder_name}}Highest Bidder: {{this.current_bidder_name}}{{else}}No
+          <span>{{#if this.current_bidder_name}}Highest Bidder: {{maskName this.current_bidder_name}}{{else}}No
             Bids{{/if}}</span><br>
         </p>
 

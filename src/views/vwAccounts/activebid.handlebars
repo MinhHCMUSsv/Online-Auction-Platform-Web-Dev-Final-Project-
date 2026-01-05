@@ -9,6 +9,36 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
 
+  /* Style cho sản phẩm mới */
+  .product-card.product-new {
+    border: 2px solid #FF8C00 !important;
+    box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
+  }
+
+  .product-card.product-new:hover {
+    box-shadow: 0 4px 20px rgba(255, 140, 0, 0.4);
+  }
+
+  .badge-new {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #FF8C00;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    z-index: 10;
+    animation: pulse-new 2s infinite;
+  }
+
+  @keyframes pulse-new {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
   .product-image-placeholder {
     height: 220px;
     overflow: hidden;
@@ -70,7 +100,11 @@
   <div class="col-sm-6 col-md-4">
 
     <div
-      class="product-card h-100 border rounded position-relative {{#if (eq this.leader_id ../authUser.user_id)}}card-winning{{else}}bg-white{{/if}}">
+      class="product-card h-100 border rounded position-relative {{#if (eq this.leader_id ../authUser.user_id)}}card-winning{{else}}bg-white{{/if}} {{#if isNew}}{{#unless (eq this.leader_id ../authUser.user_id)}}product-new{{/unless}}{{/if}}">
+
+      {{#if isNew}}
+      <span class="badge-new"><i class="bi bi-lightning-fill me-1"></i>New</span>
+      {{/if}}
 
       <span class="status-badge">Your Bid</span>
 
@@ -94,7 +128,7 @@
           {{#if (eq this.leader_id ../authUser.user_id)}}
           <span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> You are leading!</span>
           {{else}}
-          <span class="text-secondary">Highest Bidder: {{this.current_bidder_name}}</span>
+          <span class="text-secondary">Highest Bidder: {{maskName this.current_bidder_name}}</span>
           {{/if}}
         </p>
 

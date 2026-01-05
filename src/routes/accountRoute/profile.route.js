@@ -93,7 +93,9 @@ router.get('/watchlist', async function (req, res) {
         });
     }
 
-    const watchlist = await watchlistService.findByUserId(user.user_id, limit, offset);
+    let watchlist = await watchlistService.findByUserId(user.user_id, limit, offset);
+    watchlist = await productService.mapProductsWithNewFlag(watchlist);
+    
     res.render('vwAccounts/watchlist', {
         layout: 'account-layout',
         title: 'My Watchlist',
@@ -108,7 +110,8 @@ router.get('/watchlist', async function (req, res) {
 
 router.get('/active', async function (req, res) {
     const user = req.session.authUser;
-    const list = await bidService.findActiveBidsByUserId(user.user_id);
+    let list = await bidService.findActiveBidsByUserId(user.user_id);
+    list = await productService.mapProductsWithNewFlag(list);
 
     res.render('vwAccounts/activebid', {
         layout: 'account-layout',
@@ -161,6 +164,39 @@ router.post('/upgrade', async function (req, res) {
     await upgradeService.addUpgrade(entity);
 
     res.redirect('/profile');
+});
+
+router.get('/my-ratings', async function (req, res) {
+    const user = req.session.authUser;
+    const ratings = await ratingService.getAllInfoRatings(user.user_id);
+
+    // Tính toán số lượng positive và negative
+    let positiveCount = 0;
+    let negativeCount = 0;
+
+    ratings.forEach(r => {
+        if (r.rate === 1) {
+            positiveCount++;
+        } else {
+            negativeCount++;
+        }
+    });
+
+    const totalRatings = ratings.length;
+    const positivePercentage = totalRatings > 0 
+        ? Math.round((positiveCount / totalRatings) * 100) 
+        : 0;
+
+    res.render('vwAccounts/my-ratings', {
+        layout: 'account-layout',
+        title: 'My Ratings',
+        activeNav: 'MyRatings',
+        ratings: ratings,
+        totalRatings: totalRatings,
+        positiveCount: positiveCount,
+        negativeCount: negativeCount,
+        positivePercentage: positivePercentage
+    });
 });
 
 router.get('/rating', async function (req, res) {

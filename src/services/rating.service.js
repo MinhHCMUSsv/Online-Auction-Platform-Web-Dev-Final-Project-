@@ -45,3 +45,14 @@ export function getAverageRating(userId) {
         .avg('star_rating as avg_rating')
         .first();
 }
+
+export function getAllInfoRatings(userId) {
+    return db('rating as r')
+        .join('app_user as rater', 'r.rater_id', 'rater.user_id')
+        .where('r.ratee_id', userId)
+        .select(
+            'r.*',
+            'rater.full_name'
+        )
+        .orderBy('r.created_at', 'desc');
+}
