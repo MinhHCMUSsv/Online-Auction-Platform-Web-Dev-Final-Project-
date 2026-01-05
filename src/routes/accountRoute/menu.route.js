@@ -36,6 +36,7 @@ router.get('/', async function (req, res) {
     }
 
     let list = await productService.findPage(limit, offset, sortBy);
+    list = await productService.mapProductsWithNewFlag(list);
 
     if (req.session.isAuthenticated) {
         const userId = req.session.authUser.user_id;
@@ -91,6 +92,7 @@ router.get('/detail', async function (req, res) {
 
     const limit = 5;
     let related_products = await productService.getRelatedProducts(product.category_id, limit);
+    related_products = await productService.mapProductsWithNewFlag(related_products);
 
     let is_liked = false;
     if (req.session.isAuthenticated) {
@@ -209,11 +211,15 @@ router.post('/place-bid', async function (req, res) {
                 
             else 
             {
-                if (inputMaxAutoBid <= product.leader_max) 
+                if (inputMaxAutoBid < product.leader_max) 
                 {
                     finalBidAmount = inputMaxAutoBid; // TH1: Người B đặt giá thấp hơn hoặc bằng người đang thắng
                     isChange = false;   
                 }
+
+                else if (inputMaxAutoBid === product.leader_max)
+                    finalBidAmount = inputMaxAutoBid;
+
                 else {
                     finalBidAmount = Math.min(inputMaxAutoBid, +product.leader_max + step); // TH2: Người B đặt giá cao hơn người đang thắng
                     sendNotification = true;
@@ -449,7 +455,8 @@ router.get('/search', async function (req, res) {
 
     const keywords = query.replace(/ /g, '&');
 
-    const products = await productService.search(keywords, sortBy);
+    let products = await productService.search(keywords, sortBy);
+    products = await productService.mapProductsWithNewFlag(products);
 
     res.render('vwMenu/search', {
         products: products,
@@ -583,6 +590,7 @@ router.get('/:slug', async function (req, res) {
     }
 
     let list = await productService.findPageByParentID(cat_id, limit, offset, sortBy);
+    list = await productService.mapProductsWithNewFlag(list);
     console.log(list);
 
     if (req.session.isAuthenticated) {
@@ -652,6 +660,7 @@ router.get('/:parentSlug/:childSlug', async function (req, res) {
     }
 
     let list = await productService.findPageByCatID(childCategoryId, limit, offset, sortBy);
+    list = await productService.mapProductsWithNewFlag(list);
 
     if (req.session.isAuthenticated) {
         const user_id = req.session.authUser.user_id;

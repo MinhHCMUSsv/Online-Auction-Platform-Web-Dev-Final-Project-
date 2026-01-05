@@ -5,6 +5,8 @@ import * as bidService from '../../services/bid.service.js';
 import * as productService from '../../services/product.service.js';
 import * as upgradeService from '../../services/upgrade.service.js';
 import * as userService from '../../services/user.service.js';
+import * as ratingService from '../../services/rating.service.js';
+import * as transactionService from '../../services/transaction.service.js';
 
 const router = express.Router();
 
@@ -99,7 +101,9 @@ router.get('/watchlist', async function (req, res) {
         });
     }
 
-    const watchlist = await watchlistService.findByUserId(user.user_id, limit, offset);
+    let watchlist = await watchlistService.findByUserId(user.user_id, limit, offset);
+    watchlist = await productService.mapProductsWithNewFlag(watchlist);
+    
     res.render('vwAccounts/watchlist', {
         layout: 'account-layout',
         title: 'My Watchlist',
@@ -136,7 +140,8 @@ router.get('/watchlist/search', async function (req, res) {
 
 router.get('/active', async function (req, res) {
     const user = req.session.authUser;
-    const list = await bidService.findActiveBidsByUserId(user.user_id);
+    let list = await bidService.findActiveBidsByUserId(user.user_id);
+    list = await productService.mapProductsWithNewFlag(list);
 
     res.render('vwAccounts/activebid', {
         layout: 'account-layout',
@@ -205,5 +210,119 @@ router.post('/upgrade', async function (req, res) {
 
     res.redirect('/profile');
 });
+
+router.get('/my-ratings', async function (req, res) {
+    const user = req.session.authUser;
+    const ratings = await ratingService.getAllInfoRatings(user.user_id);
+
+    // Tính toán số lượng positive và negative
+    let positiveCount = 0;
+    let negativeCount = 0;
+
+    ratings.forEach(r => {
+        if (r.rate === 1) {
+            positiveCount++;
+        } else {
+            negativeCount++;
+        }
+    });
+
+    const totalRatings = ratings.length;
+    const positivePercentage = totalRatings > 0 
+        ? Math.round((positiveCount / totalRatings) * 100) 
+        : 0;
+
+    res.render('vwAccounts/my-ratings', {
+        layout: 'account-layout',
+        title: 'My Ratings',
+        activeNav: 'MyRatings',
+        ratings: ratings,
+        totalRatings: totalRatings,
+        positiveCount: positiveCount,
+        negativeCount: negativeCount,
+        positivePercentage: positivePercentage
+    });
+});
+
+router.get('/rating', async function (req, res) {
+    const product_id = req.query.product_id;
+    const user = req.session.authUser;
+
+    if (!user) {
+        return res.redirect('/signin');
+    }
+
+    const transaction = await transactionService.getAllInfoTransaction(product_id);
+    if (!transaction) {
+        return res.status(400).render('vwError/403', { 
+            message: 'No transaction found for this product.' 
+        });
+    }
+
+    // Kiểm tra xem user đã đánh giá chưa
+    const existingRating = await ratingService.checkExistingRating(
+        transaction.transaction_id, 
+        user.user_id
+    );
+
+    // role = 0: bidder đánh giá seller
+    // role = 1: seller đánh giá bidder
+    const role = user.role;
+
+    res.render('vwAccounts/rating', { 
+        transaction: transaction,
+        role: role,
+        alreadyRated: !!existingRating,
+        layout: 'account-layout',
+        activeNav: 'Rating'
+    });
+});
+
+router.post('/rating', async function (req, res) {
+    const user = req.session.authUser;
+
+    if (!user) {
+        return res.redirect('/signin');
+    }
+
+    const rating = {
+        transaction_id: req.body.transaction_id,
+        rater_id: req.body.rater_id,
+        ratee_id: req.body.ratee_id,
+        comment: req.body.comment,
+        rate: +req.body.is_positive
+    };
+
+    const ratee = await userService.getUserById(rating.ratee_id);
+    const updateRating = {
+        points: ratee.points + 1,
+        positive_point: ratee.positive_point + Number(req.body.is_positive)
+    }
+
+    await userService.updateUser(rating.ratee_id, updateRating);
+
+    let URL = null;
+    if (user.role === 0)
+        URL = `/profile/won`;
+    else
+        URL = `/seller/finished-auctions`;
+
+    try {
+        await ratingService.addRating(rating);
+        
+        // Cập nhật điểm cho người được đánh giá
+        if (rating.is_positive) {
+            await ratingService.updateUserPoints(rating.ratee_id, 1);
+        } else {
+            await ratingService.updateUserPoints(rating.ratee_id, -1);
+        }
+
+        res.redirect(`${URL}?success=Rating submitted successfully!`);
+    } catch (error) {
+        console.error('Rating error:', error);
+        res.redirect(`/profile/rating?product_id=${req.body.product_id}&error=Failed to submit rating`);
+    }
+});
+
 
 export default router;

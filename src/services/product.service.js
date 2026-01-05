@@ -1,4 +1,37 @@
 import db from '../utils/db.js';
+import * as settingService from './setting.service.js';
+
+/**
+ * Map products với thuộc tính isNew dựa trên new_product_highlight_minutes
+ * @param {Array|Object} products - Mảng sản phẩm hoặc 1 sản phẩm
+ * @returns {Array|Object} - Sản phẩm đã được thêm thuộc tính isNew
+ */
+export async function mapProductsWithNewFlag(products) {
+    if (!products) return products;
+    
+    const settings = await settingService.getSettings();
+    const highlightMinutes = settings?.new_product_highlight_minutes || 0;
+    
+    const now = new Date();
+    
+    const mapSingleProduct = (product) => {
+        if (!product || !product.created_at) return product;
+        
+        const createdAt = new Date(product.created_at);
+        const diffInMinutes = (now - createdAt) / (1000 * 60);
+        
+        return {
+            ...product,
+            isNew: diffInMinutes <= highlightMinutes
+        };
+    };
+    
+    if (Array.isArray(products)) {
+        return products.map(mapSingleProduct);
+    }
+    
+    return mapSingleProduct(products);
+}
 
 export function getAll() {
     return db('product as p')
@@ -25,29 +58,27 @@ export function findPage(limit, offset, sortBy = null) {
             .select('p.*', 'u.full_name as current_bidder_name')
             .count('b.product_id as bid_count')
             .groupBy('p.product_id', 'u.full_name')
-            .orderBy('p.product_id', 'desc')
             .limit(limit).offset(offset);
     
     if (sortBy) {
         switch (sortBy) {
             case 'end_time_asc':
-                query = query.orderBy('end_time', 'asc');
+                query = query.orderBy('p.end_time', 'asc');
                 break;
             case 'end_time_desc':
-                query = query.orderBy('end_time', 'desc');
+                query = query.orderBy('p.end_time', 'desc');
                 break;
             case 'start_price_asc':
-                query = query.orderBy('start_price', 'asc');
+                query = query.orderBy('p.start_price', 'asc');
                 break;
             case 'start_price_desc':
-                query = query.orderBy('start_price', 'desc');
+                query = query.orderBy('p.start_price', 'desc');
                 break;
             default:
-                // Default sorting by product_id desc (newest first)
-                query = query.orderBy('product_id', 'desc');
+                query = query.orderBy('p.product_id', 'desc');
         }
     } else {
-        query = query.orderBy('product_id', 'desc');
+        query = query.orderBy('p.product_id', 'desc');
     }
     
     return query;
