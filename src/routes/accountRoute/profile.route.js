@@ -73,12 +73,34 @@ router.post('/', async function (req, res) {
 
 router.get('/watchlist', async function (req, res) {
     const user = req.session.authUser;
-    const watchlist = await watchlistService.findByUserId(user.user_id);
+    const limit = 6;
+    const page = req.query.page || 1;
+    const offset = (page - 1) * limit;
+
+    const totalState = await watchlistService.countByUserId(user.user_id);
+    const total = totalState.count;
+    
+    let nPages = Math.floor(total / limit);
+    if (total % limit > 0) nPages++;
+
+    const pageNumbers = [];
+    for (let i = 1; i <= nPages; i++) {
+        pageNumbers.push({
+            value: i,
+            isCurrent: i === +page
+        });
+    }
+
+    const watchlist = await watchlistService.findByUserId(user.user_id, limit, offset);
     res.render('vwAccounts/watchlist', {
         layout: 'account-layout',
         title: 'My Watchlist',
         activeNav: 'Watchlist',
-        watchlist: watchlist
+        watchlist: watchlist,
+        empty: watchlist.length === 0,
+        pageNumbers: pageNumbers,
+        prevPage: +page > 1 ? +page - 1 : null,
+        nextPage: +page < nPages ? +page + 1 : null
     });
 });
 
@@ -96,7 +118,23 @@ router.get('/active', async function (req, res) {
 
 router.get('/won', async function (req, res) {
     const userId = req.session.authUser.user_id;
-    const list = await productService.findWonItems(userId);
+    let list = await productService.findWonItems(userId);
+
+    list = list.map(item => {
+        // [TODO]: Bạn thay logic này bằng trường thật trong DB
+        // Ví dụ: const isPaid = item.payment_status === 1;
+        
+        // Hiện tại mình random 50/50 để bạn test giao diện
+        const isPaid = Math.random() < 0.5; 
+
+        return {
+            ...item,
+            // Tạo thêm trường status_text để hiện chữ
+            status_text: isPaid ? 'Success' : 'Waiting payment',
+            // Tạo thêm trường is_paid để hiện nút Pay hoặc dấu tích
+            is_paid: isPaid
+        };
+    });
 
     res.render('vwAccounts/wonitem', {
         layout: 'account-layout',

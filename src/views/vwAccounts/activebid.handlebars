@@ -1,6 +1,5 @@
 {{#section 'css'}}
 <style>
-  /* Product Card */
   .product-card {
     transition: transform 0.2s;
   }
@@ -10,13 +9,58 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
 
-  /* Icon style */
-  .text-gold {
-    color: #ffc107 !important;
+  .product-image-placeholder {
+    height: 220px;
+    overflow: hidden;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .product-image-placeholder img {
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* 2. STYLE RIÊNG CHO ACTIVE BIDS (Badge & Crown) */
+  .status-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #0d6efd;
+    /* Màu xanh dương cho active bid */
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Style khi đang thắng (Top 1) */
+  .card-winning {
+    border: 2px solid #ffc107 !important;
+    /* Viền vàng */
+    background-color: #fffbf0 !important;
+    /* Nền vàng nhạt */
+  }
+
+  .crown-icon {
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    font-size: 2.5rem;
+    color: #ffc107;
+    z-index: 20;
+    transform: rotate(-30deg);
+    filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.2));
   }
 </style>
 {{/section}}
-
 
 <h3 class="mb-4 fw-bold text-primary">Active Bids</h3>
 
@@ -24,16 +68,19 @@
 <div class="row g-3">
   {{#each activeBids}}
   <div class="col-sm-6 col-md-4">
-    <div class="product-card h-100 border rounded bg-white position-relative">
 
-      <div class="position-absolute top-0 end-0 m-2 badge bg-primary">
-        Your Bid
-      </div>
+    <div
+      class="product-card h-100 border rounded position-relative {{#if (eq this.leader_id ../authUser.user_id)}}card-winning{{else}}bg-white{{/if}}">
 
-      <div class="product-image-placeholder bg-light d-flex align-items-center justify-content-center text-muted"
-        style="height: 180px;">
-        <img src="/src/static/images/{{seller_id}}/{{product_id}}/main_thumbs.jpg" class="img-fluid" alt="{{this.name}}"
-          onerror="this.src='http://placehold.it/200x200'">
+      <span class="status-badge">Your Bid</span>
+
+      {{#if (eq this.leader_id ../authUser.user_id)}}
+      <i class="bi bi-trophy-fill crown-icon" title="You are currently winning!"></i>
+      {{/if}}
+
+      <div class="product-image-placeholder bg-light d-flex align-items-center justify-content-center text-muted" style="height: 180px;">
+        <img src="/src/static/images/{{this.seller_id}}/{{this.product_id}}/main_thumbs.jpg" class="img-fluid"
+          alt="{{this.name}}">
       </div>
 
       <div class="product-body p-3">
@@ -43,17 +90,46 @@
           </h5>
         </div>
 
-        <p class="mb-1 small text-muted">
-          Seller: <span class="fw-semibold text-dark">User {{this.seller_id}}</span>
+        <p class="mb-1 small">
+          {{#if (eq this.leader_id ../authUser.user_id)}}
+          <span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> You are leading!</span>
+          {{else}}
+          <span class="text-secondary">Highest Bidder: {{this.current_bidder_name}}</span>
+          {{/if}}
         </p>
 
         <p class="product-meta mb-1 small text-muted">
-          <span>Current Price: <span class="fw-bold text-danger">${{this.current_price}}</span></span><br>
-          <span>End Date: {{this.end_time}}</span><br>
+          <span class="fw-bold text-primary fs-5">
+            {{#if this.current_price}}
+            ${{formatCurrency this.current_price}}
+            {{else}}
+            ${{formatCurrency this.start_price}}
+            {{/if}}
+          </span>
+          <br>
+
+          <span>Buy it now:
+            <span class="fw-bold text-primary">
+              {{#if this.buy_now_price}}
+              ${{formatCurrency this.buy_now_price}}
+              {{else}}
+              None
+              {{/if}}
+            </span>
+          </span>
+          <br>
+
+          <span>Listed: {{formatDate this.created_at "DD/MM/YYYY HH:mm"}}</span><br>
+          <span>Time left:
+            {{formatAuctionTime
+            this.end_time "DD/MM/YYYY HH:mm"}}</span><br>
+          <span>Bids: {{this.bid_count}}</span>
         </p>
 
         <div class="mt-2">
-          <a href="/detail?id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">View Status</a>
+          <a href="/menu/detail?product_id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">
+            Details
+          </a>
         </div>
       </div>
 
@@ -63,7 +139,9 @@
 </div>
 
 {{else}}
-<div class="alert alert-info text-center">
-  You haven't placed any bids yet. <a href="/menu" class="alert-link">Explore auctions now!</a>
+<div class="alert alert-info text-center py-5">
+  <i class="bi bi-tag fs-1 d-block mb-3"></i>
+  <h5>You haven't placed any bids yet.</h5>
+  <a href="/menu" class="btn btn-primary mt-2">Start Bidding</a>
 </div>
 {{/if}}

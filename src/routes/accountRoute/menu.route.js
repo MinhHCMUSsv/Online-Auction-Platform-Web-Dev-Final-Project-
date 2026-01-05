@@ -3,18 +3,22 @@ import * as productService from '../../services/product.service.js';
 import * as watchlistService from '../../services/watchlist.service.js';
 import * as userService from '../../services/user.service.js';
 import * as categoriesService from '../../services/category.service.js';
+import {
+    sendSellerReplyNotification,
+    sendNewQuestionNotification,
+    sendDescriptionUpdateNotification
+} from '../../utils/email.js';
 
 import { sendBidderRejectedNotification, sendOutbidNotification, sendBidSuccessfullyNotification, sendPriceUpdateNotification } from '../../utils/email.js';
 
 const router = express.Router();
 
 router.get('/', async function (req, res) {
-    
     const products = await productService.getAll();
     const fatherCategories = await categoriesService.getFatherCategories();
 
     req.session.fatherCategories = fatherCategories;
-    
+
     const page = req.query.page || 1;
     const sortBy = req.query.sort || null;
     const limit = 12;
@@ -35,9 +39,9 @@ router.get('/', async function (req, res) {
 
     if (req.session.isAuthenticated) {
         const userId = req.session.authUser.user_id;
-        
+
         const watchlist = await watchlistService.findByUserId(userId);
-        
+
         const watchlistIds = watchlist.map(item => item.product_id);
 
         list = list.map(item => {
@@ -49,6 +53,7 @@ router.get('/', async function (req, res) {
     }
 
     res.render('vwMenu/list', {
+        title: 'Menu',
         products: list,
         activeNav: 'Menu',
         pageNumbers: pageNumbers,
@@ -68,13 +73,11 @@ router.get('/', async function (req, res) {
 
 router.get('/detail', async function (req, res) {
     const product_id = req.query.product_id;
-    const product= await productService.getProductById(product_id);   
+    const product = await productService.getProductById(product_id);
 
     const seller = await productService.getSellerById(product.seller_id);
     const comments = await productService.getCommentsWithReplies(product_id);
-    
-    const limit = 5;
-    const related_products = await productService.getRelatedProducts(product.category_id, limit);
+   
     const bidder = await productService.getBidder(product_id);
     
     let winBidder = [];
@@ -83,14 +86,42 @@ router.get('/detail', async function (req, res) {
     }
 
     const suggestedPrice = +product.current_price + +product.bid_step;
+    
+    const description_logs = await productService.getDescriptionLogs(product_id);
+
+    const limit = 5;
+    let related_products = await productService.getRelatedProducts(product.category_id, limit);
+
+    let is_liked = false;
+    if (req.session.isAuthenticated) {
+        const userId = req.session.authUser.user_id;
+
+        // 1. Check sản phẩm chính
+        is_liked = await watchlistService.check(userId, product_id);
+
+        // 2. Check danh sách sản phẩm liên quan (để hiện tim)
+        const watchlist = await watchlistService.findByUserId(userId);
+        const watchlistIds = watchlist.map(item => item.product_id);
+
+        related_products = related_products.map(item => {
+            return {
+                ...item,
+                is_liked: watchlistIds.includes(item.product_id)
+            };
+        });
+    }
+
     res.render('vwMenu/detail', {
+        title: 'Detail',
         product: product,
         seller: seller,
         bidder: bidder,
         suggestedPrice: suggestedPrice,
         winBidder: winBidder,
         comments: comments,
-        related_products: related_products
+        related_products: related_products,
+        is_liked: is_liked,
+        description_logs: description_logs
     });
 
 });
@@ -148,6 +179,9 @@ router.post('/place-bid', async function (req, res) {
                 });
             }
         }
+        if (product.status !== 'active') {
+            return res.status(400).send('Sản phẩm này đã kết thúc đấu giá!');
+        }
 
         let finalBidAmount = 0;
         const currentPrice = Number(product.current_price);
@@ -159,7 +193,7 @@ router.post('/place-bid', async function (req, res) {
         let sendNotification = false;
 
         // BƯỚC 2: LOGIC TÍNH GIÁ BID_AMOUNT ĐỂ LƯU VÀO LỊCH SỬ
-        
+
         // Trường hợp A: Sản phẩm chưa có ai đấu giá
         if (!currentLeaderId) {
             finalBidAmount = startPrice;
@@ -244,6 +278,132 @@ router.post('/place-bid', async function (req, res) {
     }
 });
 
+router.post('/append-description', async function (req, res) {
+    const { product_id, new_description_html } = req.body;
+    const user_id = req.session.authUser.user_id;
+
+    try {
+        const product = await productService.getProductById(product_id);
+        if (!product) {
+            return res.status(404).send('Product not found');
+        }
+        if (String(product.seller_id) !== String(user_id)) {
+            return res.render('vwError/403');
+        }
+        const entity = {
+            product_id: product_id,
+            added_by: user_id,
+            content_html: new_description_html,
+        };
+
+        await productService.addDescriptionLog(entity);
+
+        (async function () {
+            try {
+                const emailList = await productService.getInterestedEmails(product_id, user_id);
+
+                if (emailList.length > 0) {
+                    const emails = emailList.map(item => item.email);
+                    const productLink = `${req.protocol}://${req.get('host')}/menu/detail?product_id=${product_id}`;
+
+                    await sendDescriptionUpdateNotification(
+                        emails,
+                        product.name,
+                        productLink,
+                        new_description_html
+                    );
+                    console.log(`Sent description update notification to ${emails.length} users.`);
+                }
+            } catch (mailError) {
+                console.error("Background Email Error (Description Update):", mailError);
+            }
+        })();
+
+        res.redirect(`/menu/detail?product_id=${product_id}`);
+
+    } catch (error) {
+        console.error("Error appending description:", error);
+        res.status(500).send('Database Error');
+    }
+});
+
+router.post('/comment', async function (req, res) {
+    const { product_id, content, parent_comment_id } = req.body;
+    const user = req.session.authUser;
+
+    try {
+        const entity = {
+            product_id: product_id,
+            user_id: user.user_id,
+            content: content,
+            parent_comment_id: parent_comment_id || null
+        };
+
+        const newId = await productService.addComment(entity);
+        entity.comment_id = newId;
+
+        (async function () {
+            try {
+                const product = await productService.getProductById(product_id);
+                const sellerId = product.seller_id;
+                const productName = product.name;
+                // Tạo link sản phẩm
+                const productLink = `${req.protocol}://${req.get('host')}/menu/detail?product_id=${product_id}`;
+
+                if (user.user_id == sellerId) {
+                    // === TRƯỜNG HỢP 1: SELLER TRẢ LỜI ===
+                    // -> Gửi cho TẤT CẢ người liên quan (Bidder + Commenter cũ)
+
+                    const emailList = await productService.getInterestedEmails(product_id, sellerId);
+
+                    if (emailList.length > 0) {
+                        const emails = emailList.map(item => item.email);
+                        console.log('Email list:', emails);
+                        await sendSellerReplyNotification(
+                            emails,
+                            productName,
+                            productLink,
+                            content
+                        );
+                        console.log(`Sent notification to ${emailList.length} interested users.`);
+                    }
+
+                } else {
+                    // === TRƯỜNG HỢP 2: NGƯỜI MUA ĐẶT CÂU HỎI ===
+                    // -> Gửi cho riêng SELLER
+                    const seller = await productService.getSellerById(sellerId);
+
+                    if (seller && seller.seller_email) {
+                        await sendNewQuestionNotification(
+                            seller.seller_email,
+                            user.full_name,
+                            productName,
+                            productLink,
+                            content
+                        );
+                        console.log(`Sent notification to seller: ${seller.seller_email}`);
+                    }
+                }
+            } catch (mailError) {
+                console.error("Background Email Error:", mailError);
+            }
+        })();
+
+        return res.json({
+            success: true,
+            comment: {
+                ...entity,
+                reviewer_name: user.full_name,
+                user_id: user.user_id,
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Database error.' });
+    }
+});
+
 router.post('/watchlist/toggle', async function (req, res) {
     const userId = req.session.authUser.user_id;
     const productId = req.body.product_id;
@@ -253,22 +413,22 @@ router.post('/watchlist/toggle', async function (req, res) {
 
         if (isExist) {
             await watchlistService.remove(userId, productId);
-            return res.json({ 
-                success: true, 
-                isAdded: false 
-            }); 
+            return res.json({
+                success: true,
+                isAdded: false
+            });
         } else {
             await watchlistService.add(userId, productId);
-            return res.json({ 
-                success: true, 
-                isAdded: true 
-            }); 
+            return res.json({
+                success: true,
+                isAdded: true
+            });
         }
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ 
-            success: false, 
-            message: 'Database error' 
+        return res.status(500).json({
+            success: false,
+            message: 'Database error'
         });
     }
 });
@@ -280,7 +440,7 @@ router.get('/search', async function (req, res) {
     if (query.length === 0) {
         return res.render('vwMenu/search', {
             products: [],
-            empty: true,   
+            empty: true,
             query: query,
             activeNav: 'Menu',
             sortBy: sortBy
@@ -415,8 +575,6 @@ router.get('/:slug', async function (req, res) {
     const nPages = Math.ceil(+total.count / limit);
     const pageNumbers = [];
 
-    console.log(nPages);
-
     for (let i = 1; i <= nPages; i++) {
         pageNumbers.push({
             value: i,
@@ -429,9 +587,9 @@ router.get('/:slug', async function (req, res) {
 
     if (req.session.isAuthenticated) {
         const user_id = req.session.authUser.user_id;
-        
+
         const watchlist = await watchlistService.findByUserId(user_id);
-        
+
         const watchlistIds = watchlist.map(item => item.product_id);
 
         list = list.map(item => {
@@ -443,6 +601,7 @@ router.get('/:slug', async function (req, res) {
     }
 
     res.render('vwMenu/byCat', {
+        title: slug,
         products: list,
         activeNav: 'Menu',
         childCategories: childCategories,

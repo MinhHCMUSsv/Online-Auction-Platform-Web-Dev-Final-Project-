@@ -146,23 +146,29 @@
             </div>
 
             <p class="mb-1 small">
-                <span class="fw-semibold">{{#if current_bidder_name}}{{current_bidder_name}}{{else}}No
+                <span class="fw-semibold">{{#if current_bidder_name}}Highest Bidder: {{current_bidder_name}}{{else}}No
                     Bids{{/if}}</span><br>
             </p>
 
             <p class="product-meta mb-1 small text-muted">
-                <span class="fw-bold text-primary fs-5">${{current_price}}</span>
+                <span class="fw-bold text-primary fs-5">
+                    {{#if current_price}}
+                    ${{formatCurrency current_price}}
+                    {{else}}
+                    ${{formatCurrency start_price}}
+                    {{/if}}
+                </span>
                 <br>
                 <span>Buy it now: <span class="fw-bold text-primary">{{#if
-                        buy_now_price}}${{buy_now_price}}{{else}}None{{/if}}</span></span><br>
+                        buy_now_price}}${{formatCurrency buy_now_price}}{{else}}None{{/if}}</span></span><br>
 
-                <span>Listed: {{formatDate start_time "DD/MM/YYYY HH:mm"}}</span><br>
+                <span>Listed: {{formatDate created_at "DD/MM/YYYY HH:mm"}}</span><br>
                 <span>Time left: {{formatAuctionTime end_time "DD/MM/YYYY HH:mm"}}</span><br>
                 <span>Bids: {{bid_count}}</span>
             </p>
 
             <div class="mt-2">
-                <a href="/products/detail?product_id={{product_id}}"
+                <a href="/menu/detail?product_id={{product_id}}"
                     class="btn btn-sm btn-outline-primary w-100">Details</a>
             </div>
         </div>
@@ -195,31 +201,33 @@
         $('#endingSoonCarousel').owlCarousel(commonConfig);
 
         // Logic Wishlist
-        $('.wishlist-icon').on('click', function (e) {
+        $(document).on('click', '.wishlist-icon', function (e) {
             e.preventDefault();
             const $btn = $(this);
             const productId = $btn.data('id');
             const $icon = $btn.find('i');
 
-            $.post('/products/watchlist/toggle', { product_id: productId }, function (data) {
+            $.post('/menu/watchlist/toggle', { product_id: productId }, function (data) {
                 if (data.success) {
+                    const allBtns = $(`.wishlist-icon[data-id="${productId}"]`);
+                    const allIcons = allBtns.find('i');
                     if (data.isAdded) {
-                        $btn.addClass('active');
-                        $icon.removeClass('bi-heart text-secondary').addClass('bi-heart-fill text-gold');
+                        allBtns.addClass('active');
+                        allIcons.removeClass('bi-heart text-secondary').addClass('bi-heart-fill text-gold');
                     } else {
-                        $btn.removeClass('active');
-                        $icon.removeClass('bi-heart-fill text-gold').addClass('bi-heart text-secondary');
+                        allBtns.removeClass('active');
+                        allIcons.removeClass('bi-heart-fill text-gold').addClass('bi-heart text-secondary');
                     }
                 } else {
                     alert(data.message || 'Something went wrong!');
                     if (data.message === 'Please login first!') {
-                        window.location.href = '/account/signin';
+                        window.location.href = '/signin';
                     }
                 }
             }).fail(function (jqXHR) {
                 if (jqXHR.status === 401) {
                     alert('Please login first!');
-                    window.location.href = '/account/signin';
+                    window.location.href = '/signin';
                 } else {
                     alert('Cannot connect to server!');
                 }

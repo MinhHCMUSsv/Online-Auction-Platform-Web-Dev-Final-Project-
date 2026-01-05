@@ -230,8 +230,8 @@
           {{#if (eq authUser.role 1)}}
           <a class="nav-link {{#if (eq activeNav 'CreateAuction')}}active-custom{{/if}}" href="/seller/create">Create
             Auction</a>
-          <a class="nav-link" href="#">Active Auctions</a>
-          <a class="nav-link" href="#">Finished auctions</a>
+          <a class="nav-link {{#if (eq activeNav 'ActiveAuctions')}}active-custom{{/if}}" href="/seller/active-auctions">Active Auctions</a>
+          <a class="nav-link {{#if (eq activeNav 'FinishedAuctions')}}active-custom{{/if}}" href="/seller/finished-auctions">Finished auctions</a>
           <hr class="my-3 text-secondary">
           {{/if}}
 

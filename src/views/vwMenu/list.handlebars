@@ -130,22 +130,38 @@
           </h5>
 
           <p class="mb-1 small">
-            <span class="fw-semibold">Bidder Name</span>
+            <span class="fw-semibold">
+              {{#if current_bidder_name}}
+              Highest Bidder: {{current_bidder_name}}
+              {{else}}
+              No Bids
+              {{/if}}
+            </span>
+            <br>
           </p>
 
           <p class="product-meta mb-1 small text-muted">
-            <span>Buy it now: 
-              <span class="fw-bold text-primary">
-                {{#if this.buy_now_price}}${{this.buy_now_price}}{{else}}None{{/if}}
-              </span>
-            </span><br>
-            <span>Listed: {{formatDate this.start_time "DD/MM/YYYY HH:mm"}}</span><br>
-            <span>Time left: {{formatAuctionTime this.end_time "DD/MM/YYYY HH:mm"}}</span><br>
-            <span>Bids: 0</span>
+            <span class="fw-bold text-primary fs-5">
+              {{#if this.current_price}}
+              ${{formatCurrency this.current_price}}
+              {{else}}
+              ${{formatCurrency this.start_price}}
+              {{/if}}
+            </span>
+            <br>
+            <span>Buy it now: <span class="fw-bold text-primary">{{#if this.buy_now_price}}${{formatCurrency
+                this.buy_now_price}}
+                {{else}}
+                None {{/if}}</span></span><br>
+            <span>Listed: {{formatDate this.created_at "DD/MM/YYYY HH:mm"}}</span><br> <span>Time left:
+              {{formatAuctionTime
+              this.end_time "DD/MM/YYYY HH:mm"}}</span><br>
+            <span>Bids: {{this.bid_count}}</span>
           </p>
 
           <div class="mt-2">
-            <a href="/menu/detail?product_id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">Details</a>
+            <a href="/menu/detail?product_id={{this.product_id}}"
+              class="btn btn-sm btn-outline-primary w-100">Details</a>
           </div>
         </div>
       </div>
