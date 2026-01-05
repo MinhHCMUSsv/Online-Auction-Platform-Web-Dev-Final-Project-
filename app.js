@@ -3,6 +3,7 @@ import { engine } from 'express-handlebars';
 import hbs_helpers from 'handlebars-helpers';
 import expressHandlebarsSections from 'express-handlebars-sections';
 import session from 'express-session';
+import { isAuth, isSeller, isAdmin, isUpgradePending, isBanned } from './src/middlewares/auth.mdw.js';
 import moment from 'moment';
 import passport from './src/utils/passport.js';
 
@@ -17,8 +18,9 @@ import commonRouter from './src/routes/accountRoute/common.route.js';
 import profileRouter from './src/routes/accountRoute/profile.route.js';
 import menuRouter from './src/routes/accountRoute/menu.route.js';
 
-import { isAuth, isAdmin, isUpgradePending } from './src/middlewares/auth.mdw.js';
 import startAuctionCheckCronJob from './src/utils/checkAuction.js';
+import transactionRouter from './src/routes/transaction.route.js'
+
 
 // Khởi động cron job kiểm tra đấu giá
 startAuctionCheckCronJob();
@@ -111,12 +113,12 @@ app.use(passport.session());
 app.use(function (req, res, next) {
     res.locals.isAuthenticated = req.session.isAuthenticated;
     res.locals.authUser = req.session.authUser;
-
     res.locals.fatherCategories = req.session.fatherCategories || [];
     res.locals.config = req.session.config || [];
     next();
 });
 
+app.use(isBanned);
 app.use(isUpgradePending);
 
 app.use('/', commonRouter);
@@ -125,7 +127,9 @@ app.use('/auth', authRouter);
 
 app.use('/profile', isAuth, profileRouter);
 
-app.use('/seller', sellerRouter);
+app.use('/seller', isAuth, isSeller, sellerRouter);
+
+app.use('/transaction', transactionRouter);
 
 app.use('/admin/categories', adminCategoryRouter);
 app.use('/admin/users', adminUserRouter);

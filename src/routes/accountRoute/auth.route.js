@@ -18,6 +18,13 @@ router.get('/google/callback',
 
     // Đã từng đăng nhập bằng Google -> Cho vào luôn
     if (user) {
+        if (user.status === 2) {
+            return res.render('vwAccounts/signin', {
+                layout: 'auth-layout',
+                isBanned: true,
+                err_message: 'Your Google account is linked to a banned user.'
+            });
+        }
         req.session.isAuthenticated = true;
         req.session.authUser = user;
     } 
@@ -75,6 +82,13 @@ router.get('/facebook/callback',
 
     // Đã từng đăng nhập bằng Facebook -> Cho vào luôn
     if (user) {
+        if (user.status === 2) {
+            return res.render('vwAccounts/signin', {
+                layout: 'auth-layout',
+                isBanned: true,
+                err_message: 'Your Facebook account is linked to a banned user.'
+            });
+        }
         req.session.isAuthenticated = true;
         req.session.authUser = user;
     } 

@@ -8,17 +8,38 @@ import { generateOTP } from '../../utils/genOTP.js';
 import * as homeService from '../../services/home.service.js';
 import * as userService from '../../services/user.service.js';
 import * as settingService from '../../services/setting.service.js';
+import * as watchlistService from '../../services/watchlist.service.js';
 
 const router = express.Router();
 const CAPTCHA_SECRET_KEY = process.env.CAPTCHA_SECRET_KEY;
 
 router.get('/', async function (req, res) {
     try {
-            const [topBid, mostActive, endingSoon] = await Promise.all([
+            let [topBid, mostActive, endingSoon] = await Promise.all([
                 homeService.findTopPrice(5),
                 homeService.findMostActive(5),
                 homeService.findEndingSoon(5)
             ]);
+
+            if (req.session.isAuthenticated) {
+            const userId = req.session.authUser.user_id;
+            
+            const watchlist = await watchlistService.findByUserId(userId);
+            const watchlistIds = watchlist.map(item => item.product_id);
+
+            const mapLikeStatus = function (products) {
+                return products.map(p => {
+                    return {
+                        ...p,
+                        is_liked: watchlistIds.includes(p.product_id)
+                    }
+                });
+            };
+
+            topBid = mapLikeStatus(topBid);
+            mostActive = mapLikeStatus(mostActive);
+            endingSoon = mapLikeStatus(endingSoon);
+        }
 
             res.render('home', {
                 title: 'Home',
@@ -168,7 +189,15 @@ router.post('/signin', async function (req, res) {
     const user = await userService.findByEmail(email);
     if (!user) {
         return res.render('vwAccounts/signin', {
+            layout: 'auth-layout',
             err_message: 'Invalid email or password.'
+        });
+    }
+    if (user.status === 2) {
+        return res.render('vwAccounts/signin', {
+            layout: 'auth-layout',
+            isBanned: true,
+            err_message: 'Your account has been banned by the administrator.'
         });
     }
     if (user.status === 0) {
@@ -179,6 +208,7 @@ router.post('/signin', async function (req, res) {
     const result = bcrypt.compareSync(password, user.password_hash);
     if (!result) {
         return res.render('vwAccounts/signin', {
+            layout: 'auth-layout',
             err_message: 'Invalid email or password.'
         });
     }

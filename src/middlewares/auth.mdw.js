@@ -34,3 +34,17 @@ export async function isUpgradePending(req, res, next) {
     }
     next();
 }
+
+export function isBanned(req, res, next) {
+    if (req.session.isAuthenticated && req.session.authUser) {
+        if (req.session.authUser.status === 2) {
+            req.session.isAuthenticated = false;
+            req.session.authUser = null;
+            return res.render('vwAccounts/signin', {
+                layout: 'auth-layout',
+                err_message: 'Your account has been banned by the administrator.'
+            });
+        }
+    }
+    next();
+}

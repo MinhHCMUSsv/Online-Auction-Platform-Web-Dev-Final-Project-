@@ -1,105 +1,389 @@
-<!-- Breadcrumb -->
+{{#section 'css'}}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
+<link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+<style>
+    /* --- General Styles --- */
+    body {
+        background-color: #fff;
+        color: #212529;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Avatar Badge */
+    .avatar-badge {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+        color: white;
+    }
+
+    .avatar-seller {
+        background-color: #fd7e14;
+    }
+
+    /* Cam cho seller */
+    .avatar-bidder {
+        background-color: #e9ecef;
+        color: #333;
+    }
+
+    /* Xám cho bidder */
+
+    /* Product Images */
+    .main-image-container {
+        background-color: #e9ecef;
+        border-radius: 12px;
+        height: 450px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .main-image-container img {
+        object-fit: contain;
+        width: 100%;
+        height: 100%;
+    }
+
+    .thumb-img {
+        width: 80px;
+        height: 80px;
+        border-radius: 12px;
+        background-color: #e9ecef;
+        cursor: pointer;
+        object-fit: cover;
+        border: 2px solid transparent;
+    }
+
+    .thumb-img.active {
+        border-color: #0d6efd;
+    }
+
+    /* Buttons */
+    .btn-action-primary {
+        background-color: #0d6efd;
+        border: none;
+        border-radius: 50px;
+        font-weight: 600;
+        padding: 10px 0;
+        width: 100%;
+        color: white;
+        transition: 0.2s;
+    }
+
+    .btn-action-primary:hover {
+        background-color: #0b5ed7;
+    }
+
+    .btn-action-outline {
+        background-color: transparent;
+        border: 2px solid #0d6efd;
+        border-radius: 50px;
+        font-weight: 600;
+        padding: 10px 0;
+        width: 100%;
+        color: #0d6efd;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+    .btn-action-outline:hover {
+        background-color: #0d6efd;
+        /* Nền xanh dương đậm */
+        color: white;
+    }
+
+    /* Bid History Table */
+    .bid-table th {
+        font-weight: 600;
+        border-bottom: 2px solid #f1f1f1;
+    }
+
+    .btn-kick {
+        font-size: 0.75rem;
+        padding: 4px 10px;
+        border-radius: 4px;
+        border: 1px solid #dc3545;
+        color: #dc3545;
+        background: #fff;
+    }
+
+    .btn-kick:hover {
+        background: #dc3545;
+        color: #fff;
+    }
+
+    /* Description Card */
+    .desc-card {
+        background-color: #f1f3f5;
+        /* Màu xám như design */
+        border-radius: 12px;
+        padding: 30px;
+        border: none;
+    }
+
+    .btn-edit-desc {
+        background: white;
+        border: 1px solid #ced4da;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #495057;
+        cursor: pointer;
+    }
+
+    /* Facebook Style Comments */
+    .comment-bubble {
+        background-color: #f0f2f5;
+        border-radius: 18px;
+        padding: 10px 15px;
+        display: inline-block;
+    }
+
+    .comment-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .reply-link {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #65676b;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    /* Related Products (Owl Carousel) */
+    .related-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        position: relative;
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+    }
+
+    .related-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .related-img {
+        height: 180px;
+        background: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .related-img a {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .related-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .wishlist-btn-small {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: white;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        z-index: 2;
+    }
+
+    .text-gold {
+        color: #ffc107 !important;
+    }
+</style>
+{{/section}}
+
 <div class="bg-white border-bottom">
 
 </div>
 
-<main class="container-fluid px-4 py-4">
-    <!-- Back button -->
-    <div class="mb-3">
-        <button class="btn btn-light back-btn">
-            <i class="bi bi-arrow-left"></i> Back
-        </button>
-    </div>
+<div class="container-fluid px-4 py-5">
+    <a href="javascript:history.back()" class="btn btn-primary rounded-pill px-4 mb-4 fw-bold">
+        <i class="bi bi-arrow-left me-1"></i> Back
+    </a>
 
-    <!-- Main product section -->
-    <div class="row g-4">
-        <!-- Left: big image + thumbnails -->
+    <div class="row g-5">
         <div class="col-lg-6">
-            <div class="position-relative mb-3">
-                <div class="product-main-img d-flex justify-content-center align-items-center">
-                    Image
-                </div>
+            <div class="main-image-container d-flex justify-content-center align-items-center mb-4 position-relative">
 
-                <!-- Image arrows -->
-                <button class="btn btn-light rounded-circle position-absolute top-50 start-0 translate-middle-y ms-3">
+                <button id="btnPrevImg" class="btn btn-light rounded-circle position-absolute start-0 ms-3 shadow-sm"
+                    style="width:40px;height:40px; z-index: 10;">
                     <i class="bi bi-chevron-left"></i>
                 </button>
-                <button class="btn btn-light rounded-circle position-absolute top-50 end-0 translate-middle-y me-3">
+
+                <img id="mainImage" src="/src/static/images/{{product.seller_id}}/{{product.product_id}}/main.jpg"
+                    alt="{{product.name}}" data-index="0">
+
+                <button id="btnNextImg" class="btn btn-light rounded-circle position-absolute end-0 me-3 shadow-sm"
+                    style="width:40px;height:40px; z-index: 10;">
                     <i class="bi bi-chevron-right"></i>
                 </button>
             </div>
 
-            <!-- Color / image swatches -->
-            <div class="d-flex gap-3">
-                <div class="thumb-swatch"></div>
-                <div class="thumb-swatch bg-dark"></div>
-                <div class="thumb-swatch" style="background:#707780;"></div>
-                <div class="thumb-swatch" style="background:#d2d6dd;"></div>
+            <div class="d-flex gap-3 justify-content-center" id="thumbnailList">
+
+                <img src="/src/static/images/{{product.seller_id}}/{{product.product_id}}/main_thumbs.jpg"
+                    class="thumb-img active" data-index="0" data-filename="main.jpg">
+
+                <img src="/src/static/images/{{product.seller_id}}/{{product.product_id}}/1_thumbs.jpg"
+                    class="thumb-img" data-index="1" data-filename="1.jpg" onerror="this.style.display='none'"> <img
+                    src="/src/static/images/{{product.seller_id}}/{{product.product_id}}/2_thumbs.jpg" class="thumb-img"
+                    data-index="2" data-filename="2.jpg" onerror="this.style.display='none'">
+
+                <img src="/src/static/images/{{product.seller_id}}/{{product.product_id}}/3_thumbs.jpg"
+                    class="thumb-img" data-index="3" data-filename="3.jpg" onerror="this.style.display='none'">
             </div>
         </div>
 
-        <!-- Right: info -->
         <div class="col-lg-6">
-            <div class="product-card h-100">
-                <h3 class="mb-3">{{product.name}}</h3>
+            <h1 class="serif-font fw-bold mb-3">{{product.name}}</h1>
 
-                <!-- Seller -->
-                <div class="d-flex align-items-center mb-3">
-                    <div class="badge-avatar badge-avatar-orange me-3">
-                        S
-                    </div>
-                    <div>
-                        <div class="fw-semibold">Seller: {{seller.seller_name}}</div>
-                        <small class="text-muted">Points: {{seller.seller_point}}</small> 
-                    </div>
+            <div class="d-flex align-items-center mb-4">
+                <div class="avatar-badge avatar-seller me-3">
+                    {{substr seller.seller_name 0 1}}
                 </div>
-
-                {{#if (eq product.current_price null)}}
-                <div class="mb-2 fw-semibold">
-                        Starting bid: <span class="text-warning">{{formatCurrency product.start_price}}</span>
-                </div>
-                {{else}}
-                <div class="mb-2 fw-semibold">
-                        Current price: <span class="text-warning">{{formatCurrency product.current_price}}</span>
-                </div>
-                <!-- Highest bidder -->
-                <div class="d-flex align-items-center mb-3">
-                    <div class="badge-avatar badge-avatar-dark me-3">
-                        B
-                    </div>
-                    <div>
-                        <div class="fw-semibold">
-                            {{#if winBidder.full_name}}
-                                {{substr winBidder.full_name 0 1}}***
-                            {{else}}
-                                Anonymous
-                            {{/if}}
-                        </div>
-                        <small class="text-muted">Points: {{winBidder.points}}</small>
-                    </div>
-                </div>
-                {{/if}}
-                <ul class="list-unstyled small text-muted mb-3">
-                    <li>Start time: {{formatDate product.start_time 'DD/MM/YYYY HH:mm:ss'}}</li>
-                    <li>Time left: {{formatDate product.end_time 'DD/MM/YYYY HH:mm:ss'}}</li>
-                    <li>Bids: {{bidder.length}}</li>
-                </ul>
-
-                <div class="fw-semibold mb-3">
-                    Buy it now: <span class="text-primary">$100</span>
-                </div>
-
-                <div class="d-flex gap-2">
-                    
-                    <button class="btn btn-outline-secondary px-4">
-                        <i class="bi bi-heart"></i> Watch
-                    </button>
+                <div>
+                    <div class="fw-bold fs-5">{{seller.seller_name}}</div>
+                    <div class="text-muted small">Points: {{seller.seller_point}}</div>
                 </div>
             </div>
+
+            <div class="mb-2">
+                <span class="fw-bold fs-5">{{#if product.current_price}}Highest bid:{{else}}Starting
+                    price:{{/if}}</span>
+                <span class="fw-bold fs-4 text-warning">
+                    {{#if product.current_price}}
+                    ${{formatCurrency product.current_price}}
+                    {{else}}
+                    ${{formatCurrency product.start_price}}
+                    {{/if}}
+                </span>
+            </div>
+
+            {{#if bidder}}
+            <div class="d-flex align-items-center mb-4 p-2 bg-light rounded-3" style="width: fit-content;">
+                <div class="avatar-badge avatar-bidder me-2" style="width:32px; height:32px; font-size:0.9rem;">
+                    {{substr bidder.full_name 0 1}}
+                </div>
+                <div>
+                    <div class="fw-bold" style="line-height: 1.2;">{{bidder.full_name}}</div>
+                    <div class="text-muted small">Points: {{bidder.points}}</div>
+                </div>
+            </div>
+            {{else}}
+            <div class="text-muted mb-4 fst-italic">No bids yet.</div>
+            {{/if}}
+
+            <div class="text-muted small mb-4 lh-lg">
+                <div>Listed: <strong>{{formatDate product.created_at "DD/MM/YYYY"}}</strong></div>
+                <div>Time left: <strong>{{formatAuctionTime product.end_time "DD/MM/YYYY"}}</strong></div>
+                <div>Bids: <strong>10</strong></div>
+                <div class="fs-5 mt-2 text-dark">
+                    Buy it now:
+                    {{#if product.buy_now_price}}
+                    <span class="fw-bold text-primary">${{formatCurrency product.buy_now_price}}</span>
+                    {{else}}
+                    <span class="text-muted">Not available</span>
+                    {{/if}}
+                </div>
+            </div>
+
+            {{#if isAuthenticated}}
+
+            {{!-- LOGIC: Check xem user đang đăng nhập CÓ PHẢI là chủ sản phẩm không --}}
+            {{#if (eq authUser.user_id product.seller_id)}}
+
+            <div class="alert alert-info border-info">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-person-check-fill fs-4"></i>
+                    <div>
+                        <strong>You are the owner of this product.</strong><br>
+                        You can manage descriptions and view detailed bid history.
+                    </div>
+                </div>
+            </div>
+
+            {{else}}
+
+            {{#if (eq product.status 'active')}}
+            <form method="POST" action="/menu/place-bid">
+                <input type="hidden" name="product_id" value="{{product.product_id}}">
+                <input type="hidden" name="bidder_id" value="{{authUser.user_id}}">
+
+                <div class="d-flex align-items-center mb-3">
+                    <label class="fw-bold me-3">Your max bid:</label>
+                    <div class="input-group" style="width: 200px;">
+                        <span class="input-group-text fw-bold">$</span>
+                        <input type="text" class="form-control fw-bold currency-input" name="max_auto_bid" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-action-primary">Place bid</button>
+            </form>
+
+            {{#if product.buy_now_price}}
+            <form method="POST" action="/menu/buy-now">
+                <input type="hidden" name="product_id" value="{{product.product_id}}">
+                <button class="btn-action-outline">Buy it now</button>
+            </form>
+            {{/if}}
+
+            {{else}}
+            <div class="alert alert-danger text-center fw-bold">
+                <i class="bi bi-exclamation-circle-fill"></i> This auction has ended.
+            </div>
+            {{/if}}
+
+            <button class="btn-action-outline wishlist-toggle" data-id="{{product.product_id}}">
+                {{#if is_liked}}
+                <i class="bi bi-heart-fill me-1"></i> Remove from watchlist
+                {{else}}
+                <i class="bi bi-heart me-1"></i> Add to watchlist
+                {{/if}}
+            </button>
+            {{/if}}
+
+            {{else}}
+            <div class="alert alert-warning">
+                Please <a href="/signin" class="fw-bold">Sign in</a> to place a bid.
+            </div>
+            {{/if}}
         </div>
     </div>
 
-    <!-- Bidding section (only show when logged in) -->
     {{#if isAuthenticated}}
     
     <section class="mt-5">
@@ -241,105 +525,256 @@
                                 No bids yet. Be the first to bid!
                             </p>
                         {{/if}}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each history}}
+                    <tr>
+                        <td>{{this.masked_name}}</td>
+                        <td class="fw-bold">${{formatCurrency this.bid_amount}}</td>
+                        <td class="text-muted small">{{formatDate this.time "DD/MM/YYYY HH:mm"}}</td>
 
-    {{else}}
-    <section class="mt-5">
-        <div class="alert alert-info d-flex align-items-center" role="alert">
-            <i class="bi bi-info-circle me-3" style="font-size: 1.5rem;"></i>
-            <div>
-                <strong>Want to place a bid?</strong> 
-                <a href="/signin" class="alert-link">Sign in</a> or 
-                <a href="/signup" class="alert-link">create an account</a> to start bidding!
-            </div>
+                        {{#if (eq ../authUser.user_id ../product.seller_id)}}
+                        <td>{{this.points}}</td>
+                        <td>
+                            <form method="POST" action="/seller/kick-bidder">
+                                <input type="hidden" name="product_id" value="{{../product.product_id}}">
+                                <input type="hidden" name="bidder_id" value="{{this.bidder_id}}">
+                                <button type="submit" class="btn-kick" title="Cancel this bid">
+                                    <i class="bi bi-x-circle-fill"></i> Kick
+                                </button>
+                            </form>
+                        </td>
+                        {{/if}}
+                    </tr>
+                    {{/each}}
+
+                    {{#unless history}}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">No bids history.</td>
+                    </tr>
+                    {{/unless}}
+                </tbody>
+            </table>
         </div>
-    </section>
+    </div>
     {{/if}}
 
-    <!-- Description section -->
-    <section class="mt-5">
-        <h5 class="mb-3">Description</h5>
+    <div class="mt-5">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h4 class="serif-font fw-bold">Description</h4>
 
-        <div>{{{product.description_html}}}</div>
-    </section>
+            {{#if isAuthenticated}}
+            {{#if (eq authUser.user_id product.seller_id)}}
+            <button class="btn btn-sm btn-outline-dark d-flex align-items-center gap-2" type="button"
+                data-bs-toggle="collapse" data-bs-target="#editDescArea">
+                <i class="bi bi-pencil-square"></i> Add Description
+            </button>
+            {{/if}}
+            {{/if}}
+        </div>
 
-    <!-- Feedback section -->
-    <section class="mt-5">
-        <h5 class="mb-3">Feedback</h5>
-        {{#each comments}}
-            <!-- Main comment -->
-            <div class="section-box d-flex mb-2">
-                <div class="me-3">
-                    <div class="feedback-avatar {{#if (eq this.role 0)}}feedback-avatar-gray{{/if}}">
-                        {{this.reviewer_initials}}
+        {{#if isAuthenticated}}
+        {{#if (eq authUser.user_id product.seller_id)}}
+        <div class="collapse mb-4" id="editDescArea">
+            <div class="card card-body border-0 shadow-sm bg-light">
+                <h6 class="mb-2 fw-bold text-primary">Append new information:</h6>
+                <form method="POST" action="/menu/append-description" id="frmAppendDesc">
+                    <input type="hidden" name="product_id" value="{{product.product_id}}">
+                    <input type="hidden" name="new_description_html" id="hiddenDescInput">
+
+                    <div id="quill-editor" style="height: 150px; background: white;"></div>
+
+                    <div class="mt-3 text-end">
+                        <button type="submit" class="btn btn-primary px-4">Save Update</button>
                     </div>
-                </div>
-                <div class="flex-grow-1">
-                    <div class="fw-semibold mb-1">{{this.reviewer_name}}</div>
-                    <p class="small mb-0 text-muted">
-                        {{this.content}}
-                    </p>
-                </div>
-            </div> 
+                </form>
+            </div>
+        </div>
+        {{/if}}
+        {{/if}}
 
-            <!-- Replies (nested comments) -->
-            {{#each this.replies}}
-            <div class="section-box d-flex mb-2 ms-5 border-start border-3 border-secondary ps-3">
-                <div class="me-3">
-                    <div class="feedback-avatar {{#if (eq this.role 1)}}feedback-avatar-gray{{/if}}">
-                        {{this.reviewer_initials}}
+        <div class="desc-card">
+            <div class="mb-4">
+                <h6 class="fw-bold">Original Description:</h6>
+                {{{product.description_html}}}
+            </div>
+
+            {{#each description_logs}}
+            <div class="mt-4 pt-3 border-top border-secondary">
+                <h6 class="fw-bold small text-muted">Updated at {{formatDate this.created_at "DD/MM/YYYY HH:mm"}}:</h6>
+                <div>{{{this.content_html}}}</div>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+
+    <div class="mt-5">
+        <h4 class="serif-font fw-bold mb-4">Feedback</h4>
+
+        <div class="d-flex flex-column gap-3" id="commentList">
+            {{#each comments}}
+            <div class="d-flex gap-2">
+                <div class="flex-shrink-0">
+                    {{#if (eq this.user_id ../authUser.user_id)}}
+                    <div class="avatar-badge bg-primary" style="width:40px; height:40px; font-size:1rem;">Me</div>
+                    {{else}}
+                    <div class="avatar-badge bg-secondary" style="width:40px; height:40px; font-size:1rem;">
+                        {{substr this.reviewer_name 0 1}}
                     </div>
+                    {{/if}}
                 </div>
+
                 <div class="flex-grow-1">
-                    <div class="fw-semibold mb-1">{{this.name}}</div>
-                    <p class="small mb-0 text-muted">
-                        {{this.content}}
-                    </p>
+                    <div class="comment-bubble">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold" style="font-size: 0.9rem;">{{this.reviewer_name}}</span>
+                            {{#if (eq this.user_id ../product.seller_id)}}
+                            <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">
+                                <i class="bi bi-shop"></i> Seller
+                            </span>
+                            {{/if}}
+                        </div>
+                        <div class="text-dark" style="font-size: 0.95rem;">
+                            {{this.content}}
+                        </div>
+                    </div>
+
+                    <div class="ms-2 mt-1 d-flex gap-3 align-items-center">
+                        <span class="text-muted small">{{formatDate this.created_at "DD/MM/YYYY"}}</span>
+                        {{#if ../isAuthenticated}}
+                        <a href="javascript:;" class="reply-trigger fw-bold text-decoration-none small text-primary"
+                            data-id="{{this.comment_id}}" data-name="{{this.reviewer_name}}">
+                            Reply
+                        </a>
+                        {{/if}}
+                    </div>
+
+                    {{#if this.replies}}
+                    <div class="mt-2">
+                        {{#each this.replies}}
+                        <div class="d-flex gap-2 ms-5 mt-2">
+                            <div class="flex-shrink-0">
+                                {{#if (eq this.user_id ../../authUser.user_id)}}
+                                <div class="avatar-badge bg-primary" style="width:32px; height:32px; font-size:0.8rem;">
+                                    Me</div>
+                                {{else}}
+                                <div class="avatar-badge bg-secondary"
+                                    style="width:32px; height:32px; font-size:0.8rem;">
+                                    {{substr this.reviewer_name 0 1}}
+                                </div>
+                                {{/if}}
+                            </div>
+
+                            <div class="flex-grow-1">
+                                <div class="comment-bubble">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="fw-bold" style="font-size: 0.9rem;">{{this.reviewer_name}}</span>
+
+                                        {{!-- Check Seller cho comment con --}}
+                                        {{#if (eq this.user_id ../../product.seller_id)}}
+                                        <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">
+                                            <i class="bi bi-shop"></i> Seller
+                                        </span>
+                                        {{/if}}
+                                    </div>
+                                    <div class="text-dark" style="font-size: 0.95rem;">
+                                        {{this.content}}
+                                    </div>
+                                </div>
+                                <div class="ms-2 mt-1">
+                                    <span class="text-muted small">{{formatDate this.created_at "DD/MM/YYYY"}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {{/each}}
+                    </div>
+                    {{/if}}
+                    {{#if ../isAuthenticated}}
+                    <div class="mt-2 d-none reply-box" id="reply-box-{{this.comment_id}}">
+                        <form class="frm-post-comment d-flex gap-2 align-items-center">
+                            <input type="hidden" name="product_id" value="{{../product.product_id}}">
+                            <input type="hidden" name="parent_comment_id" value="{{this.comment_id}}">
+
+                            <div class="avatar-badge bg-primary" style="width:32px; height:32px; font-size:0.8rem;">Me
+                            </div>
+                            <input type="text" name="content"
+                                class="form-control rounded-pill bg-light border-0 px-3 py-1 small"
+                                placeholder="Reply to {{this.reviewer_name}}..." required>
+                            <button type="submit" class="btn btn-sm btn-primary rounded-circle"
+                                style="width: 32px; height: 32px;">
+                                <i class="bi bi-send-fill" style="font-size: 0.8rem;"></i>
+                            </button>
+                        </form>
+                    </div>
+                    {{/if}}
+
                 </div>
             </div>
             {{/each}}
 
-            <div class="mb-3"></div>
-        {{/each}}
-    </section>
+            {{#unless comments}}
+            <p class="text-muted fst-italic" id="no-feedback-msg">No feedback yet. Be the first to ask!</p>
+            {{/unless}}
+        </div>
 
-    <!-- Related products -->
-    <section class="mt-5 mb-5">
-        <h5 class="mb-3">Related products</h5>
-        <div class="row g-3">
-            <!-- Repeat this col for more products -->
-
-            {{#each related_products}}
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="related-card">
-                    <div class="related-img d-flex align-items-center justify-content-center">
-                        Image
+        {{#if isAuthenticated}}
+        <div class="mt-4 pt-3 border-top">
+            <div class="d-flex gap-2">
+                <div class="avatar-badge bg-primary" style="width:40px; height:40px; font-size:1rem;">Me</div>
+                <form class="frm-post-comment flex-grow-1">
+                    <input type="hidden" name="product_id" value="{{product.product_id}}">
+                    <input type="hidden" name="parent_comment_id" value="">
+                    <div class="input-group">
+                        <input type="text" name="content" class="form-control rounded-pill bg-light border-0 px-3"
+                            placeholder="Ask a question or leave a feedback..." required>
+                        <button class="btn btn-primary rounded-pill px-4 ms-2" type="submit">Post</button>
                     </div>
+                </form>
+            </div>
+        </div>
+        {{/if}}
+    </div>
 
-                    <button class="wishlist-btn">
+    <div class="mt-5 mb-5">
+        <h4 class="serif-font fw-bold mb-4">Related products</h4>
+
+        <div class="owl-carousel owl-theme">
+            {{#each related_products}}
+            <div class="item">
+                <div class="related-card h-100">
+                    <button class="wishlist-btn-small wishlist-icon-small" data-id="{{this.product_id}}">
+                        {{#if this.is_liked}}
+                        <i class="bi bi-heart-fill text-gold"></i>
+                        {{else}}
                         <i class="bi bi-heart"></i>
+                        {{/if}}
                     </button>
 
-                    <div class="p-2 small">
-                        <div class="fw-semibold">{{this.name}}</div>
-                        <div>Name of the bidder</div>
-                        <div class="fw-semibold mb-1">$90</div>
+                    <div class="related-img">
+                        <a href="/menu/detail?product_id={{this.product_id}}" class="stretched-link">
+                            <img src="/src/static/images/{{this.seller_id}}/{{this.product_id}}/main_thumbs.jpg"
+                                alt="{{this.name}}">
+                        </a>
+                    </div>
 
-                        <div class="text-muted">
-                            <div>Buy it now: <span class="text-primary">$100</span></div>
-                            <div>Listed: 02/11/2025</div>
-                            <div>Time left: 11/11/2025</div>
-                            <div>Bids: 9</div>
+                    <div class="p-3">
+                        <div class="fw-bold text-truncate" title="{{this.name}}">{{this.name}}</div>
+                        <div class="text-muted small mb-1">Bidder: {{this.leader_name}}</div>
+
+                        <div class="fw-bold fs-5 text-warning mb-2">${{formatCurrency this.current_price}}</div>
+
+                        <div class="text-muted small" style="line-height: 1.6;">
+                            <div>Buy now: <span class="text-primary fw-bold">{{#if this.buy_now_price}}${{formatCurrency
+                                    this.buy_now_price}}{{else}}None{{/if}}</span></div>
+                            <div>Listed: {{formatDate this.created_at "DD/MM/YYYY"}}</div>
+                            <div>Time left: {{formatAuctionTime this.end_time "DD/MM/YYYY"}}</div>
+                            <div>Bids: {{this.bid_count}}</div>
                         </div>
                     </div>
                 </div>
             </div>
             {{/each}}
-
         </div>
     </section>
 </main>
@@ -549,4 +984,252 @@
     {{/if}}
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+
+        // ==========================================
+        // 1. OWL CAROUSEL (Related Products)
+        // ==========================================
+        $('.owl-carousel').owlCarousel({
+            loop: true,           // Cho phép cuộn vòng lặp
+            margin: 20,           // Khoảng cách giữa các item
+            nav: true,            // Hiện mũi tên Next/Prev
+            dots: false,          // Ẩn dấu chấm tròn bên dưới
+            autoplay: true,       // Tự động chạy
+            autoplayTimeout: 3000,
+            autoplayHoverPause: true,
+            navText: [
+                '<i class="bi bi-chevron-left"></i>',
+                '<i class="bi bi-chevron-right"></i>'
+            ],
+            responsive: {
+                0: { items: 1 },
+                576: { items: 2 },
+                768: { items: 3 },
+                992: { items: 4 },
+                1200: { items: 5 }
+            }
+        });
+
+        // ==========================================
+        // 2. CLEAVE JS (Format tiền tệ)
+        // ==========================================
+        if ($('.currency-input').length) {
+            new Cleave('.currency-input', {
+                numeral: true,
+                numeralThousandsGroupStyle: 'thousand'
+            });
+        }
+
+        // ==========================================
+        // 3. QUILL EDITOR (Cho Seller)
+        // ==========================================
+        if ($('#quill-editor').length) {
+            var quill = new Quill('#quill-editor', {
+                theme: 'snow',
+                placeholder: 'Write your description update...',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline'],
+                        [{ 'list': 'ordered' }, { 'list': 'bullet' }]
+                    ]
+                }
+            });
+            $('#frmAppendDesc').on('submit', function () {
+                $('#hiddenDescInput').val(quill.root.innerHTML);
+            });
+        }
+
+        // ==========================================
+        // 4. LOGIC XỬ LÝ ẢNH (Gallery)
+        // ==========================================
+        // Lấy base path từ ảnh hiện tại để tái sử dụng
+        const sellerId = '{{product.seller_id}}';
+        const productId = '{{product.product_id}}';
+        const basePath = `/src/static/images/${sellerId}/${productId}/`;
+        const imageFiles = ['main.jpg', '1.jpg', '2.jpg', '3.jpg'];
+
+        let currentIndex = 0;
+        const totalImages = $('.thumb-img:visible').length;
+
+        function updateGallery(index) {
+            if (index < 0) index = totalImages - 1;
+            if (index >= totalImages) index = 0;
+            currentIndex = index;
+
+            // Đổi ảnh chính
+            const filename = imageFiles[currentIndex];
+            $('#mainImage').attr('src', basePath + filename);
+
+            // Cập nhật active
+            $('.thumb-img').removeClass('active');
+            $(`.thumb-img[data-index="${currentIndex}"]`).addClass('active');
+        }
+
+        $('.thumb-img').on('click', function () {
+            updateGallery($(this).data('index'));
+        });
+
+        $('#btnPrevImg').on('click', function () {
+            updateGallery(currentIndex - 1);
+        });
+
+        $('#btnNextImg').on('click', function () {
+            updateGallery(currentIndex + 1);
+        });
+
+        // ==========================================
+        // 5. LOGIC COMMENT & REPLY
+        // ==========================================
+
+        // Sự kiện bấm nút Reply
+        $(document).on('click', '.reply-trigger', function () {
+            const commentId = $(this).data('id');
+            $(`#reply-box-${commentId}`).toggleClass('d-none');
+            $(`#reply-box-${commentId} input[name="content"]`).focus();
+        });
+
+        // Xử lý Post Comment (Chung cho cả comment gốc và reply)
+        $(document).on('submit', '.frm-post-comment', async function (e) {
+            e.preventDefault();
+
+            const form = $(this);
+            const productId = form.find('input[name="product_id"]').val();
+            const parentId = form.find('input[name="parent_comment_id"]').val();
+            const contentInput = form.find('input[name="content"]');
+            const content = contentInput.val();
+
+            if (!content.trim()) return;
+
+            try {
+                const response = await fetch('/menu/comment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        parent_comment_id: parentId,
+                        content: content
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const newCmt = data.comment;
+                    const firstLetter = newCmt.reviewer_name.charAt(0).toUpperCase();
+
+                    // Logic vẽ Badge Seller
+                    const productSellerId = '{{product.seller_id}}';
+                    let badgeHtml = '';
+                    if (String(newCmt.user_id) === String(productSellerId)) {
+                        badgeHtml = `<span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;"><i class="bi bi-shop"></i> Seller</span>`;
+                    }
+
+                    const isReply = !!parentId;
+                    const indentClass = isReply ? 'ms-5 mt-2' : 'mt-3';
+
+                    const html = `
+                    <div class="d-flex gap-2 animate__animated animate__fadeIn ${indentClass}">
+                        <div class="flex-shrink-0">
+                            <div class="avatar-badge bg-primary" style="width: ${isReply ? '32px' : '40px'}; height: ${isReply ? '32px' : '40px'}; font-size: ${isReply ? '0.8rem' : '1rem'};">
+                                Me
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="comment-bubble">
+                                <div class="d-flex align-items-center">
+                                    <span class="fw-bold" style="font-size: 0.9rem;">${newCmt.reviewer_name}</span>
+                                    ${badgeHtml}
+                                </div>
+                                <div class="text-dark" style="font-size: 0.95rem;">${newCmt.content}</div>
+                            </div>
+                            <div class="ms-2 mt-1 d-flex gap-3 align-items-center">
+                                <span class="text-muted small">Just now</span>
+                            </div>
+                        </div>
+                    </div>`;
+
+                    if (isReply) {
+                        form.closest('.reply-box').after(html);
+                        form.closest('.reply-box').addClass('d-none');
+                    } else {
+                        $('#commentList').append(html);
+                        $('#no-feedback-msg').remove();
+                    }
+                    contentInput.val('');
+
+                } else {
+                    alert(data.message || 'Error posting comment');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Cannot connect to server');
+            }
+        });
+
+        // ==========================================
+        // 6. ADD TO WATCHLIST
+        // ==========================================
+
+        function updateAllWatchlistButtons(productId, isAdded) {
+            // 1. Cập nhật Nút To (Main Button) nếu có
+            const mainBtn = $(`.wishlist-toggle[data-id="${productId}"]`);
+            if (mainBtn.length) {
+                if (isAdded) {
+                    mainBtn.html('<i class="bi bi-heart-fill me-1"></i> Remove from watchlist');
+                } else {
+                    mainBtn.html('<i class="bi bi-heart me-1"></i> Add to watchlist');
+                }
+            }
+
+            // 2. Cập nhật Nút Tim Nhỏ (Related Products) nếu có
+            const smallBtns = $(`.wishlist-icon-small[data-id="${productId}"]`);
+            smallBtns.each(function () {
+                const icon = $(this).find('i');
+                if (isAdded) {
+                    icon.removeClass('bi-heart').addClass('bi-heart-fill text-gold');
+                } else {
+                    icon.removeClass('bi-heart-fill text-gold').addClass('bi-heart');
+                }
+            });
+        }
+
+        // Hàm gọi AJAX
+        function toggleWatchlist(productId) {
+            $.post('/menu/watchlist/toggle', { product_id: productId }, function (data) {
+                if (data.success) {
+                    // Gọi hàm cập nhật đồng bộ tất cả các nút
+                    updateAllWatchlistButtons(productId, data.isAdded);
+                } else {
+                    alert(data.message);
+                    if (data.message === 'Please login first!') {
+                        window.location.href = '/signin';
+                    }
+                }
+            }).fail(function () {
+                alert('Cannot connect to server');
+            });
+        }
+
+        // Sự kiện cho nút to (Main Button)
+        $('.wishlist-toggle').on('click', function (e) {
+            e.preventDefault();
+            const id = $(this).data('id');
+            toggleWatchlist(id);
+        });
+
+        // Sự kiện cho nút tim nhỏ (Related Products)
+        $('.wishlist-icon-small').on('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation(); // Chặn sự kiện click lan ra card (tránh nhảy trang)
+            const id = $(this).data('id');
+            toggleWatchlist(id);
+        });
+    });
+</script>
 {{/section}}

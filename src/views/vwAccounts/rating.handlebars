@@ -1,0 +1,445 @@
+{{#section 'css'}}
+<style>
+  /* Rating Card */
+  .rating-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    padding: 40px 50px;
+    border: 1px solid rgba(0, 0, 0, 0.02);
+  }
+
+  .rating-header {
+    background: linear-gradient(135deg, #FF8C00 0%, #FF6B00 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 25px 30px;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .rating-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60%;
+    height: 100%;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.2) 2px, transparent 2px);
+    background-size: 20px 20px;
+    -webkit-mask-image: linear-gradient(to left, black 20%, transparent 100%);
+    mask-image: linear-gradient(to left, black 20%, transparent 100%);
+  }
+
+  .rating-header h3 {
+    font-weight: 800;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .rating-header p {
+    margin: 5px 0 0 0;
+    opacity: 0.9;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Product Info */
+  .product-info-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+    border: 1px solid #e9ecef;
+  }
+
+  .product-info-card img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  .product-info-card .product-name {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #212529;
+  }
+
+  .product-info-card .product-price {
+    color: #FF8C00;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  /* Rating Target Info */
+  .rating-target {
+    background: linear-gradient(135deg, #212529 0%, #343a40 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+  }
+
+  .rating-target .avatar {
+    width: 60px;
+    height: 60px;
+    background: #FF8C00;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    margin-right: 15px;
+  }
+
+  .rating-target .name {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .rating-target .role-badge {
+    background: #FF8C00;
+    color: white;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 5px;
+    display: inline-block;
+  }
+
+  /* Comment Box */
+  .comment-section label {
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 10px;
+  }
+
+  .comment-section textarea {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    resize: none;
+  }
+
+  .comment-section textarea:focus {
+    background: #fff;
+    border-color: #FF8C00;
+    box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.15);
+    outline: none;
+  }
+
+  /* Rating Type Badges */
+  .rating-type-positive {
+    color: #198754;
+  }
+
+  .rating-type-negative {
+    color: #dc3545;
+  }
+
+  /* Buttons */
+  .btn-submit-rating {
+    background: linear-gradient(135deg, #FF8C00 0%, #FF6B00 100%);
+    color: white;
+    font-weight: 700;
+    padding: 12px 40px;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
+    transition: all 0.3s ease;
+  }
+
+  .btn-submit-rating:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 140, 0, 0.5);
+    color: white;
+  }
+
+  .btn-cancel-rating {
+    background: #6c757d;
+    color: white;
+    font-weight: 600;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+  }
+
+  .btn-cancel-rating:hover {
+    background: #5a6268;
+    color: white;
+  }
+
+  /* Rating Type Selection */
+  .rating-type-group {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+
+  .rating-type-btn {
+    flex: 1;
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+  }
+
+  .rating-type-btn:hover {
+    border-color: #FF8C00;
+  }
+
+  .rating-type-btn.active-positive {
+    border-color: #198754;
+    background: rgba(25, 135, 84, 0.1);
+  }
+
+  .rating-type-btn.active-negative {
+    border-color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+  }
+
+  .rating-type-btn input {
+    display: none;
+  }
+
+  .rating-type-btn .icon {
+    font-size: 2rem;
+    margin-bottom: 5px;
+  }
+
+  .rating-type-btn .text {
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  /* Already Rated Message */
+  .already-rated {
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .already-rated i {
+    font-size: 4rem;
+    color: #198754;
+    margin-bottom: 20px;
+  }
+
+  .already-rated h4 {
+    font-weight: 700;
+    color: #212529;
+  }
+
+  .already-rated p {
+    color: #6c757d;
+  }
+</style>
+{{/section}}
+
+{{#section 'js'}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  $(document).ready(function() {
+    // Handle rating type selection
+    $('.rating-type-btn').on('click', function() {
+      $('.rating-type-btn').removeClass('active-positive active-negative');
+      
+      const input = $(this).find('input');
+      input.prop('checked', true);
+      
+      if (input.val() === '1') {
+        $(this).addClass('active-positive');
+      } else {
+        $(this).addClass('active-negative');
+      }
+    });
+
+    // Initialize default selection
+    const checkedInput = $('input[name="is_positive"]:checked');
+    if (checkedInput.length) {
+      const parentBtn = checkedInput.closest('.rating-type-btn');
+      if (checkedInput.val() === '1') {
+        parentBtn.addClass('active-positive');
+      } else {
+        parentBtn.addClass('active-negative');
+      }
+    }
+
+    // Form validation
+    $('#ratingForm').on('submit', function(e) {
+      const isPositive = $('input[name="is_positive"]:checked').val();
+      const comment = $('textarea[name="comment"]').val().trim();
+
+
+      if (isPositive === undefined) {
+        e.preventDefault();
+        Swal.fire({
+          icon: 'warning',
+          title: 'Missing Rating Type',
+          text: 'Please select Positive or Negative rating.',
+          confirmButtonColor: '#FF8C00'
+        });
+        return;
+      }
+
+      if (!comment) {
+        e.preventDefault();
+        Swal.fire({
+          icon: 'warning',
+          title: 'Missing Comment',
+          text: 'Please write a comment for your rating.',
+          confirmButtonColor: '#FF8C00'
+        });
+        return;
+      }
+    });
+
+    // Success/Error messages
+    const errMessage = '{{err_message}}';
+    const successMessage = '{{success_message}}';
+
+    if (errMessage) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: errMessage,
+        confirmButtonColor: '#dc3545'
+      });
+    }
+
+    if (successMessage) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: successMessage,
+        confirmButtonColor: '#198754'
+      });
+    }
+  });
+</script>
+{{/section}}
+
+<div class="rating-card">
+  <!-- Header -->
+  <div class="rating-header">
+    {{#if (eq role 0)}}
+      <h3><i class="bi bi-star-fill me-2"></i>Rate the Seller</h3>
+      <p>Share your experience with the seller of this item</p>
+    {{else}}
+      <h3><i class="bi bi-star-fill me-2"></i>Rate the Bidder</h3>
+      <p>Share your experience with the winning bidder</p>
+    {{/if}}
+  </div>
+
+  {{#if alreadyRated}}
+    <!-- Already Rated -->
+    <div class="already-rated">
+      <i class="bi bi-check-circle-fill"></i>
+      <h4>You have already submitted your rating!</h4>
+      <p>Thank you for your feedback. It helps build trust in our community.</p>
+      <a href="/profile/won" class="btn btn-submit-rating mt-3">
+        <i class="bi bi-arrow-left me-2"></i>Back to Won Items
+      </a>
+    </div>
+  {{else}}
+    <!-- Product Info -->
+    <div class="product-info-card d-flex align-items-center">
+      <img src="/src/static/images/{{transaction.seller_id}}/{{transaction.product_id}}/main_thumbs.jpg" 
+           alt="Product Image" class="me-3">
+      <div class="flex-grow-1">
+        <div class="product-name">{{transaction.product_name}}</div>
+        <div class="text-muted mb-1">Transaction #{{transaction.transaction_id}}</div>
+        <div class="product-price">{{formatCurrency transaction.final_price}}</div>
+      </div>
+      <div>
+        <span class="badge bg-success px-3 py-2">Completed</span>
+      </div>
+    </div>
+
+    <!-- Rating Target -->
+    <div class="rating-target">
+      <div class="avatar">
+        {{#if (eq role 0)}}
+          {{#if transaction.seller_name}}{{transaction.seller_name.[0]}}{{else}}S{{/if}}
+        {{else}}
+          {{#if transaction.buyer_name}}{{transaction.buyer_name.[0]}}{{else}}B{{/if}}
+        {{/if}}
+      </div>
+      <div>
+        {{#if (eq role 0)}}
+          <div class="name">{{transaction.seller_name}}</div>
+          <span class="role-badge"><i class="bi bi-shop me-1"></i>Seller</span>
+        {{else}}
+          <div class="name">{{transaction.buyer_name}}</div>
+          <span class="role-badge"><i class="bi bi-person me-1"></i>Bidder</span>
+        {{/if}}
+      </div>
+    </div>
+
+    <!-- Rating Form -->
+    <form id="ratingForm" action="/profile/rating" method="POST">
+      <input type="hidden" name="transaction_id" value="{{transaction.transaction_id}}">
+      <input type="hidden" name="product_id" value="{{transaction.product_id}}">
+      {{#if (eq role 0)}}
+        <input type="hidden" name="rater_id" value="{{authUser.user_id}}">
+        <input type="hidden" name="ratee_id" value="{{transaction.seller_id}}">
+      {{else}}
+        <input type="hidden" name="rater_id" value="{{authUser.user_id}}">
+        <input type="hidden" name="ratee_id" value="{{transaction.buyer_id}}">
+      {{/if}}
+
+      <!-- Rating Type -->
+      <div class="mb-4">
+        <label class="form-label fw-bold mb-3">
+          <i class="bi bi-hand-thumbs-up me-2"></i>Overall Experience
+        </label>
+        <div class="rating-type-group">
+          <div class="rating-type-btn" onclick="">
+            <input type="radio" name="is_positive" value="1" checked>
+            <div class="icon rating-type-positive"><i class="bi bi-emoji-smile-fill"></i></div>
+            <div class="text rating-type-positive">Positive</div>
+          </div>
+          <div class="rating-type-btn" onclick="">
+            <input type="radio" name="is_positive" value="0">
+            <div class="icon rating-type-negative"><i class="bi bi-emoji-frown-fill"></i></div>
+            <div class="text rating-type-negative">Negative</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comment -->
+      <div class="comment-section mb-4">
+        <label class="form-label">
+          <i class="bi bi-chat-left-text me-2"></i>Write your review
+        </label>
+        <textarea name="comment" class="form-control" rows="4" 
+                  placeholder="Share details about your experience. What went well? What could be improved?"></textarea>
+      </div>
+
+      <!-- Buttons -->
+      <div class="d-flex justify-content-between align-items-center mt-4">
+        <a href="/profile/won" class="btn btn-cancel-rating">
+          <i class="bi bi-x-lg me-2"></i>Cancel
+        </a>
+        <button type="submit" class="btn btn-submit-rating">
+          <i class="bi bi-send-fill me-2"></i>Submit Rating
+        </button>
+      </div>
+    </form>
+  {{/if}}
+</div>

@@ -1,64 +1,108 @@
 {{#section 'css'}}
 <style>
-  /* Table Styles */
-  .table-custom th {
-    font-weight: 700;
+  /* Style Header Bảng */
+  .table thead th {
     border-bottom: 2px solid #000;
+    /* Đường kẻ đậm màu đen */
+    font-weight: 700;
+    font-size: 1rem;
+    padding-bottom: 10px;
   }
 
-  .table-custom td {
+  /* Style Hàng (Đường kẻ đứt) */
+  .dashed-line {
+    border-bottom: 1px dashed #ccc;
+  }
+
+  .table tbody td {
     vertical-align: middle;
-    padding: 15px 10px;
+    padding: 15px 5px;
+    font-weight: 500;
+  }
+
+  /* Status Text */
+  .status-waiting {
+    color: #495057;
+  }
+
+  /* Nút Pay */
+  .btn-pay {
+    border: 2px solid #0d6efd;
+    color: #0d6efd;
+    background: transparent;
+    font-weight: 700;
+    padding: 4px 20px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: 0.2s;
+  }
+
+  .btn-pay:hover {
+    background-color: #0d6efd;
+    color: white;
+  }
+
+  /* Icon Success */
+  .icon-success {
+    color: #198754;
+    /* Màu xanh lá */
+    font-size: 1.5rem;
   }
 
   .price-text {
-    font-weight: 700;
+    font-weight: 800;
     font-size: 1.1rem;
   }
 </style>
 {{/section}}
 
+<h3 class="mb-4 fw-bold text-primary">Won items</h3>
 
-<h3 class="mb-4 fw-bold text-primary">Won Items</h3>
-
-{{#if wonItems.length}}
-<div class="card border-0 shadow-sm">
-  <div class="card-body p-0">
-    <table class="table table-hover table-custom mb-0 w-100">
-      <thead class="bg-light">
-        <tr>
-          <th scope="col" style="width: 15%">Auction ID</th>
-          <th scope="col" style="width: 30%">Date</th>
-          <th scope="col" style="width: 25%">Status</th>
-          <th scope="col" style="width: 20%">Total</th>
-          <th scope="col" style="width: 10%">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each wonItems}}
-        <tr>
-          <td class="fw-bold">#{{this.product_id}}</td>
-
-          <td>{{formatDate this.end_time "DD/MM/YYYY HH:mm"}}</td>
-
-          <td><span class="text-muted fst-italic">--</span></td>
-
-          <td class="price-text">${{this.current_price}}</td>
-
-          <td>
-            <a href="/products/detail?id={{this.product_id}}" class="btn btn-sm btn-outline-primary">
-              <i class="bi bi-eye"></i>
-            </a>
-          </td>
-        </tr>
-        {{/each}}
-      </tbody>
-    </table>
-  </div>
+{{#if empty}}
+<div class="alert alert-info text-center py-4">
+  You haven't won any auctions yet. <br>
+  <a href="/menu" class="alert-link">Keep bidding!</a>
 </div>
-
 {{else}}
-<div class="alert alert-info text-center">
-  You haven't won any auctions yet. <a href="/products" class="alert-link">Keep bidding!</a>
+
+<div class="table-responsive">
+  <table class="table table-borderless">
+    <thead>
+      <tr>
+        <th scope="col">Auction id</th>
+        <th scope="col">Date</th>
+        <th scope="col">Status</th>
+        <th scope="col">Total</th>
+        <th scope="col" class="text-end pe-3">Note</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each wonItems}}
+      <tr class="dashed-line">
+
+        <td class="fw-bold">#{{this.product_id}}</td>
+
+        <td>{{formatDate this.end_time "DD/MM/YYYY"}}</td>
+
+        <td>
+          <span class="{{#unless this.is_paid}}status-waiting{{/unless}}">
+            {{this.status_text}}
+          </span>
+        </td>
+
+        <td class="price-text">${{formatCurrency this.current_price}}</td>
+
+        <td class="text-end pe-3">
+          {{#if this.is_paid}}
+          <i class="bi bi-check-circle-fill icon-success"></i>
+          {{else}}
+          <a href="/checkout?id={{this.product_id}}" class="btn-pay">Pay</a>
+          {{/if}}
+        </td>
+
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
 </div>
 {{/if}}
