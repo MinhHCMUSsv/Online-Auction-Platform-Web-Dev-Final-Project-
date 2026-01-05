@@ -28,7 +28,7 @@ const checkExpiredAuctions = async () => {
 
             const transaction = {
                 product_id: auction.product_id,
-                buyder_id: auction.leader_id,
+                buyer_id: auction.leader_id,
                 seller_id: auction.seller_id,
                 final_price: auction.current_price,
                 payment_confirmed: false,
@@ -37,6 +37,7 @@ const checkExpiredAuctions = async () => {
             };
 
             await transactionService.createTransaction(transaction);
+            
 
         } else {
             // --- TH2: KHÔNG CÓ NGƯỜI ĐẶT GIÁ ---

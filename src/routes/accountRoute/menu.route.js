@@ -159,7 +159,7 @@ router.post('/place-bid', async function (req, res) {
         let sendNotification = false;
 
         // BƯỚC 2: LOGIC TÍNH GIÁ BID_AMOUNT ĐỂ LƯU VÀO LỊCH SỬ
-        
+
         // Trường hợp A: Sản phẩm chưa có ai đấu giá
         if (!currentLeaderId) {
             finalBidAmount = startPrice;
@@ -175,11 +175,15 @@ router.post('/place-bid', async function (req, res) {
                 
             else 
             {
-                if (inputMaxAutoBid <= product.leader_max) 
+                if (inputMaxAutoBid < product.leader_max) 
                 {
                     finalBidAmount = inputMaxAutoBid; // TH1: Người B đặt giá thấp hơn hoặc bằng người đang thắng
                     isChange = false;   
                 }
+
+                else if (inputMaxAutoBid === product.leader_max)
+                    finalBidAmount = inputMaxAutoBid;
+
                 else {
                     finalBidAmount = Math.min(inputMaxAutoBid, +product.leader_max + step); // TH2: Người B đặt giá cao hơn người đang thắng
                     sendNotification = true;
