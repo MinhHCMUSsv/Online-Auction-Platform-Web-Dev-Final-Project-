@@ -13,7 +13,7 @@ import {
     sendFinalSellerNotification
 } from '../../utils/email.js';
 
-import { sendBidderRejectedNotification, sendOutbidNotification, sendBidSuccessfullyNotification, sendPriceUpdateNotification } from '../../utils/email.js';
+import { sendBidderRejectedNotification, sendOutbidNotification, sendBidSuccessfullyNotification, sendPriceUpdateNotification, sendNextWinningNotification} from '../../utils/email.js';
 
 const router = express.Router();
 
@@ -253,7 +253,7 @@ router.post('/place-bid', async function (req, res) {
                     const sellerInfo = await userService.getUserById(product.seller_id);
                     const bidderInfo = await userService.getUserById(bidderId);
                     await sendBidSuccessfullyNotification(bidderInfo.email, product.name, finalBidAmount);
-                    await sendPriceUpdateNotification(sellerInfo.email, product.name, finalBidAmount, inputMaxAutoBid, bidderInfo.name);
+                    await sendPriceUpdateNotification(sellerInfo.email, product.name, finalBidAmount);
                     console.log('Bid notification emails sent successfully');
                 } catch (mailError) {
                     console.error('Background Email Error (Bid Notification):', mailError);
@@ -645,7 +645,7 @@ router.get('/search', async function (req, res) {
 // Check if user is banned from bidding on a product
 router.get('/check-ban', async function (req, res) {
     try {
-        const banUse = { 
+        const banUser = { 
             product_id: req.body.product_id,
             bidder_id: req.body.bidder_id
         };
@@ -666,7 +666,7 @@ router.post('/reject-bidder', async function (req, res) {
         const sellerId = req.session.authUser.user_id;
         
         // Verify seller owns the product
-        const product = await productService.getProductById(product_id);
+        const product = await productService.getProduct(product_id);
         if (!product || product.seller_id !== sellerId) {
             return res.status(403).json({ 
                 success: false, 
@@ -686,7 +686,7 @@ router.post('/reject-bidder', async function (req, res) {
         }
         
         // Check if bidder is currently the leader
-        const wasLeader = (product.leader_id === parseInt(bidder_id));
+        const wasLeader = (product.leader_id === bidder_id);
         
         // Add to ban list
         const banUser = {
@@ -697,19 +697,25 @@ router.post('/reject-bidder', async function (req, res) {
         await userService.banUser(banUser);
         
         // If banned user was the leader, find next highest bidder
+        console.log('Was leader:', wasLeader);
         if (wasLeader) {
             const nextBidder = await userService.findNextHighestBidder(banUser);
-                
+            const oldBidder = await userService.getOldBidderInfo(product.leader_id);
+            
+            console.log('current_price:', oldBidder.bid_amount);
+            console.log('Next bidder:', nextBidder.bid_amount);
+            const current_price = Math.min(Number(oldBidder.bid_amount), Number(nextBidder.bid_amount));
+            console.log('Current price after rejection:', current_price);
             if (nextBidder) {
                 // Update product with new leader
                 await productService.updateCurrentPriceAndLeader(product_id, {
-                    current_price: nextBidder.bid_amount,
+                    current_price: current_price,
                     leader_id: nextBidder.bidder_id,
                     leader_max: nextBidder.max_auto_bid
                 });
                 
                 // Send email to new leader
-                await sendWinningNotification(nextBidder.email, product.name, nextBidder.bid_amount);
+                await sendNextWinningNotification(nextBidder.email, product.name, nextBidder.bid_amount);
             } else {
                 // No other bidders, reset to starting price
                 await productService.updateCurrentPriceAndLeader(product_id, {

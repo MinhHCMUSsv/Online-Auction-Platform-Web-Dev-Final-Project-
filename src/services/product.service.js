@@ -154,6 +154,12 @@ export function getProductById(product_id) {
         .first();
 }
 
+export function getProduct(product_id) {
+    return db('product')
+        .where('product_id', product_id)
+        .first();
+}
+
 export function getSellerById(seller_id) {
     return db('app_user')
         .where('user_id', seller_id)
