@@ -53,6 +53,14 @@
     font-weight: 800;
     font-size: 1.1rem;
   }
+
+  .clickable-row {
+    cursor: pointer; 
+    transition: background-color 0.2s;
+  }
+  .clickable-row:hover {
+    background-color: #f8f9fa; 
+  }
 </style>
 {{/section}}
 
@@ -78,7 +86,7 @@
     </thead>
     <tbody>
       {{#each wonItems}}
-      <tr class="dashed-line">
+      <tr class="dashed-line clickable-row" data-href="/menu/detail?product_id={{this.product_id}}">
 
         <td class="fw-bold">#{{this.product_id}}</td>
 
@@ -101,6 +109,12 @@
             {{!-- Trạng thái null: Chưa thanh toán -> Hiện nút Pay --}}
             <a href="/transaction?product_id={{this.product_id}}" class="btn-pay">Pay</a>
           
+          {{else if this.can_rate}}
+          <a href="/profile/rating?product_id={{this.product_id}}&id={{this.transaction_id}}" 
+            class="btn btn-sm btn-warning fw-bold text-dark">
+            <i class="bi bi-star-fill"></i> Rate
+          </a>
+          
           {{else}}
             {{!-- Trạng thái 0 (Cancelled) hoặc 1 (Processing) -> Hiện text hoặc icon khác --}}
             {{#if (eq this.status_text 'Cancelled')}}
@@ -117,3 +131,17 @@
   </table>
 </div>
 {{/if}}
+
+{{#section 'js'}}
+<script>
+  $(document).ready(function($) {
+    $(".clickable-row").click(function() {
+      window.location = $(this).data("href");
+    });
+
+    $(".btn-pay, .btn-warning, a.btn").click(function(e) {
+      e.stopPropagation(); 
+    });
+  });
+</script>
+{{/section}}

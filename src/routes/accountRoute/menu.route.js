@@ -89,6 +89,7 @@ router.get('/detail', async function (req, res) {
     if (product.leader_id) {
         winBidder = await userService.getUserById(product.leader_id);
     }
+    console.log('win bidder:', winBidder);
 
     const suggestedPrice = +product.current_price + +product.bid_step;
     

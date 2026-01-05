@@ -57,7 +57,7 @@
             <div class="text-end me-2">
               <div class="fw-bold text-dark" style="font-size: 1.1rem;">{{authUser.full_name}}</div>
               <div class="d-flex align-items-center justify-content-end" style="font-size: 0.9rem;">
-                <span class="text-muted me-2">Points: {{authUser.points}}</span>
+                <span class="text-muted me-2">Points: {{authUser.points}} / {{authUser.positive_point}}</span>
                 {{#if (eq authUser.role 1)}}
                 <span class="badge rounded-pill bg-success">Seller</span>
                 {{else}}

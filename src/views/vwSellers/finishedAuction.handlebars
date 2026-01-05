@@ -14,6 +14,14 @@
         font-weight: 500;
     }
 
+    .clickable-row {
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .clickable-row:hover {
+        background-color: #f8f9fa;
+    }
+
     /* Style cho các nút Action */
     .btn-rate {
         border: 1px solid #198754;
@@ -72,7 +80,7 @@
             </thead>
             <tbody>
                 {{#each products}}
-                <tr class="dashed-line">
+                <tr class="dashed-line clickable-row" data-href="/menu/detail?product_id={{this.product_id}}">
                     <td class="fw-bold">#{{this.product_id}}</td>
 
                     <td>{{formatDate this.end_time "DD/MM/YYYY"}}</td>
@@ -97,10 +105,32 @@
 
                     <td class="text-end">
                         {{#if this.winner_name}}
-                        <a href="/seller/rate/{{this.product_id}}" class="btn-rate text-decoration-none">Rate</a>
+                            {{#if this.is_success}}
+                                <div class="d-flex align-items-center justify-content-end gap-2">
+                                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                </div>
+                            
+                            {{else if this.can_rate}}
+                                <a href="/profile/rating?product_id={{this.product_id}}&id={{this.transaction_id}}" 
+                                   class="btn-rate">
+                                   <i class="bi bi-star-fill"></i> Rate
+                                </a>
 
+                            {{else if this.can_upload}}
+                                <a href="/transaction?product_id={{this.product_id}}" 
+                                   class="btn-upload">
+                                   <i class="bi bi-upload"></i> Invoice
+                                </a>
+
+                            {{else}}
+                                {{#if (eq this.status_text 'Cancelled')}}
+                                    <span class="badge bg-danger">Cancelled</span>
+                                {{else}}
+                                    <span class="text-primary small fw-bold">{{this.status_text}}</span>
+                                {{/if}}
+                            {{/if}}
                         {{else}}
-                        <span class="text-muted small">Ended</span>
+                            <span class="text-primary small fw-bold">Ended</span>
                         {{/if}}
                     </td>
                 </tr>
@@ -138,3 +168,17 @@
     </nav>
     {{/if}}
 </div>
+
+{{#section 'js'}}
+<script>
+    $(document).ready(function($) {
+        $(".clickable-row").click(function() {
+            window.location = $(this).data("href");
+        });
+
+        $(".btn-rate, .btn-upload, a").click(function(e) {
+            e.stopPropagation();
+        });
+    });
+</script>
+{{/section}}
