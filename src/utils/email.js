@@ -98,3 +98,29 @@ export const sendSellerReplyNotification = async function (toEmails, productName
 
     return await sendMailBase(toEmails, subject, htmlContent);
 };
+
+export const sendDescriptionUpdateNotification = async function (toEmails, productName, productLink, newDescription) {
+    const subject = `[MNGo Auction] Description updated for: ${productName}`;
+
+    const htmlContent = `
+        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+            <h3 style="color: #fd7e14;">Product Update!</h3>
+            <p>The seller of <strong>"${productName}"</strong> has added new information to the description.</p>
+            
+            <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #0d6efd; margin: 15px 0;">
+                <strong>New Information:</strong><br>
+                <em>${newDescription}</em>
+            </div>
+
+            <p>Click below to view the product:</p>
+            <a href="${productLink}" style="background-color: #fd7e14; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                View Product Detail
+            </a>
+            
+            <p style="margin-top: 20px; font-size: 12px; color: #888;">If the button doesn't work, copy this link: ${productLink}</p>
+            <p style="margin-top: 20px; font-size: 12px; color: #888;">You received this email because you placed a bid or commented on this product.</p>
+        </div>
+    `;
+
+    return await sendMailBase(toEmails, subject, htmlContent);
+};

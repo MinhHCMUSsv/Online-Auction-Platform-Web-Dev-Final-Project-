@@ -19,6 +19,8 @@ import commonRouter from './src/routes/accountRoute/common.route.js';
 import profileRouter from './src/routes/accountRoute/profile.route.js';
 import menuRouter from './src/routes/accountRoute/menu.route.js';
 
+import transactionRouter from './src/routes/transaction.route.js'
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const helpers = hbs_helpers();
@@ -105,6 +107,8 @@ app.use('/auth', authRouter);
 app.use('/profile', isAuth, profileRouter);
 
 app.use('/seller', isAuth, isSeller, sellerRouter);
+
+app.use('/transaction', transactionRouter);
 
 app.use('/admin/categories', adminCategoryRouter);
 app.use('/admin/products', adminProductRouter);

@@ -2,7 +2,11 @@ import express from 'express';
 import * as productService from '../../services/product.service.js';
 import * as watchlistService from '../../services/watchlist.service.js';
 import * as categoriesService from '../../services/category.service.js';
-import { sendSellerReplyNotification, sendNewQuestionNotification } from '../../utils/email.js';
+import {
+    sendSellerReplyNotification,
+    sendNewQuestionNotification,
+    sendDescriptionUpdateNotification
+} from '../../utils/email.js';
 
 const router = express.Router();
 
@@ -71,7 +75,7 @@ router.get('/detail', async function (req, res) {
     let is_liked = false;
     if (req.session.isAuthenticated) {
         const userId = req.session.authUser.user_id;
-        
+
         // 1. Check sản phẩm chính
         is_liked = await watchlistService.check(userId, product_id);
 
@@ -188,6 +192,27 @@ router.post('/append-description', async function (req, res) {
         };
 
         await productService.addDescriptionLog(entity);
+
+        (async function () {
+            try {
+                const emailList = await productService.getInterestedEmails(product_id, user_id);
+
+                if (emailList.length > 0) {
+                    const emails = emailList.map(item => item.email);
+                    const productLink = `${req.protocol}://${req.get('host')}/menu/detail?product_id=${product_id}`;
+
+                    await sendDescriptionUpdateNotification(
+                        emails,
+                        product.name,
+                        productLink,
+                        new_description_html
+                    );
+                    console.log(`Sent description update notification to ${emails.length} users.`);
+                }
+            } catch (mailError) {
+                console.error("Background Email Error (Description Update):", mailError);
+            }
+        })();
 
         res.redirect(`/menu/detail?product_id=${product_id}`);
 
