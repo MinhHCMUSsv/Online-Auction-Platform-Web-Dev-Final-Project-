@@ -215,7 +215,7 @@ router.post('/signin', async function (req, res) {
     let url;
 
     if (user.role === 2) {
-        url = '/admin/categories';
+        url = '/admin/users';
         req.session.isAdmin = true;
     }
     else {

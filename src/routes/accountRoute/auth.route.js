@@ -56,7 +56,14 @@ router.get('/google/callback',
         req.session.authUser = existingUser;
     }
 
-    const retUrl = req.session.retUrl || '/';
+    // Determine redirect URL based on user role
+    let defaultUrl = '/';
+    if (req.session.authUser && req.session.authUser.role === 2) {
+        defaultUrl = '/admin/categories';
+        req.session.isAdmin = true;
+    }
+
+    const retUrl = req.session.retUrl || defaultUrl;
     delete req.session.retUrl;
     
     res.redirect(retUrl);
@@ -120,7 +127,14 @@ router.get('/facebook/callback',
         req.session.authUser = existingUser;
     }
 
-    const retUrl = req.session.retUrl || '/';
+    // Determine redirect URL based on user role
+    let defaultUrl = '/';
+    if (req.session.authUser && req.session.authUser.role === 2) {
+        defaultUrl = '/admin/categories';
+        req.session.isAdmin = true;
+    }
+
+    const retUrl = req.session.retUrl || defaultUrl;
     delete req.session.retUrl;
 
     res.redirect(retUrl);
