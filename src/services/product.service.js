@@ -169,6 +169,16 @@ export function getBidder(product_id) {
         .select('u.*', 'b.bid_amount', 'b.max_auto_bid', 'b.created_at');
 }
 
+// Get user's max bid on a product
+export async function getUserMaxBid(product_id, user_id) {
+    const result = await db('bid')
+        .where('product_id', product_id)
+        .where('bidder_id', user_id)
+        .max('max_auto_bid as max_bid')
+        .first();
+    return result?.max_bid || 0;
+}
+
 // Get comments with nested replies organized by structure
 export async function getCommentsWithReplies(product_id) {
     const comments = await db('product_comment as pc')
@@ -360,6 +370,16 @@ export function updateAuctionStatus(product_id, status) {
         .update({ status });
 }
 
+// End auction immediately (for Buy Now feature)
+export function endAuctionNow(product_id) {
+    return db('product')
+        .where('product_id', product_id)
+        .update({ 
+            status: 'ended',
+            end_time: db.fn.now()
+        });
+}
+
 export function addComment(entity) {
     return db('product_comment').insert(entity);
 }
@@ -389,4 +409,10 @@ export function getInterestedEmails(productId, sellerId) {
         .select('app_user.email');
 
     return bidderEmails.union(commenterEmails);
+}
+
+export function updateCurrentPrice(productId, newPrice) {
+    return db('product')
+        .where('product_id', productId)
+        .update({ current_price: newPrice });
 }

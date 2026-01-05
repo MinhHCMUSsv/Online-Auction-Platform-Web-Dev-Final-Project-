@@ -223,6 +223,122 @@
     .text-gold {
         color: #ffc107 !important;
     }
+
+    /* Clickable points badge */
+    .points-clickable {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        padding: 2px 8px;
+        border-radius: 12px;
+        display: inline-block;
+    }
+
+    .points-clickable:hover {
+        background-color: #e9ecef;
+        color: #0d6efd !important;
+    }
+
+    /* Rating Modal Styles */
+    .rating-modal-stats {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .rating-modal-stat {
+        flex: 1;
+        text-align: center;
+        padding: 15px;
+        border-radius: 12px;
+        background: #f8f9fa;
+    }
+
+    .rating-modal-stat.positive {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .rating-modal-stat.negative {
+        background: #f8d7da;
+        color: #842029;
+    }
+
+    .rating-modal-stat .stat-number {
+        font-size: 1.8rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .rating-modal-stat .stat-label {
+        font-size: 0.8rem;
+        margin-top: 5px;
+    }
+
+    .rating-list-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 15px;
+        border-bottom: 1px solid #e9ecef;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+
+    .rating-list-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .rating-avatar-small {
+        width: 42px;
+        height: 42px;
+        min-width: 42px;
+        background: #fd7e14;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: 700;
+        color: white;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+
+    .rating-content-small {
+        flex: 1;
+        min-width: 0;
+        padding-right: 15px;
+    }
+
+    .rating-badge-small {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 1rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+        align-self: center;
+    }
+
+    .badge-pos {
+        background: #198754;
+        color: white;
+    }
+
+    .badge-neg {
+        background: #dc3545;
+        color: white;
+    }
+
+    /* SweetAlert Rating Popup Custom Styles */
+    .swal2-popup.rating-popup {
+        font-size: 1rem !important;
+    }
+
+    .swal2-popup.rating-popup .swal2-title {
+        font-size: 1.4rem !important;
+    }
 </style>
 {{/section}}
 
@@ -267,8 +383,7 @@
             </div>
 
             <div class="mb-2">
-                <span class="fw-bold fs-5">{{#if product.current_price}}Highest bid:{{else}}Starting
-                    price:{{/if}}</span>
+                <span class="fw-bold fs-5">{{#if product.current_price}}Highest bid:{{else}}Starting price:{{/if}}</span>
                 <span class="fw-bold fs-4 text-warning">
                     {{#if product.current_price}}
                     {{formatCurrency product.current_price}}
@@ -357,9 +472,12 @@
             </form>
 
             {{#if product.buy_now_price}}
-            <form method="POST" action="/menu/buy-now">
+            <form method="POST" action="/menu/buy-now" id="buyNowForm">
                 <input type="hidden" name="product_id" value="{{product.product_id}}">
-                <button class="btn-action-outline">Buy it now</button>
+                <input type="hidden" name="buy_now_price" id="buyNowPrice" value="{{product.buy_now_price}}">
+                <button type="submit" class="btn-action-outline" id="buyNowBtn">
+                    <i class="bi bi-lightning-fill me-1"></i> Buy it now - {{formatCurrency product.buy_now_price}}
+                </button>
             </form>
             {{/if}}
 
@@ -380,7 +498,7 @@
 
             {{else}}
             <div class="alert alert-warning">
-                Please <a href="/signin" class="fw-bold">Sign in</a> to place a bid.
+                Please <a href="/signin?retUrl=/menu/detail?product_id={{product.product_id}}" class="fw-bold">Sign in</a> to place a bid.
             </div>
             {{/if}}
         </div>
@@ -680,6 +798,10 @@
 <!-- SweetAlert2 Library -->
 {{#section 'js'}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.0/dist/sweetalert2.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 
 <script>
     // Bid form validation with SweetAlert
@@ -694,6 +816,7 @@
                 const rawValue = document.getElementById('bidAmount').value.replace(/,/g, '');
                 const bidAmount = parseFloat(rawValue);
                 const minBid = parseFloat(document.getElementById('minBid').value);
+                const userMaxBid = parseFloat(document.getElementById('userMaxBid').value) || 0;
                 const highestBid = {{#if product.current_price}}{{product.current_price}}{{else}}{{product.start_price}}{{/if}};
                 const maxBid = {{#if product.leader_max}}{{product.leader_max}}{{else}}0{{/if}};
 
@@ -716,46 +839,82 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Bid Too Low',
-                        text: `Minimum bid is ${minBid}. Please enter a bid of at least ${minBid}.`,
+                        text: `Minimum bid is $${minBid.toLocaleString()}. Please enter a bid of at least $${minBid.toLocaleString()}.`,
                         confirmButtonColor: '#dc3545',
                         confirmButtonText: 'OK'
                     });
                     return;
                 }
-                
-                // Show loading state
+
+                // Check if bid is lower than user's own previous max bid
+                if (userMaxBid > 0 && bidAmount <= userMaxBid) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Bid Too Low',
+                        html: `You cannot place a bid equal to or lower than your previous max bid.<br><br>Your previous max bid: <strong>$${userMaxBid.toLocaleString()}</strong><br>Please enter a bid higher than <strong>$${userMaxBid.toLocaleString()}</strong>.`,
+                        confirmButtonColor: '#dc3545',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+
+                // Show confirmation dialog before placing bid
                 Swal.fire({
-                    title: 'Processing your bid...',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                
-                // Send bid request to backend
-                fetch('/menu/place-bid', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams(new FormData(form))
-                })
-                .then(response => {
-                    if (response.ok) {
-                        // Successful bid placement
+                    title: 'Confirm Your Bid',
+                    html: `Are you sure you want to place a bid of <strong>$${bidAmount.toLocaleString()}</strong>?<br><br><small class="text-muted">This action cannot be undone.</small>`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#198754',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, Place Bid',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading state
                         Swal.fire({
-                            icon: 'success',
-                            title: 'Bid Placed Successfully!',
-                            text: 'Your bid has been submitted successfully.',
-                            confirmButtonColor: '#198754',
-                            confirmButtonText: 'OK'
-                        }).then(() => {
-                            window.location.reload();
+                            title: 'Processing your bid...',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
                         });
-                    } else if (response.status === 403) {
-                        // Handle different types of 403 errors
-                        return response.json().then(data => {
-                            if (data.errorCode === 'NO_RATING_HISTORY') {
+                
+                        // Send bid request to backend
+                        fetch('/menu/place-bid', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'Accept': 'application/json'
+                            },
+                            body: new URLSearchParams(new FormData(form))
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Check if auction ended due to bid >= buy_now_price
+                                if (data.auctionEnded) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: '🎉 Congratulations! You Won!',
+                                        html: '<p>Your bid exceeded the Buy Now price.</p><p>You are the winner of this auction!</p>',
+                                        confirmButtonColor: '#198754',
+                                        confirmButtonText: 'View My Won Items'
+                                    }).then(() => {
+                                        window.location.href = data.redirectUrl || '/profile/wonitem';
+                                    });
+                                } else {
+                                    // Normal successful bid
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Bid Placed Successfully!',
+                                        text: data.message || 'Your bid has been submitted successfully.',
+                                        confirmButtonColor: '#198754',
+                                        confirmButtonText: 'OK'
+                                    }).then(() => {
+                                        window.location.reload();
+                                    });
+                                }
+                            } else if (data.errorCode === 'NO_RATING_HISTORY') {
                                 Swal.fire({
                                     icon: 'warning',
                                     title: 'Rating Required',
@@ -772,32 +931,27 @@
                                     confirmButtonText: 'Understood'
                                 });
                             } else {
-                                // Generic ban message
+                                // Generic error message
                                 Swal.fire({
                                     icon: 'error',
-                                    title: 'Bidding Restricted',
-                                    text: data.message || 'You have been restricted from bidding on this item by the seller.',
+                                    title: 'Bidding Failed',
+                                    text: data.message || 'An error occurred while placing your bid.',
                                     confirmButtonColor: '#dc3545',
                                     confirmButtonText: 'OK'
                                 });
                             }
-                        });
-                    } else {
-                        // Other error
-                        return response.text().then(text => {
-                            throw new Error(text || 'Failed to place bid');
+                        })
+                        .catch(error => {
+                            console.error('Error placing bid:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: error.message || 'An error occurred while placing your bid. Please try again.',
+                                confirmButtonColor: '#dc3545',
+                                confirmButtonText: 'OK'
+                            });
                         });
                     }
-                })
-                .catch(error => {
-                    console.error('Error placing bid:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: error.message || 'An error occurred while placing your bid. Please try again.',
-                        confirmButtonColor: '#dc3545',
-                        confirmButtonText: 'OK'
-                    });
                 });
             });
         }
@@ -879,14 +1033,207 @@
                 });
             }
         });
+
+        // Buy Now functionality
+        const buyNowForm = document.getElementById('buyNowForm');
+        if (buyNowForm) {
+            buyNowForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = this;
+                const buyNowPrice = parseFloat(document.getElementById('buyNowPrice').value);
+                
+                // Show confirmation dialog
+                Swal.fire({
+                    title: '<i class="bi bi-lightning-fill text-warning"></i> Buy Now',
+                    html: `
+                        <p>Are you sure you want to buy this item immediately for:</p>
+                        <h2 class="text-primary fw-bold">$${buyNowPrice.toLocaleString()}</h2>
+                        <p class="text-muted small">This will end the auction immediately and you will be the winner.</p>
+                    `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#198754',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="bi bi-check-lg"></i> Yes, Buy Now',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading state
+                        Swal.fire({
+                            title: 'Processing your purchase...',
+                            html: '<p>Please wait while we complete your transaction.</p>',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                        
+                        // Send buy now request
+                        fetch('/menu/buy-now', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'Accept': 'application/json'
+                            },
+                            body: new URLSearchParams(new FormData(form))
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '🎉 Congratulations!',
+                                    html: '<p>You have successfully purchased this item!</p><p>You will be redirected to your won items page.</p>',
+                                    confirmButtonColor: '#198754',
+                                    confirmButtonText: 'View My Won Items'
+                                }).then(() => {
+                                    window.location.href = data.redirectUrl || '/profile/wonitem';
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Purchase Failed',
+                                    text: data.message || 'An error occurred while processing your purchase.',
+                                    confirmButtonColor: '#dc3545',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'An error occurred. Please try again.',
+                                confirmButtonColor: '#dc3545'
+                            });
+                        });
+                    }
+                });
+            });
+        }
         
     {{/if}}
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
-<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+<script>
+    // View rating history functionality - Available for all users
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('view-ratings-btn') || e.target.closest('.view-ratings-btn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const btn = e.target.closest('.view-ratings-btn') || e.target;
+            const userId = btn.dataset.userId;
+            const userName = btn.dataset.userName;
+            
+            if (!userId) return;
+            
+            // Show loading
+            Swal.fire({
+                title: 'Loading rating history...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Fetch rating data
+            fetch(`/menu/user-ratings/${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        let ratingsHtml = '';
+                        
+                        if (data.ratings && data.ratings.length > 0) {
+                            data.ratings.forEach(r => {
+                                const initial = r.full_name ? r.full_name.charAt(0).toUpperCase() : 'U';
+                                const badgeClass = r.rate === 1 ? 'badge-pos' : 'badge-neg';
+                                const badgeIcon = r.rate === 1 ? '+1' : '-1';
+                                const dateStr = new Date(r.created_at).toLocaleDateString('vi-VN');
+                                
+                                ratingsHtml += `
+                                    <div class="rating-list-item">
+                                        <div class="rating-avatar-small">${initial}</div>
+                                        <div class="rating-content-small flex-grow-1">
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <span class="fw-bold" style="font-size: 0.9rem;">${r.full_name || 'Unknown'}</span>
+                                                <span class="text-muted" style="font-size: 0.75rem;">${dateStr}</span>
+                                            </div>
+                                            <p class="mb-0 text-muted" style="font-size: 0.85rem;">
+                                                ${r.comment ? '"' + r.comment + '"' : '<em>No comment</em>'}
+                                            </p>
+                                        </div>
+                                        <span class="rating-badge-small ${badgeClass}">${badgeIcon}</span>
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            ratingsHtml = `
+                                <div class="text-center py-4 text-muted">
+                                    <i class="bi bi-chat-square-heart" style="font-size: 2rem;"></i>
+                                    <p class="mt-2 mb-0">No ratings yet</p>
+                                </div>
+                            `;
+                        }
+                        
+                        Swal.fire({
+                            title: `<i class="bi bi-star-fill text-warning me-2"></i>${userName || 'User'}'s Ratings`,
+                            html: `
+                                <div class="rating-modal-stats">
+                                    <div class="rating-modal-stat">
+                                        <div class="stat-number">${data.totalRatings}</div>
+                                        <div class="stat-label">Total</div>
+                                    </div>
+                                    <div class="rating-modal-stat positive">
+                                        <div class="stat-number">${data.positiveCount}</div>
+                                        <div class="stat-label">Positive</div>
+                                    </div>
+                                    <div class="rating-modal-stat negative">
+                                        <div class="stat-number">${data.negativeCount}</div>
+                                        <div class="stat-label">Negative</div>
+                                    </div>
+                                </div>
+                                ${data.totalRatings > 0 ? `
+                                    <div class="mb-3">
+                                        <div class="progress" style="height: 10px; border-radius: 5px;">
+                                            <div class="progress-bar bg-success" style="width: ${data.positivePercentage}%"></div>
+                                        </div>
+                                        <small class="text-muted mt-1 d-block">${data.positivePercentage}% positive feedback</small>
+                                    </div>
+                                ` : ''}
+                                <div style="max-height: 350px; overflow-y: auto; text-align: left; padding: 5px;">
+                                    ${ratingsHtml}
+                                </div>
+                            `,
+                            width: 600,
+                            showCloseButton: true,
+                            showConfirmButton: false,
+                            customClass: {
+                                popup: 'rating-popup'
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message || 'Failed to load rating history.',
+                            confirmButtonColor: '#dc3545'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An error occurred while loading rating history.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                });
+        }
+    });
+</script>
 
 <script>
     $(document).ready(function () {

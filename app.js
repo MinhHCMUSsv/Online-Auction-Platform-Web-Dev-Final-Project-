@@ -149,9 +149,9 @@ app.use('/seller', isAuth, isSeller, sellerRouter);
 
 app.use('/transaction', transactionRouter);
 
-app.use('/admin/categories', adminCategoryRouter);
-app.use('/admin/users', adminUserRouter);
-app.use('/admin/settings', adminSettingRouter);
+app.use('/admin/categories', isAuth, isAdmin, adminCategoryRouter);
+app.use('/admin/users', isAuth, isAdmin, adminUserRouter);
+app.use('/admin/settings', isAuth, isAdmin, adminSettingRouter);
 
 app.use((req, res) => {
     res.status(403).render('vwError/403');

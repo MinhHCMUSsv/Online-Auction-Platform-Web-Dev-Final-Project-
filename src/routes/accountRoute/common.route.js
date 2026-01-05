@@ -173,6 +173,11 @@ router.get('/resend-otp', async function (req, res) {
 });
 
 router.get('/signin', function (req, res) {
+    // Save retUrl from query parameter if provided
+    if (req.query.retUrl) {
+        req.session.retUrl = req.query.retUrl;
+    }
+    
     res.render('vwAccounts/signin', {
         layout: 'auth-layout',
         title: 'Sign In',
@@ -215,27 +220,33 @@ router.post('/signin', async function (req, res) {
     let url;
 
     if (user.role === 2) {
-        url = '/admin/categories';
+        url = '/admin/users';
         req.session.isAdmin = true;
     }
     else {
         url = '/';
     }
 
-    console.log(url);
-
-    const retUrl = req.session.retUrl || url;
+    // Get retUrl but check if it's an admin route
+    let retUrl = req.session.retUrl || url;
     delete req.session.retUrl;
+
+    // If user is not admin but retUrl is an admin route, redirect to home instead
+    if (user.role !== 2 && retUrl.startsWith('/admin')) {
+        retUrl = '/';
+    }
 
     res.redirect(retUrl);
 });
 
 router.post('/signout', function (req, res) {
     req.session.isAuthenticated = false;
+    req.session.isAdmin = false;
     delete req.session.authUser;
-    const returnUrl = req.headers.referer || '/';
+    delete req.session.retUrl;
 
-    res.redirect(returnUrl);
+    // Always redirect to home page after signout
+    res.redirect('/');
 });
 
 router.get('/forgot-password', function (req, res) {

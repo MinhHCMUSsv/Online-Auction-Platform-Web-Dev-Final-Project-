@@ -3,10 +3,14 @@ import * as productService from '../../services/product.service.js';
 import * as watchlistService from '../../services/watchlist.service.js';
 import * as userService from '../../services/user.service.js';
 import * as categoriesService from '../../services/category.service.js';
+import * as ratingService from '../../services/rating.service.js';
+import * as transactionService from '../../services/transaction.service.js';
 import {
     sendSellerReplyNotification,
     sendNewQuestionNotification,
-    sendDescriptionUpdateNotification
+    sendDescriptionUpdateNotification,
+    sendFinalWinnerNotification,
+    sendFinalSellerNotification
 } from '../../utils/email.js';
 
 import { sendBidderRejectedNotification, sendOutbidNotification, sendBidSuccessfullyNotification, sendPriceUpdateNotification } from '../../utils/email.js';
@@ -96,6 +100,7 @@ router.get('/detail', async function (req, res) {
     related_products = await productService.mapProductsWithNewFlag(related_products);
 
     let is_liked = false;
+    let userMaxBid = 0;
     if (req.session.isAuthenticated) {
         const userId = req.session.authUser.user_id;
 
@@ -112,6 +117,9 @@ router.get('/detail', async function (req, res) {
                 is_liked: watchlistIds.includes(item.product_id)
             };
         });
+
+        // 3. Get user's max bid on this product
+        userMaxBid = await productService.getUserMaxBid(product_id, userId);
     }
 
     res.render('vwMenu/detail', {
@@ -124,7 +132,8 @@ router.get('/detail', async function (req, res) {
         comments: comments,
         related_products: related_products,
         is_liked: is_liked,
-        description_logs: description_logs
+        description_logs: description_logs,
+        userMaxBid: userMaxBid
     });
 
 });
@@ -215,26 +224,42 @@ router.post('/place-bid', async function (req, res) {
                 if (inputMaxAutoBid <= product.leader_max) 
                 {
                     finalBidAmount = inputMaxAutoBid; // TH1: Người B đặt giá thấp hơn hoặc bằng người đang thắng
+                    isChange = false;  
                     
+                    await productService.updateCurrentPrice(productId, finalBidAmount)
                 }
-
 
                 else {
                     finalBidAmount = Math.min(inputMaxAutoBid, +product.leader_max + step); // TH2: Người B đặt giá cao hơn người đang thắng
                     sendNotification = true;
 
-                    const previousLeaderInfo = await userService.getUserById(currentLeaderId);
-                    await sendOutbidNotification(previousLeaderInfo.email, product.name);
-
+                    // Send outbid notification in background
+                    (async function() {
+                        try {
+                            const previousLeaderInfo = await userService.getUserById(currentLeaderId);
+                            await sendOutbidNotification(previousLeaderInfo.email, product.name);
+                            console.log('Outbid notification sent to:', previousLeaderInfo.email);
+                        } catch (mailError) {
+                            console.error('Background Email Error (Outbid):', mailError);
+                        }
+                    })();
                 }    
             }
         }
 
+        // Send notifications in background (fire and forget)
         if (sendNotification) {
-            const sellerInfo = await userService.getUserById(product.seller_id);
-            const bidderInfo = await userService.getUserById(bidderId);
-            await sendBidSuccessfullyNotification(bidderInfo.email, product.name, finalBidAmount);
-            await sendPriceUpdateNotification(sellerInfo.email, product.name, finalBidAmount, inputMaxAutoBid, bidderInfo.name);
+            (async function() {
+                try {
+                    const sellerInfo = await userService.getUserById(product.seller_id);
+                    const bidderInfo = await userService.getUserById(bidderId);
+                    await sendBidSuccessfullyNotification(bidderInfo.email, product.name, finalBidAmount);
+                    await sendPriceUpdateNotification(sellerInfo.email, product.name, finalBidAmount, inputMaxAutoBid, bidderInfo.name);
+                    console.log('Bid notification emails sent successfully');
+                } catch (mailError) {
+                    console.error('Background Email Error (Bid Notification):', mailError);
+                }
+            })();
         }
         
         if (isChange) {
@@ -255,27 +280,179 @@ router.post('/place-bid', async function (req, res) {
         };
 
         await productService.placeBid(placeBidData);
-        
-        // Check if this is an AJAX request
-        if (req.headers['content-type'] === 'application/x-www-form-urlencoded' && 
-            req.xhr || req.headers.accept && req.headers.accept.indexOf('json') > -1) {
+
+        // BƯỚC 4: Kiểm tra nếu giá bid >= buy_now_price thì kết thúc đấu giá ngay
+        if (product.buy_now_price && inputMaxAutoBid >= Number(product.buy_now_price)) {
+            const buyNowPrice = Number(product.buy_now_price);
+            
+            // Update product with buy now price
+            await productService.updateCurrentPriceAndLeader(productId, {
+                current_price: buyNowPrice,
+                leader_id: bidderId,
+                leader_max: buyNowPrice
+            });
+            
+            // End auction immediately
+            await productService.endAuctionNow(productId);
+
+            // Create transaction record
+            const transaction = {
+                product_id: productId,
+                buyer_id: bidderId,
+                seller_id: product.seller_id,
+                final_price: buyNowPrice,
+                payment_confirmed: false,
+                shipping_confirmed: false,
+                buyer_confirmed: false
+            };
+            await transactionService.createTransaction(transaction);
+
+            // Send notification emails in background (fire and forget)
+            (async function() {
+                try {
+                    const buyer = await userService.getUserById(bidderId);
+                    const seller = await userService.getUserById(product.seller_id);
+                    
+                    await sendFinalWinnerNotification(buyer.email, product.name, buyNowPrice);
+                    await sendFinalSellerNotification(seller.email, product.name, buyNowPrice, buyer.full_name);
+                    console.log('Buy Now (via bid) notification emails sent successfully');
+                } catch (mailError) {
+                    console.error('Background Email Error (Buy Now via Bid):', mailError);
+                }
+            })();
+
+            // Return JSON response for auction ended via buy now price
             return res.json({
                 success: true,
-                message: 'Bid placed successfully!'
+                message: 'Congratulations! Your bid exceeded the Buy Now price. You won the auction!',
+                auctionEnded: true,
+                redirectUrl: '/profile/won'
             });
         }
         
-        res.redirect('/menu/detail?product_id=' + productId);
+        // Return normal success response
+        return res.json({
+            success: true,
+            message: 'Bid placed successfully!'
+        });
 
     } catch (error) {
         console.error(error);
         
+        return res.status(500).json({
+            success: false,
+            message: 'An error occurred while placing your bid.'
+        });
+    }
+});
+
+// Buy Now route - Immediately end auction and set winner
+router.post('/buy-now', async function (req, res) {
+    try {
+        const productId = req.body.product_id;
+        const buyerId = req.session.authUser.user_id;
+
+        // Get product info
+        const product = await productService.getProductById(productId);
+        
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found.'
+            });
+        }
+
+        if (product.status !== 'active') {
+            return res.status(400).json({
+                success: false,
+                message: 'This auction has already ended.'
+            });
+        }
+
+        if (!product.buy_now_price) {
+            return res.status(400).json({
+                success: false,
+                message: 'This product does not have a Buy Now option.'
+            });
+        }
+
+        // Check if buyer is the seller
+        if (buyerId === product.seller_id) {
+            return res.status(403).json({
+                success: false,
+                message: 'You cannot buy your own product.'
+            });
+        }
+
+        // Check if user is banned
+        const banCheck = await userService.checkBanUser({
+            product_id: productId,
+            bidder_id: buyerId
+        });
+        
+        if (banCheck) {
+            return res.status(403).json({
+                success: false,
+                message: 'You have been restricted from this auction by the seller.'
+            });
+        }
+
+        const buyNowPrice = Number(product.buy_now_price);
+
+        // Update product: set status to ended, update leader and price
+        await productService.updateCurrentPriceAndLeader(productId, {
+            current_price: buyNowPrice,
+            leader_id: buyerId,
+            leader_max: buyNowPrice
+        });
+        
+        // Update status to ended and set end_time to now
+        await productService.endAuctionNow(productId);
+
+        // Create transaction record
+        const transaction = {
+            product_id: productId,
+            buyer_id: buyerId,
+            seller_id: product.seller_id,
+            final_price: buyNowPrice,
+            payment_confirmed: false,
+            shipping_confirmed: false,
+            buyer_confirmed: false
+        };
+        await transactionService.createTransaction(transaction);
+
+        // Send notification emails in background (fire and forget)
+        (async function() {
+            try {
+                const buyer = await userService.getUserById(buyerId);
+                const seller = await userService.getUserById(product.seller_id);
+                
+                await sendFinalWinnerNotification(buyer.email, product.name, buyNowPrice);
+                await sendFinalSellerNotification(seller.email, product.name, buyNowPrice, buyer.full_name);
+                console.log('Buy Now notification emails sent successfully');
+            } catch (mailError) {
+                console.error('Background Email Error (Buy Now):', mailError);
+            }
+        })();
+
         // Check if this is an AJAX request
-        if (req.headers['content-type'] === 'application/x-www-form-urlencoded' && 
-            req.xhr || req.headers.accept && req.headers.accept.indexOf('json') > -1) {
+        if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
+            return res.json({
+                success: true,
+                message: 'Purchase successful! You won the auction.',
+                redirectUrl: '/profile/won'
+            });
+        }
+        
+        res.redirect('/profile/won');
+
+    } catch (error) {
+        console.error('Buy Now Error:', error);
+        
+        if (req.xhr || (req.headers.accept && req.headers.accept.indexOf('json') > -1)) {
             return res.status(500).json({
                 success: false,
-                message: 'An error occurred while placing your bid.'
+                message: 'An error occurred while processing your purchase.'
             });
         }
         
@@ -562,6 +739,55 @@ router.post('/reject-bidder', async function (req, res) {
     }
 });
 
+// API endpoint to get user rating history
+router.get('/user-ratings/:userId', async function (req, res) {
+    try {
+        const userId = req.params.userId;
+        const user = await userService.getUserById(userId);
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        const ratings = await ratingService.getAllInfoRatings(userId);
+
+        // Calculate positive and negative counts
+        let positiveCount = 0;
+        let negativeCount = 0;
+
+        ratings.forEach(r => {
+            if (r.rate === 1) {
+                positiveCount++;
+            } else {
+                negativeCount++;
+            }
+        });
+
+        const totalRatings = ratings.length;
+        const positivePercentage = totalRatings > 0 
+            ? Math.round((positiveCount / totalRatings) * 100) 
+            : 0;
+
+        res.json({
+            success: true,
+            user: {
+                user_id: user.user_id,
+                full_name: user.full_name,
+                points: user.points
+            },
+            ratings: ratings,
+            totalRatings: totalRatings,
+            positiveCount: positiveCount,
+            negativeCount: negativeCount,
+            positivePercentage: positivePercentage
+        });
+    } catch (error) {
+        console.error('Error fetching user ratings:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+
 router.get('/:slug', async function (req, res) {
     const slug = req.params.slug;
     const cat_id = await categoriesService.getCategory(slug); 
@@ -637,7 +863,9 @@ router.get('/:parentSlug/:childSlug', async function (req, res) {
     // Get child category ID
     const childCategoryId = await categoriesService.getCategory(childSlug);
     const childCategory = await categoriesService.getCategoryBySlug(childSlug);
-    
+
+    console.log('Child Category ID:', childCategoryId);
+    console.log('Child Category Details:', childCategory);
     // Get parent category info
     const currentParent = await categoriesService.getCategoryById(childCategory.parent_id);
     const childCategories = await categoriesService.getChildCategories(childCategory.parent_id);
@@ -694,5 +922,6 @@ router.get('/:parentSlug/:childSlug', async function (req, res) {
         sortBy: sortBy
     });
 });
+
 
 export default router; 
