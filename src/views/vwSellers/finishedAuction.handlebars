@@ -105,28 +105,33 @@
 
                     <td class="text-end">
                         {{#if this.winner_name}}
-                            {{#if this.is_success}}
+                            {{#if (eq this.transaction_status 0)}}
+                                <span class="badge bg-danger">Cancelled</span>
+
+                            {{!-- Case 2: Success (Status = 2) --}}
+                            {{else if (eq this.transaction_status 2)}}
                                 <div class="d-flex align-items-center justify-content-end gap-2">
-                                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                    <i class="bi bi-check-circle-fill text-success fs-5" title="Completed"></i>
+                                    {{!-- Nút Rate (nếu cần hiển thị khi done) --}}
+                                    {{#if this.can_rate}}
+                                    <a href="/profile/rating?product_id={{this.product_id}}&id={{this.transaction_id}}" 
+                                       class="btn btn-sm btn-warning fw-bold text-dark">
+                                        <i class="bi bi-star-fill"></i> Rate
+                                    </a>
+                                    {{/if}}
                                 </div>
-                            
-                            {{else if this.can_rate}}
-                                <a href="/profile/rating?product_id={{this.product_id}}&id={{this.transaction_id}}" 
-                                   class="btn-rate">
-                                   <i class="bi bi-star-fill"></i> Rate
-                                </a>
 
-                            {{else if this.can_upload}}
-                                <a href="/transaction?product_id={{this.product_id}}" 
-                                   class="btn-upload">
-                                   <i class="bi bi-upload"></i> Invoice
-                                </a>
-
+                            {{!-- Case 3: Processing (Status = 1) --}}
                             {{else}}
-                                {{#if (eq this.status_text 'Cancelled')}}
-                                    <span class="badge bg-danger">Cancelled</span>
+                                {{!-- Logic con: Check Shipping Confirmed --}}
+                                {{#if this.shipping_confirmed}}
+                                    <span class="text-secondary small fw-bold">
+                                        <i class="bi bi-hourglass-split"></i> Waiting for bidder confirm
+                                    </span>
                                 {{else}}
-                                    <span class="text-primary small fw-bold">{{this.status_text}}</span>
+                                    <a href="/transaction?product_id={{this.product_id}}" class="btn-upload">
+                                        <i class="bi bi-upload"></i> Invoice
+                                    </a>
                                 {{/if}}
                             {{/if}}
                         {{else}}

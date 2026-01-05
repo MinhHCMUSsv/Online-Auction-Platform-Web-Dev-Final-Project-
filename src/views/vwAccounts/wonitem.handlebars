@@ -101,27 +101,26 @@
         <td class="price-text">{{formatCurrency this.current_price}}</td>
 
         <td class="text-end pe-3">
-          {{#if this.is_success}}
-            {{!-- Trạng thái 2: Success --}}
-            <i class="bi bi-check-circle-fill icon-success" title="Success"></i>
+          {{#if (eq this.transaction_status 2)}}
+            {{!-- Trạng thái 2: Success -> Hiện cả Icon Check VÀ Nút Rate --}}
+            <div class="d-flex align-items-center justify-content-end gap-2">
+                <i class="bi bi-check-circle-fill icon-success" title="Success"></i>
+                
+                {{#if this.can_rate}}
+                <a href="/profile/rating?product_id={{this.product_id}}&id={{this.transaction_id}}" 
+                    class="btn btn-sm btn-warning fw-bold text-dark">
+                    <i class="bi bi-star-fill"></i> Rate
+                </a>
+                {{/if}}
+            </div>
           
-          {{else if this.can_pay}}
-            {{!-- Trạng thái null: Chưa thanh toán -> Hiện nút Pay --}}
-            <a href="/transaction?product_id={{this.product_id}}" class="btn-pay">Pay</a>
-          
-          {{else if this.can_rate}}
-          <a href="/profile/rating?product_id={{this.product_id}}&id={{this.transaction_id}}" 
-            class="btn btn-sm btn-warning fw-bold text-dark">
-            <i class="bi bi-star-fill"></i> Rate
-          </a>
+          {{else if (eq this.transaction_status 0)}}
+            {{!-- Trạng thái 0: Cancelled --}}
+            <i class="bi bi-x-circle-fill text-danger" title="Cancelled"></i>
           
           {{else}}
-            {{!-- Trạng thái 0 (Cancelled) hoặc 1 (Processing) -> Hiện text hoặc icon khác --}}
-            {{#if (eq this.status_text 'Cancelled')}}
-                <i class="bi bi-x-circle-fill text-danger" title="Cancelled"></i>
-            {{else}}
-                <i class="bi bi-hourglass-split text-warning" title="Processing"></i>
-            {{/if}}
+            {{!-- Các trạng thái còn lại: Hiện nút Pay --}}
+            <a href="/transaction?product_id={{this.product_id}}" class="btn-pay">Pay</a>
           {{/if}}
         </td>
 

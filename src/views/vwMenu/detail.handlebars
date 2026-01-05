@@ -378,7 +378,11 @@
                 </div>
                 <div>
                     <div class="fw-bold fs-5">{{seller.seller_name}}</div>
-                    <div class="text-muted small">Points: {{seller.seller_point}} / {{seller.positive_point}}</div>
+                    <div class="text-muted small">
+                        Points: <span class="points-clickable view-ratings-btn" data-user-id="{{product.seller_id}}" data-user-name="{{seller.seller_name}}" title="Click to view rating history">
+                            {{seller.seller_point}} / {{seller.positive_point}}
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -399,8 +403,12 @@
                     {{substr winBidder.full_name 0 1}}
                 </div>
                 <div>
-                    <div class="fw-bold" style="line-height: 1.2;">{{maskName winBidder.full_name}}</div>
-                    <div class="text-muted small">Points: {{winBidder.points}} / {{winBidder.positive_point}}</div>
+                    <div class="fw-bold" style="line-height: 1.2;">{{winBidder.full_name}}</div>
+                    <div class="text-muted small">
+                        Points: <span class="points-clickable view-ratings-btn" data-user-id="{{product.leader_id}}" data-user-name="{{winBidder.full_name}}" title="Click to view rating history">
+                            {{winBidder.points}} / {{winBidder.positive_point}}
+                        </span>
+                    </div>
                 </div>
             </div>
             {{else}}
@@ -440,36 +448,42 @@
 
             {{#if (eq product.status 'active')}}
             {{!-- Form Place Bid (Đã chuyển từ dưới lên) --}}
-            <form method="POST" action="/menu/place-bid" id="bidForm" class="mb-4">
-                <input type="hidden" name="product_id" value="{{product.product_id}}">
-                <input type="hidden" name="bidder_id" value="{{authUser.user_id}}">
-                
-                {{!-- Hidden Input cho giá min để JS check --}}
-                <input type="hidden" id="minBid" value="{{#if product.current_price}}{{suggestedPrice}}{{else}}{{product.start_price}}{{/if}}">
+                <form method="POST" action="/menu/place-bid" id="bidForm" class="mb-4">
+                    <input type="hidden" name="product_id" value="{{product.product_id}}">
+                    <input type="hidden" name="bidder_id" value="{{authUser.user_id}}">
+                    
+                    {{!-- Hidden Input cho giá min để JS check --}}
+                    <input type="hidden" id="minBid" value="{{#if product.current_price}}{{suggestedPrice}}{{else}}{{product.start_price}}{{/if}}">
+                    {{!-- Hidden Input cho giá max của user đã đặt trước đó --}}
+                    <input type="hidden" id="userMaxBid" value="{{userMaxBid}}">
 
-                <label for="bidAmount" class="form-label fw-bold">Place your bid:</label>
-                
-                <div class="input-group">
-                    <span class="input-group-text fw-bold">$</span>
-                    <input type="text" class="form-control currency-input" id="bidAmount" name="max_auto_bid" placeholder="Amount" required>
-                    <button type="submit" class="btn btn-primary fw-bold px-4" id="submitBidBtn">
-                        Bid
-                    </button>
-                </div>
+                    <label for="bidAmount" class="form-label fw-bold">Place your bid:</label>
+                    
+                    <div class="input-group">
+                        <span class="input-group-text fw-bold">$</span>
+                        {{!-- QUAN TRỌNG: Giữ nguyên id và name --}}
+                        <input type="text" class="form-control currency-input" id="bidAmount" name="max_auto_bid" placeholder="Amount" required>
+                        <button type="submit" class="btn btn-primary fw-bold px-4" id="submitBidBtn">
+                            Bid
+                        </button>
+                    </div>
 
-                {{!-- Dòng thông báo nhỏ bên dưới input --}}
-                <div class="form-text mt-2">
-                    {{#if product.current_price}}
-                        Min bid: <strong>{{formatCurrency suggestedPrice}}</strong>
-                        <span class="text-muted">(Step: {{formatCurrency product.bid_step}})</span>
-                        {{#if (eq authUser.user_id product.leader_id)}}
-                            <div class="text-success fw-bold mt-1"><i class="bi bi-check-circle-fill"></i> You are leading!</div>
+                    {{!-- Dòng thông báo nhỏ bên dưới input --}}
+                    <div class="form-text mt-2">
+                        {{#if product.current_price}}
+                            Min bid: <strong>{{formatCurrency suggestedPrice}}</strong>
+                            <span class="text-muted">(Step: {{formatCurrency product.bid_step}})</span>
+                            {{#if (eq authUser.user_id product.leader_id)}}
+                                <div class="text-success fw-bold mt-1"><i class="bi bi-check-circle-fill"></i> You are leading!</div>
+                            {{/if}}
+                            {{#if userMaxBid}}
+                                <div class="text-info mt-1"><i class="bi bi-info-circle-fill"></i> Your previous max bid: <strong>{{formatCurrency userMaxBid}}</strong></div>
+                            {{/if}}
+                        {{else}}
+                            Starting price: <strong>{{formatCurrency product.start_price}}</strong>
                         {{/if}}
-                    {{else}}
-                        Starting price: <strong>{{formatCurrency product.start_price}}</strong>
-                    {{/if}}
-                </div>
-            </form>
+                    </div>
+                </form>
 
             {{#if product.buy_now_price}}
             <form method="POST" action="/menu/buy-now" id="buyNowForm">
@@ -776,7 +790,7 @@
 
                     <div class="p-3">
                         <div class="fw-bold text-truncate" title="{{this.name}}">{{this.name}}</div>
-                        <div class="text-muted small mb-1">{{#if this.leader_name}}Bidder: {{maskName this.leader_name}}{{else}}No Bids{{/if}}</div>
+                        <div class="text-muted small mb-1">{{#if this.leader_name}}Bidder: {{this.leader_name}}{{else}}No Bids{{/if}}</div>
 
                         <div class="fw-bold fs-5 text-warning mb-2">{{#if this.current_price}}{{formatCurrency this.current_price}}{{else}}{{formatCurrency this.start_price}}{{/if}}</div>
 

@@ -89,7 +89,6 @@ router.get('/detail', async function (req, res) {
     if (product.leader_id) {
         winBidder = await userService.getUserById(product.leader_id);
     }
-    console.log('win bidder:', winBidder);
 
     const suggestedPrice = +product.current_price + +product.bid_step;
     
@@ -142,7 +141,8 @@ router.post('/place-bid', async function (req, res) {
     try {
         const productId = req.body.product_id;
         const bidderId = req.body.bidder_id; // Đảm bảo chuyển về kiểu số hoặc khớp với DB
-        const inputMaxAutoBid = Number(req.body.max_auto_bid);
+        const rawValue = req.body.max_auto_bid.replace(/,/g, '');
+        const inputMaxAutoBid = Number(rawValue);
 
         // Check if user is banned from bidding on this product
         const banUser = { 

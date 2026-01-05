@@ -89,7 +89,10 @@ router.post('/create', async function (req, res) {
         }
     }
 
-    res.redirect('/profile');
+    return res.json({ 
+        success: true, 
+        redirectUrl: '/seller/active-auctions'
+    });
 });
 
 router.get('/active-auctions', async function (req, res) {
@@ -153,30 +156,30 @@ router.get('/finished-auctions', async function (req, res) {
         const status = item.transaction_status;
         const isShipped = item.shipping_confirmed;
         
+        // Mặc định
         let statusText = 'Ended';
-        let canUpload = false; // Status 1: Chờ upload vận đơn
-        let canRate = false;   // Status 2: Chờ đánh giá
-        let isSuccess = false; // Status 3: Hoàn tất
+        let canUpload = false; 
+        let canRate = false;   
+        let isSuccess = false; 
 
-        if (status === 3) {
-            statusText = 'Success';
+        if (status === 2) {
+            statusText = 'Success'; 
             isSuccess = true;
-        } 
-        else if (status === 2) {
-            statusText = 'Success'; // Đã nhận hàng -> Hiện nút Rate
-            canRate = true;
-        } 
-        else if (status === 1) {
-            if (isShipped) {
-                statusText = 'Shipped (Waiting for Buyer)';
-                canUpload = false;
-            } else {
-                statusText = 'Processing'; 
-                canUpload = true;
-            }
+            canRate = true; // Status 2 cho phép Seller đánh giá lại Bidder
         } 
         else if (status === 0) {
             statusText = 'Cancelled';
+        }
+        else {
+            // Trường hợp Status = 1 (Processing) hoặc null (mới thắng chưa có transaction record)
+            // Logic: Nếu chưa ship thì hiện nút Upload Invoice
+            if (isShipped) {
+                statusText = 'Waiting for bidder confirm';
+                canUpload = false;
+            } else {
+                statusText = 'Processing'; 
+                canUpload = true; // Bật cờ này để hiện nút Invoice bên Handlebars
+            }
         }
 
         return {
