@@ -147,7 +147,46 @@ router.get('/finished-auctions', async function (req, res) {
         });
     }
 
-    const list = await sellerService.findFinishedBySeller(sellerId, limit, offset);
+    let list = await sellerService.findFinishedBySeller(sellerId, limit, offset);
+
+    list = list.map(item => {
+        const status = item.transaction_status;
+        const isShipped = item.shipping_confirmed;
+        
+        let statusText = 'Ended';
+        let canUpload = false; // Status 1: Chờ upload vận đơn
+        let canRate = false;   // Status 2: Chờ đánh giá
+        let isSuccess = false; // Status 3: Hoàn tất
+
+        if (status === 3) {
+            statusText = 'Success';
+            isSuccess = true;
+        } 
+        else if (status === 2) {
+            statusText = 'Success'; // Đã nhận hàng -> Hiện nút Rate
+            canRate = true;
+        } 
+        else if (status === 1) {
+            if (isShipped) {
+                statusText = 'Shipped (Waiting for Buyer)';
+                canUpload = false;
+            } else {
+                statusText = 'Processing'; 
+                canUpload = true;
+            }
+        } 
+        else if (status === 0) {
+            statusText = 'Cancelled';
+        }
+
+        return {
+            ...item,
+            status_text: statusText,
+            can_upload: canUpload,
+            can_rate: canRate,
+            is_success: isSuccess
+        };
+    });
 
     res.render('vwSellers/finishedAuction', {
         title: 'Finished Auctions',

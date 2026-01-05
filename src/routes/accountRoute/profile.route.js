@@ -160,16 +160,22 @@ router.get('/won', async function (req, res) {
         
         let statusText = 'Waiting Payment';
         let canPay = true; // Biến cờ để quyết định có hiện nút Pay hay không
+        let canRate = false;
         let isSuccess = false; // Biến cờ để hiện dấu tích xanh
 
-        // Logic trạng thái theo yêu cầu: 0: Hủy, 1: Chờ, 2: Thành công
-        if (status === 2) {
+        // Logic trạng thái theo yêu cầu: 0: Hủy, 1: Chờ, 2: Thành công, 3: Hiện nút rating
+        if (status === 3) {
+            statusText = 'Success';
+            isSuccess = true;
+            canRate = false;
+        } else if (status === 2) {
             statusText = 'Success';
             canPay = false;
-            isSuccess = true;
+            isSuccess = false;
+            canRate = true;
         } else if (status === 1) {
             statusText = 'Processing'; // Đã thanh toán, đang chờ xác nhận
-            canPay = true; // Không cho thanh toán lại
+            canPay = true; // cho thanh toán
             isSuccess = false; // Chưa thành công hẳn
         } else {
             statusText = 'Cancelled';
@@ -181,6 +187,7 @@ router.get('/won', async function (req, res) {
             ...item,
             status_text: statusText,
             can_pay: canPay,
+            can_rate: canRate,
             is_success: isSuccess
         };
     });
@@ -285,6 +292,8 @@ router.post('/rating', async function (req, res) {
         return res.redirect('/signin');
     }
 
+    const { transaction_id } = req.body;
+
     const rating = {
         transaction_id: req.body.transaction_id,
         rater_id: req.body.rater_id,
@@ -300,6 +309,9 @@ router.post('/rating', async function (req, res) {
     }
 
     await userService.updateUser(rating.ratee_id, updateRating);
+    if (transaction_id) {
+        await transactionService.updateStatus(transaction_id, 3);
+    }
 
     let URL = null;
     if (user.role === 0)

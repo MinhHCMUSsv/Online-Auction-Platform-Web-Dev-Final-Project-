@@ -85,6 +85,7 @@ router.get('/detail', async function (req, res) {
     if (product.leader_id) {
         winBidder = await userService.getUserById(product.leader_id);
     }
+    console.log('win bidder:', winBidder);
 
     const suggestedPrice = +product.current_price + +product.bid_step;
     
@@ -211,14 +212,12 @@ router.post('/place-bid', async function (req, res) {
                 
             else 
             {
-                if (inputMaxAutoBid < product.leader_max) 
+                if (inputMaxAutoBid <= product.leader_max) 
                 {
                     finalBidAmount = inputMaxAutoBid; // TH1: Người B đặt giá thấp hơn hoặc bằng người đang thắng
-                    isChange = false;   
+                    
                 }
 
-                else if (inputMaxAutoBid === product.leader_max)
-                    finalBidAmount = inputMaxAutoBid;
 
                 else {
                     finalBidAmount = Math.min(inputMaxAutoBid, +product.leader_max + step); // TH2: Người B đặt giá cao hơn người đang thắng

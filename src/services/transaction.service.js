@@ -58,3 +58,12 @@ export function updateComplete(transactionId) {
             status: 2
         });
 }
+
+// Cờ hiển thị nút rate
+export function updateStatus(transactionId, status) {
+    return db('transaction')
+        .where('transaction_id', transactionId)
+        .update({
+            status: status
+        });
+}

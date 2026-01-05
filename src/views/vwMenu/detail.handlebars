@@ -234,19 +234,8 @@
     <div class="row g-5">
         <div class="col-lg-6">
             <div class="main-image-container d-flex justify-content-center align-items-center mb-4 position-relative">
-
-                <button id="btnPrevImg" class="btn btn-light rounded-circle position-absolute start-0 ms-3 shadow-sm"
-                    style="width:40px;height:40px; z-index: 10;">
-                    <i class="bi bi-chevron-left"></i>
-                </button>
-
                 <img id="mainImage" src="/src/static/images/{{product.seller_id}}/{{product.product_id}}/main.jpg"
                     alt="{{product.name}}" data-index="0">
-
-                <button id="btnNextImg" class="btn btn-light rounded-circle position-absolute end-0 me-3 shadow-sm"
-                    style="width:40px;height:40px; z-index: 10;">
-                    <i class="bi bi-chevron-right"></i>
-                </button>
             </div>
 
             <div class="d-flex gap-3 justify-content-center" id="thumbnailList">
@@ -273,7 +262,7 @@
                 </div>
                 <div>
                     <div class="fw-bold fs-5">{{seller.seller_name}}</div>
-                    <div class="text-muted small">Points: {{seller.seller_point}}</div>
+                    <div class="text-muted small">Points: {{seller.seller_point}} / {{seller.positive_point}}</div>
                 </div>
             </div>
 
@@ -281,8 +270,8 @@
                 <span class="fw-bold fs-5">{{#if product.current_price}}Highest bid:{{else}}Starting
                     price:{{/if}}</span>
                 <span class="fw-bold fs-4 text-warning">
-                    {{#if bidder.bid_amount}}
-                    {{formatCurrency bidder.bid_amount}}
+                    {{#if product.current_price}}
+                    {{formatCurrency product.current_price}}
                     {{else}}
                     {{formatCurrency product.start_price}}
                     {{/if}}
@@ -295,8 +284,8 @@
                     {{substr winBidder.full_name 0 1}}
                 </div>
                 <div>
-                    <div class="fw-bold" style="line-height: 1.2;">{{winBidder.full_name}}</div>
-                    <div class="text-muted small">Points: {{winBidder.points}}</div>
+                    <div class="fw-bold" style="line-height: 1.2;">{{maskName winBidder.full_name}}</div>
+                    <div class="text-muted small">Points: {{winBidder.points}} / {{winBidder.positive_point}}</div>
                 </div>
             </div>
             {{else}}
@@ -336,37 +325,36 @@
 
             {{#if (eq product.status 'active')}}
             {{!-- Form Place Bid (Đã chuyển từ dưới lên) --}}
-<form method="POST" action="/menu/place-bid" id="bidForm" class="mb-4">
-    <input type="hidden" name="product_id" value="{{product.product_id}}">
-    <input type="hidden" name="bidder_id" value="{{authUser.user_id}}">
-    
-    {{!-- Hidden Input cho giá min để JS check --}}
-    <input type="hidden" id="minBid" value="{{#if product.current_price}}{{suggestedPrice}}{{else}}{{product.start_price}}{{/if}}">
+            <form method="POST" action="/menu/place-bid" id="bidForm" class="mb-4">
+                <input type="hidden" name="product_id" value="{{product.product_id}}">
+                <input type="hidden" name="bidder_id" value="{{authUser.user_id}}">
+                
+                {{!-- Hidden Input cho giá min để JS check --}}
+                <input type="hidden" id="minBid" value="{{#if product.current_price}}{{suggestedPrice}}{{else}}{{product.start_price}}{{/if}}">
 
-    <label for="bidAmount" class="form-label fw-bold">Place your bid:</label>
-    
-    <div class="input-group">
-        <span class="input-group-text fw-bold">$</span>
-        {{!-- QUAN TRỌNG: Giữ nguyên id và name --}}
-        <input type="number" class="form-control" id="bidAmount" name="max_auto_bid" placeholder="Amount" required>
-        <button type="submit" class="btn btn-primary fw-bold px-4" id="submitBidBtn">
-            Bid
-        </button>
-    </div>
+                <label for="bidAmount" class="form-label fw-bold">Place your bid:</label>
+                
+                <div class="input-group">
+                    <span class="input-group-text fw-bold">$</span>
+                    <input type="text" class="form-control currency-input" id="bidAmount" name="max_auto_bid" placeholder="Amount" required>
+                    <button type="submit" class="btn btn-primary fw-bold px-4" id="submitBidBtn">
+                        Bid
+                    </button>
+                </div>
 
-    {{!-- Dòng thông báo nhỏ bên dưới input --}}
-    <div class="form-text mt-2">
-        {{#if product.current_price}}
-            Min bid: <strong>{{formatCurrency suggestedPrice}}</strong>
-            <span class="text-muted">(Step: {{formatCurrency product.bid_step}})</span>
-            {{#if (eq authUser.user_id product.leader_id)}}
-                <div class="text-success fw-bold mt-1"><i class="bi bi-check-circle-fill"></i> You are leading!</div>
-            {{/if}}
-        {{else}}
-            Starting price: <strong>{{formatCurrency product.start_price}}</strong>
-        {{/if}}
-    </div>
-</form>
+                {{!-- Dòng thông báo nhỏ bên dưới input --}}
+                <div class="form-text mt-2">
+                    {{#if product.current_price}}
+                        Min bid: <strong>{{formatCurrency suggestedPrice}}</strong>
+                        <span class="text-muted">(Step: {{formatCurrency product.bid_step}})</span>
+                        {{#if (eq authUser.user_id product.leader_id)}}
+                            <div class="text-success fw-bold mt-1"><i class="bi bi-check-circle-fill"></i> You are leading!</div>
+                        {{/if}}
+                    {{else}}
+                        Starting price: <strong>{{formatCurrency product.start_price}}</strong>
+                    {{/if}}
+                </div>
+            </form>
 
             {{#if product.buy_now_price}}
             <form method="POST" action="/menu/buy-now">
@@ -428,7 +416,7 @@
                                             {{!-- 2. Cột Tên Bidder (Masked Name) --}}
                                             <td class="align-middle">
                                                 {{#if this.full_name}}
-                                                    {{substr this.full_name 0 1}}***
+                                                    {{maskName this.full_name}}
                                                 {{else}}
                                                     Anonymous
                                                 {{/if}}
@@ -670,7 +658,7 @@
 
                     <div class="p-3">
                         <div class="fw-bold text-truncate" title="{{this.name}}">{{this.name}}</div>
-                        <div class="text-muted small mb-1">{{#if this.leader_name}}Bidder: {{this.leader_name}}{{else}}No Bids{{/if}}</div>
+                        <div class="text-muted small mb-1">{{#if this.leader_name}}Bidder: {{maskName this.leader_name}}{{else}}No Bids{{/if}}</div>
 
                         <div class="fw-bold fs-5 text-warning mb-2">{{#if this.current_price}}{{formatCurrency this.current_price}}{{else}}{{formatCurrency this.start_price}}{{/if}}</div>
 
@@ -703,7 +691,8 @@
                 e.preventDefault();
                 const form = this;
                 
-                const bidAmount = parseFloat(document.getElementById('bidAmount').value);
+                const rawValue = document.getElementById('bidAmount').value.replace(/,/g, '');
+                const bidAmount = parseFloat(rawValue);
                 const minBid = parseFloat(document.getElementById('minBid').value);
                 const highestBid = {{#if product.current_price}}{{product.current_price}}{{else}}{{product.start_price}}{{/if}};
                 const maxBid = {{#if product.leader_max}}{{product.leader_max}}{{else}}0{{/if}};
@@ -930,9 +919,11 @@
         // 2. CLEAVE JS (Format tiền tệ)
         // ==========================================
         if ($('.currency-input').length) {
-            new Cleave('.currency-input', {
-                numeral: true,
-                numeralThousandsGroupStyle: 'thousand'
+            $('.currency-input').toArray().forEach(function(field) {
+                new Cleave(field, {
+                    numeral: true,
+                    numeralThousandsGroupStyle: 'thousand'
+                });
             });
         }
 
@@ -958,41 +949,67 @@
         // ==========================================
         // 4. LOGIC XỬ LÝ ẢNH (Gallery)
         // ==========================================
-        // Lấy base path từ ảnh hiện tại để tái sử dụng
         const sellerId = '{{product.seller_id}}';
         const productId = '{{product.product_id}}';
         const basePath = `/src/static/images/${sellerId}/${productId}/`;
+        
+        // Mảng tên file ảnh (nếu cần fallback)
         const imageFiles = ['main.jpg', '1.jpg', '2.jpg', '3.jpg'];
 
         let currentIndex = 0;
-        const totalImages = $('.thumb-img:visible').length;
+        const totalImages = $('.thumb-img:visible').length; 
+        let autoPlayTimer; 
 
         function updateGallery(index) {
             if (index < 0) index = totalImages - 1;
             if (index >= totalImages) index = 0;
+            
             currentIndex = index;
 
-            // Đổi ảnh chính
-            const filename = imageFiles[currentIndex];
-            $('#mainImage').attr('src', basePath + filename);
+            const $targetThumb = $(`.thumb-img[data-index="${currentIndex}"]`);
+            const filename = $targetThumb.data('filename') || imageFiles[currentIndex];
+            
+            // --- HIỆU ỨNG CHUYỂN ẢNH (FADE) ---
+            // 1. Dừng mọi hiệu ứng đang chạy (stop)
+            // 2. Làm mờ ảnh cũ (fadeOut 200ms)
+            // 3. Đổi src
+            // 4. Hiện ảnh mới (fadeIn 200ms)
+            $('#mainImage').stop().fadeOut(200, function() {
+                $(this).attr('src', basePath + filename).fadeIn(200);
+            });
 
-            // Cập nhật active
+            // Cập nhật active cho thumb
             $('.thumb-img').removeClass('active');
-            $(`.thumb-img[data-index="${currentIndex}"]`).addClass('active');
+            $targetThumb.addClass('active');
         }
 
+        // --- SỰ KIỆN CLICK THUMB ---
+        // Vẫn giữ nguyên để người dùng bấm chọn ảnh được
         $('.thumb-img').on('click', function () {
             updateGallery($(this).data('index'));
+            resetTimer(); // Reset bộ đếm khi người dùng can thiệp
         });
 
-        $('#btnPrevImg').on('click', function () {
-            updateGallery(currentIndex - 1);
-        });
+        // --- TỰ ĐỘNG CHẠY (AUTOPLAY) ---
+        function startTimer() {
+            autoPlayTimer = setInterval(function() {
+                updateGallery(currentIndex + 1);
+            }, 3000); // 3 giây chuyển 1 lần
+        }
 
-        $('#btnNextImg').on('click', function () {
-            updateGallery(currentIndex + 1);
-        });
+        function resetTimer() {
+            clearInterval(autoPlayTimer);
+            startTimer();
+        }
 
+        // Bắt đầu chạy
+        startTimer();
+
+        // Di chuột vào ảnh -> Dừng chạy
+        $('.main-image-container').hover(
+            function() { clearInterval(autoPlayTimer); }, 
+            function() { startTimer(); }                  
+        );
         // ==========================================
         // 5. LOGIC COMMENT & REPLY
         // ==========================================
