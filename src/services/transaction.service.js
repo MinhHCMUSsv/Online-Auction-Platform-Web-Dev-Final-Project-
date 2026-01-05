@@ -18,8 +18,21 @@ export function getAllInfoTransaction(productId) {
         .first();
 }
 
-// STEP 1: Buyer up ảnh xác nhận chuyển khoản.
-export function updateStep1(transactionId) {
+export function getById(transactionId) {
+    return db('transaction').where('transaction_id', transactionId).first();
+}
+
+// STEP 1: Cập nhật địa chỉ giao hàng
+export function updateAddress(transactionId, address) {
+    return db('transaction')
+        .where('transaction_id', transactionId)
+        .update({
+            shipping_address: address
+        });
+}
+
+// STEP 2: Buyer upload ảnh -> Tự động xác nhận đã thanh toán
+export function updatePayment(transactionId) {
     return db('transaction')
         .where('transaction_id', transactionId)
         .update({
@@ -27,8 +40,8 @@ export function updateStep1(transactionId) {
         });
 }
 
-// STEP 2: Seller xác nhận tiền VÀ xác nhận giao hàng
-export function updateStep2(transactionId) {
+// STEP 3: Seller upload ảnh vận chuyển -> Xác nhận đã ship
+export function updateShipping(transactionId) {
     return db('transaction')
         .where('transaction_id', transactionId)
         .update({
@@ -36,11 +49,12 @@ export function updateStep2(transactionId) {
         });
 }
 
-// STEP 3: Buyer xác nhận đã nhận hàng
-export function updateStep3(transactionId) {
+// STEP 4: Buyer xác nhận đã nhận hàng
+export function updateComplete(transactionId) {
     return db('transaction')
         .where('transaction_id', transactionId)
         .update({
-            buyer_confirmed: true
+            buyer_confirmed: true,
+            status: 2
         });
 }

@@ -226,11 +226,7 @@
 </style>
 {{/section}}
 
-<div class="bg-white border-bottom">
-
-</div>
-
-<div class="container-fluid px-4 py-5">
+<div class="container-fluid px-4">
     <a href="javascript:history.back()" class="btn btn-primary rounded-pill px-4 mb-4 fw-bold">
         <i class="bi bi-arrow-left me-1"></i> Back
     </a>
@@ -285,10 +281,10 @@
                 <span class="fw-bold fs-5">{{#if product.current_price}}Highest bid:{{else}}Starting
                     price:{{/if}}</span>
                 <span class="fw-bold fs-4 text-warning">
-                    {{#if product.current_price}}
-                    ${{formatCurrency product.current_price}}
+                    {{#if bidder.bid_amount}}
+                    {{formatCurrency bidder.bid_amount}}
                     {{else}}
-                    ${{formatCurrency product.start_price}}
+                    {{formatCurrency product.start_price}}
                     {{/if}}
                 </span>
             </div>
@@ -296,11 +292,11 @@
             {{#if bidder}}
             <div class="d-flex align-items-center mb-4 p-2 bg-light rounded-3" style="width: fit-content;">
                 <div class="avatar-badge avatar-bidder me-2" style="width:32px; height:32px; font-size:0.9rem;">
-                    {{substr bidder.full_name 0 1}}
+                    {{substr winBidder.full_name 0 1}}
                 </div>
                 <div>
-                    <div class="fw-bold" style="line-height: 1.2;">{{bidder.full_name}}</div>
-                    <div class="text-muted small">Points: {{bidder.points}}</div>
+                    <div class="fw-bold" style="line-height: 1.2;">{{winBidder.full_name}}</div>
+                    <div class="text-muted small">Points: {{winBidder.points}}</div>
                 </div>
             </div>
             {{else}}
@@ -310,11 +306,11 @@
             <div class="text-muted small mb-4 lh-lg">
                 <div>Listed: <strong>{{formatDate product.created_at "DD/MM/YYYY"}}</strong></div>
                 <div>Time left: <strong>{{formatAuctionTime product.end_time "DD/MM/YYYY"}}</strong></div>
-                <div>Bids: <strong>10</strong></div>
+                <div>Bids: <strong>{{product.bid_count}}</strong></div>
                 <div class="fs-5 mt-2 text-dark">
                     Buy it now:
                     {{#if product.buy_now_price}}
-                    <span class="fw-bold text-primary">${{formatCurrency product.buy_now_price}}</span>
+                    <span class="fw-bold text-primary">{{formatCurrency product.buy_now_price}}</span>
                     {{else}}
                     <span class="text-muted">Not available</span>
                     {{/if}}
@@ -339,20 +335,38 @@
             {{else}}
 
             {{#if (eq product.status 'active')}}
-            <form method="POST" action="/menu/place-bid">
-                <input type="hidden" name="product_id" value="{{product.product_id}}">
-                <input type="hidden" name="bidder_id" value="{{authUser.user_id}}">
+            {{!-- Form Place Bid (Đã chuyển từ dưới lên) --}}
+<form method="POST" action="/menu/place-bid" id="bidForm" class="mb-4">
+    <input type="hidden" name="product_id" value="{{product.product_id}}">
+    <input type="hidden" name="bidder_id" value="{{authUser.user_id}}">
+    
+    {{!-- Hidden Input cho giá min để JS check --}}
+    <input type="hidden" id="minBid" value="{{#if product.current_price}}{{suggestedPrice}}{{else}}{{product.start_price}}{{/if}}">
 
-                <div class="d-flex align-items-center mb-3">
-                    <label class="fw-bold me-3">Your max bid:</label>
-                    <div class="input-group" style="width: 200px;">
-                        <span class="input-group-text fw-bold">$</span>
-                        <input type="text" class="form-control fw-bold currency-input" name="max_auto_bid" required>
-                    </div>
-                </div>
+    <label for="bidAmount" class="form-label fw-bold">Place your bid:</label>
+    
+    <div class="input-group">
+        <span class="input-group-text fw-bold">$</span>
+        {{!-- QUAN TRỌNG: Giữ nguyên id và name --}}
+        <input type="number" class="form-control" id="bidAmount" name="max_auto_bid" placeholder="Amount" required>
+        <button type="submit" class="btn btn-primary fw-bold px-4" id="submitBidBtn">
+            Bid
+        </button>
+    </div>
 
-                <button type="submit" class="btn-action-primary">Place bid</button>
-            </form>
+    {{!-- Dòng thông báo nhỏ bên dưới input --}}
+    <div class="form-text mt-2">
+        {{#if product.current_price}}
+            Min bid: <strong>{{formatCurrency suggestedPrice}}</strong>
+            <span class="text-muted">(Step: {{formatCurrency product.bid_step}})</span>
+            {{#if (eq authUser.user_id product.leader_id)}}
+                <div class="text-success fw-bold mt-1"><i class="bi bi-check-circle-fill"></i> You are leading!</div>
+            {{/if}}
+        {{else}}
+            Starting price: <strong>{{formatCurrency product.start_price}}</strong>
+        {{/if}}
+    </div>
+</form>
 
             {{#if product.buy_now_price}}
             <form method="POST" action="/menu/buy-now">
@@ -388,90 +402,18 @@
     
     <section class="mt-5">
         <div class="row g-4">
-            <!-- Bid Form -->
-            {{#if (eq product.seller_id authUser.user_id)}}
-            <div class="col-lg-6">
-                <div class="alert alert-info d-flex align-items-center" role="alert">
-                    <i class="bi bi-info-circle me-3" style="font-size: 1.5rem;"></i>
-                    <div>
-                        <strong>You cannot place a bid on your own product.</strong> 
-                    </div>
-                </div>
-            </div>
-            {{else}}
-
-            <div class="col-lg-6">
-                <div class="card border-primary">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Place Your Bid</h5>
-                    </div>
-                    <div class="card-body">
-                        <form method="POST" action="/menu/place-bid" id="bidForm">
-                            <div class="mb-3">
-                                <label for="bidAmount" class="form-label">Bid Amount</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" 
-                                           class="form-control" 
-                                           id="bidAmount" 
-                                           name="max_auto_bid" 
-                                           placeholder="Enter your bid amount">
-
-                                    <input type="hidden" name="product_id" value="{{product.product_id}}">
-                                    <input type="hidden" name="bidder_id" value="{{authUser.user_id}}">
-                                    <input type="hidden" id="minBid" value="{{product.start_price}}">
-                                    
-                                </div>
-                            </div>
-                            
-                            {{#if (eq product.current_price null)}}
-                                <div class="alert alert-info" role="alert">
-                                    <strong>Minimum bid:</strong> {{formatCurrency product.start_price}}<br>
-                                    <small class="text-muted">Bid step: {{formatCurrency product.bid_step}}</small>
-                                </div>
-                                
-                            {{else}}
-                                <div class="alert alert-info" role="alert">
-                                    <strong>Current highest bid:</strong> {{formatCurrency product.current_price}}<br>
-                                    <strong>Minimum next bid:</strong> {{formatCurrency suggestedPrice}}<br>
-                                    <small class="text-muted">Bid step: {{formatCurrency product.bid_step}}</small>
-                                    {{#if (eq authUser.user_id product.leader_id)}}
-                                        <br><span class="badge bg-success">You are currently leading!</span>
-                                    {{/if}}
-                                </div>
-                            {{/if}}
-
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary px-4" id="submitBidBtn">
-                                    <i class="bi bi-hammer"></i> Submit Bid
-                                </button>
-                                <button type="reset" class="btn btn-outline-secondary px-4">
-                                    Clear
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            {{/if}}
-
             <!-- Bidding History -->
-            <div class="col-lg-6">
-                <div class="card">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0">
-                            <i class="bi bi-list-ul"></i> Bidding History
-                        </h5>
-                    </div>
+                <div>
+                    <h4 class="serif-font fw-bold">Bidding History</h4>
                     <div class="card-body" style="max-height: 500px; overflow-y: auto;">
                         {{#if bidder}}
                             <div class="table-responsive">
-                                <table class="table table-sm table-hover mb-0">
-                                    <thead>
-                                        <tr class="table-light">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
                                             <th>Time</th>
                                             <th>Bidder</th>
-                                            <th class="text-end">Bid Amount</th>
+                                            <th class="text-center">Bid Amount</th>
                                             {{#if (eq authUser.user_id product.seller_id)}}
                                             <th class="text-center">Action</th>
                                             {{/if}}
@@ -480,37 +422,33 @@
                                     <tbody>
                                         {{#each bidder}}
                                         <tr>
-                                            <td>{{formatDate this.created_at 'DD/MM/YYYY HH:mm:ss'}}</td>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <div class="badge bg-secondary text-white rounded-circle me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                                                        {{#if this.full_name}}
-                                                            {{substr this.full_name 0 1}}
-                                                        {{else}}
-                                                            ?
-                                                        {{/if}}
-                                                    </div>
-                                                    <div>
-                                                        <span class="fw-semibold">
-                                                            {{#if this.full_name}}
-                                                                {{substr this.full_name 0 1}}***
-                                                            {{else}}
-                                                                Anonymous
-                                                            {{/if}}
-                                                        </span>
-                                                    </div>
-                                                </div>
+                                            {{!-- 1. Cột Thời gian --}}
+                                            <td class="align-middle">{{formatDate this.created_at 'DD/MM/YYYY HH:mm:ss'}}</td>
+                                            
+                                            {{!-- 2. Cột Tên Bidder (Masked Name) --}}
+                                            <td class="align-middle">
+                                                {{#if this.full_name}}
+                                                    {{substr this.full_name 0 1}}***
+                                                {{else}}
+                                                    Anonymous
+                                                {{/if}}
                                             </td>
-                                            <td class="text-end">
-                                                <span class="badge {{#if @first}}bg-warning text-dark{{else}}bg-warning text-dark{{/if}}">{{formatCurrency this.bid_amount}}</span>
+
+                                            {{!-- 3. Cột Giá tiền (In đậm, màu xanh) --}}
+                                            <td class="text-center align-middle fw-bold text-success">
+                                                {{formatCurrency this.bid_amount}}
                                             </td>
+
+                                            {{!-- 4. Cột Action (Chỉ hiện cho Seller) --}}
                                             {{#if (eq ../authUser.user_id ../product.seller_id)}}
-                                            <td class="text-center">
+                                            <td class="text-center align-middle">
+                                                {{!-- QUAN TRỌNG: Giữ nguyên class reject-bidder-btn và các data-attribute --}}
                                                 <button class="btn btn-sm btn-outline-danger reject-bidder-btn" 
                                                         data-bidder-id="{{this.user_id}}"
                                                         data-bidder-name="{{this.full_name}}"
-                                                        data-product-id="{{../product.product_id}}">
-                                                    <i class="bi bi-x-circle"></i> Reject
+                                                        data-product-id="{{../product.product_id}}"
+                                                        title="Reject this bidder">
+                                                    <i class="bi bi-x-circle"></i> Kick
                                                 </button>
                                             </td>
                                             {{/if}}
@@ -527,37 +465,9 @@
                         {{/if}}
                     </tr>
                 </thead>
-                <tbody>
-                    {{#each history}}
-                    <tr>
-                        <td>{{this.masked_name}}</td>
-                        <td class="fw-bold">${{formatCurrency this.bid_amount}}</td>
-                        <td class="text-muted small">{{formatDate this.time "DD/MM/YYYY HH:mm"}}</td>
-
-                        {{#if (eq ../authUser.user_id ../product.seller_id)}}
-                        <td>{{this.points}}</td>
-                        <td>
-                            <form method="POST" action="/seller/kick-bidder">
-                                <input type="hidden" name="product_id" value="{{../product.product_id}}">
-                                <input type="hidden" name="bidder_id" value="{{this.bidder_id}}">
-                                <button type="submit" class="btn-kick" title="Cancel this bid">
-                                    <i class="bi bi-x-circle-fill"></i> Kick
-                                </button>
-                            </form>
-                        </td>
-                        {{/if}}
-                    </tr>
-                    {{/each}}
-
-                    {{#unless history}}
-                    <tr>
-                        <td colspan="5" class="text-center text-muted py-4">No bids history.</td>
-                    </tr>
-                    {{/unless}}
-                </tbody>
             </table>
         </div>
-    </div>
+                </div>
     {{/if}}
 
     <div class="mt-5">
@@ -760,12 +670,12 @@
 
                     <div class="p-3">
                         <div class="fw-bold text-truncate" title="{{this.name}}">{{this.name}}</div>
-                        <div class="text-muted small mb-1">Bidder: {{this.leader_name}}</div>
+                        <div class="text-muted small mb-1">{{#if this.leader_name}}Bidder: {{this.leader_name}}{{else}}No Bids{{/if}}</div>
 
-                        <div class="fw-bold fs-5 text-warning mb-2">${{formatCurrency this.current_price}}</div>
+                        <div class="fw-bold fs-5 text-warning mb-2">{{#if this.current_price}}{{formatCurrency this.current_price}}{{else}}{{formatCurrency this.start_price}}{{/if}}</div>
 
                         <div class="text-muted small" style="line-height: 1.6;">
-                            <div>Buy now: <span class="text-primary fw-bold">{{#if this.buy_now_price}}${{formatCurrency
+                            <div>Buy it now: <span class="text-primary fw-bold">{{#if this.buy_now_price}}{{formatCurrency
                                     this.buy_now_price}}{{else}}None{{/if}}</span></div>
                             <div>Listed: {{formatDate this.created_at "DD/MM/YYYY"}}</div>
                             <div>Time left: {{formatAuctionTime this.end_time "DD/MM/YYYY"}}</div>
@@ -817,7 +727,7 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Bid Too Low',
-                        text: `Minimum bid is $${minBid}. Please enter a bid of at least $${minBid}.`,
+                        text: `Minimum bid is ${minBid}. Please enter a bid of at least ${minBid}.`,
                         confirmButtonColor: '#dc3545',
                         confirmButtonText: 'OK'
                     });

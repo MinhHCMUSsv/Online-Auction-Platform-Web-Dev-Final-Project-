@@ -10,19 +10,19 @@
       <div class="stepper-wrapper">
         <div class="stepper-item {{#if (gte currentStep 1)}}active{{/if}} {{#if (gt currentStep 1)}}completed{{/if}}">
           <div class="step-counter">{{#if (gt currentStep 1)}}<i class="bi bi-check"></i>{{else}}1{{/if}}</div>
-          <div class="step-name">Payment</div>
+          <div class="step-name">Address</div>
         </div>
         <div class="stepper-item {{#if (gte currentStep 2)}}active{{/if}} {{#if (gt currentStep 2)}}completed{{/if}}">
           <div class="step-counter">{{#if (gt currentStep 2)}}<i class="bi bi-check"></i>{{else}}2{{/if}}</div>
-          <div class="step-name">Shipping</div>
+          <div class="step-name">Payment</div>
         </div>
         <div class="stepper-item {{#if (gte currentStep 3)}}active{{/if}} {{#if (gt currentStep 3)}}completed{{/if}}">
           <div class="step-counter">{{#if (gt currentStep 3)}}<i class="bi bi-check"></i>{{else}}3{{/if}}</div>
-          <div class="step-name">Receive</div>
+          <div class="step-name">Shipping</div>
         </div>
-        <div class="stepper-item {{#if (gte currentStep 4)}}active{{/if}}">
-          <div class="step-counter">4</div>
-          <div class="step-name">Rating</div>
+        <div class="stepper-item {{#if (gte currentStep 4)}}active{{/if}} {{#if (gt currentStep 4)}}completed{{/if}}">
+          <div class="step-counter">{{#if (gt currentStep 4)}}<i class="bi bi-check"></i>{{else}}4{{/if}}</div>
+          <div class="step-name">Receive</div>
         </div>
       </div>
 
@@ -31,178 +31,175 @@
              style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;" class="me-3">
         <div>
           <h5 class="mb-0 fw-bold">{{product.name}}</h5>
-          <small class="text-muted">Final Price: <span class="fw-bold text-success">${{formatCurrency product.current_price}}</span></small>
+          <small class="text-muted">Final Price: <span class="fw-bold text-success">{{formatCurrency product.current_price}}</span></small>
         </div>
         <div class="ms-auto">
           <span class="badge bg-secondary">{{#if (eq role 'buyer')}}You are Buying{{else}}You are Selling{{/if}}</span>
         </div>
       </div>
 
-
+      {{!-- ================================================================= --}}
+      {{!-- STEP 1: CONFIRM ADDRESS (Buyer Only) --}}
+      {{!-- ================================================================= --}}
       {{#if (eq currentStep 1)}}
         {{#if (eq role 'buyer')}}
-          <h4 class="mb-4 fw-bold" style="color: var(--color-purple);">Step 1: Payment & Delivery</h4>
-          <form id="step1Form" action="/transaction/step1" method="POST">
+          <h4 class="mb-4 fw-bold" style="color: var(--color-primary);">Step 1: Confirm Shipping Address</h4>
+          <form action="/transaction/step1" method="POST">
             <input type="hidden" name="order_id" value="{{orderId}}">
-            <input type="hidden" name="payment_image" id="paymentImage">
-
-            <div class="row">
-              <div class="col-md-6 mb-4">
-                <label class="form-label fw-bold">Shipping Address</label>
-                <input type="text" class="form-control mb-2" name="fullname" placeholder="Full Name" value="{{authUser.full_name}}" required>
-                <input type="text" class="form-control mb-2" name="phone" placeholder="Phone Number" required>
-                <textarea class="form-control" name="address" rows="3" placeholder="Full Address (Street, City, etc.)" required>{{authUser.address}}</textarea>
-              </div>
-              <div class="col-md-6 mb-4">
-                 <label class="form-label fw-bold">Payment Proof (Bank Transfer Screenshot)</label>
-                 <div id="uppy-payment"></div>
-                 <small class="text-muted">Upload transaction image here.</small>
-              </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold">Full Name</label>
+                <input type="text" class="form-control" value="{{authUser.full_name}}" disabled readonly>
             </div>
+            
+            <div class="mb-4">
+                <label class="form-label fw-bold">Shipping Address</label>
+                <textarea class="form-control" name="address" rows="3" required>{{authUser.address}}</textarea>
+                <div class="form-text text-muted">You can edit this address for this specific order.</div>
+            </div>
+
             <div class="text-end">
-              <button type="submit" class="btn btn-purple btn-lg px-5">Submit Payment <i class="bi bi-arrow-right"></i></button>
+              <button type="submit" class="btn btn-orange btn-lg px-5">Confirm & Next <i class="bi bi-arrow-right"></i></button>
             </div>
           </form>
-
         {{else}}
           <div class="text-center py-5">
-            <div class="waiting-pulse"><i class="bi bi-hourglass-split fs-1 text-white"></i></div>
+            <div class="waiting-pulse"><i class="bi bi-geo-alt fs-1 text-white"></i></div>
             <h4>Waiting for Buyer...</h4>
-            <p class="text-muted">The buyer is currently entering shipping details and payment proof.<br>You will be notified once they finish.</p>
+            <p class="text-muted">The buyer is confirming their shipping address.</p>
             <button onclick="location.reload()" class="btn btn-outline-secondary mt-3">Check Status</button>
           </div>
         {{/if}}
       {{/if}}
 
-
+      {{!-- ================================================================= --}}
+      {{!-- STEP 2: PAYMENT (Buyer Uploads) --}}
+      {{!-- ================================================================= --}}
       {{#if (eq currentStep 2)}}
+        {{#if (eq role 'buyer')}}
+          <h4 class="mb-4 fw-bold" style="color: var(--color-primary);">Step 2: Make Payment</h4>
+          
+          <div class="alert alert-info">
+             <strong>Instruction:</strong> Please transfer <strong>{{formatCurrency product.current_price}}</strong> to the seller and upload the proof below.
+          </div>
+
+          <form id="step2Form" action="/transaction/step2" method="POST">
+            <input type="hidden" name="order_id" value="{{orderId}}">
+            <input type="hidden" name="payment_image" id="paymentImage">
+
+            <div class="mb-4">
+                 <label class="form-label fw-bold">Upload Payment Proof</label>
+                 <div id="uppy-payment"></div>
+            </div>
+            <div class="text-end">
+              <button type="submit" class="btn btn-orange btn-lg px-5">Confirm Payment <i class="bi bi-check-lg"></i></button>
+            </div>
+          </form>
+        {{else}}
+          <div class="text-center py-5">
+            <div class="waiting-pulse"><i class="bi bi-credit-card fs-1 text-white"></i></div>
+            <h4>Waiting for Payment...</h4>
+            <p class="text-muted">Buyer has confirmed address: <strong>{{orderData.shipping_address}}</strong>.<br>Waiting for buyer to upload payment proof.</p>
+            <button onclick="location.reload()" class="btn btn-outline-secondary mt-3">Check Status</button>
+          </div>
+        {{/if}}
+      {{/if}}
+
+      {{!-- ================================================================= --}}
+      {{!-- STEP 3: SHIPPING (Seller Uploads) --}}
+      {{!-- ================================================================= --}}
+      {{#if (eq currentStep 3)}}
         {{#if (eq role 'seller')}}
-          <h4 class="mb-4 fw-bold" style="color: var(--color-purple);">Step 2: Confirm Payment & Ship</h4>
+          <h4 class="mb-4 fw-bold" style="color: var(--color-primary);">Step 3: Confirm Shipping</h4>
           
           <div class="card bg-light border-0 mb-4">
             <div class="card-body">
-              <h6 class="fw-bold">Buyer's Shipping Info:</h6>
-              <p class="mb-1"><strong>Name:</strong> {{orderData.ship_name}} - <strong>Phone:</strong> {{orderData.ship_phone}}</p>
-              <p class="mb-0"><strong>Address:</strong> {{orderData.ship_address}}</p>
+              <h6 class="fw-bold">Ship to:</h6>
+              <p class="mb-0">{{orderData.shipping_address}}</p>
               <hr>
-              <h6 class="fw-bold">Payment Proof:</h6>
-              <img src="/src/static/uploads/orders/{{orderData.payment_img}}" class="img-fluid rounded border" style="max-height: 200px;">
+              <h6 class="fw-bold">Buyer's Payment Proof:</h6>
+              <img src="/src/static/transactions/{{orderId}}/payment.jpg" class="img-fluid rounded border" style="max-height: 300px;">
             </div>
           </div>
 
-          <form id="step2Form" action="/order/process/step2" method="POST">
+          <form id="step3Form" action="/transaction/step3" method="POST">
              <input type="hidden" name="order_id" value="{{orderId}}">
              <input type="hidden" name="shipping_image" id="shippingImage">
              
              <div class="mb-4">
-                <label class="form-label fw-bold">Shipping Invoice / Receipt</label>
+                <label class="form-label fw-bold">Upload Shipping Invoice/Package Photo</label>
                 <div id="uppy-shipping"></div>
-                <small class="text-muted">Upload the image of the package or shipping receipt.</small>
              </div>
              <div class="text-end">
-               <button type="submit" class="btn btn-purple btn-lg px-5">Confirm Shipped <i class="bi bi-truck"></i></button>
+               <button type="submit" class="btn btn-orange btn-lg px-5">Confirm Shipped <i class="bi bi-truck"></i></button>
              </div>
           </form>
-
         {{else}}
            <div class="text-center py-5">
             <div class="waiting-pulse"><i class="bi bi-box-seam fs-1 text-white"></i></div>
-            <h4>Waiting for Seller...</h4>
-            <p class="text-muted">The seller is verifying your payment and preparing the shipment.<br>Please wait for the shipping invoice.</p>
+            <h4>Processing...</h4>
+            <p class="text-muted">You have submitted the payment.<br>The seller is verifying and preparing to ship.</p>
             <button onclick="location.reload()" class="btn btn-outline-secondary mt-3">Check Status</button>
           </div>
         {{/if}}
       {{/if}}
 
-
-      {{#if (eq currentStep 3)}}
+      {{!-- ================================================================= --}}
+      {{!-- STEP 4: CONFIRM RECEIPT (Buyer Confirms) --}}
+      {{!-- ================================================================= --}}
+      {{#if (eq currentStep 4)}}
          {{#if (eq role 'buyer')}}
-            <h4 class="mb-4 fw-bold" style="color: var(--color-purple);">Step 3: Receive Item</h4>
+            <h4 class="mb-4 fw-bold" style="color: var(--color-primary);">Step 4: Confirm Receipt</h4>
             
             <div class="text-center mb-4">
-              <img src="/src/static/uploads/orders/{{orderData.shipping_img}}" class="img-fluid rounded shadow-sm" style="max-height: 300px;">
+              <img src="/src/static/transactions/{{orderId}}/shipping.jpg" class="img-fluid rounded shadow-sm" style="max-height: 300px;">
               <p class="text-muted mt-2">Seller's shipping proof</p>
             </div>
 
             <div class="text-center">
-              <p>Have you received the product matching the description?</p>
-              <form action="/order/process/step3" method="POST">
+              <p>Have you received the package?</p>
+              <form action="/transaction/step4" method="POST">
                 <input type="hidden" name="order_id" value="{{orderId}}">
-                <button type="submit" class="btn btn-purple btn-lg">I Have Received the Item <i class="bi bi-check-circle-fill"></i></button>
+                {{!-- Nút này luôn enable vì đã vào Step 4 nghĩa là shipping_confirmed = true --}}
+                <button type="submit" class="btn btn-orange btn-lg">I Have Received the Item <i class="bi bi-check-circle-fill"></i></button>
               </form>
             </div>
          {{else}}
             <div class="text-center py-5">
               <div class="waiting-pulse"><i class="bi bi-house-check fs-1 text-white"></i></div>
               <h4>Item In Transit</h4>
-              <p class="text-muted">Waiting for the buyer to confirm receipt of the goods.</p>
+              <p class="text-muted">You have confirmed shipping.<br>Waiting for buyer to confirm receipt.</p>
               <button onclick="location.reload()" class="btn btn-outline-secondary mt-3">Check Status</button>
             </div>
          {{/if}}
       {{/if}}
 
-
-      {{#if (eq currentStep 4)}}
-        <h4 class="mb-4 fw-bold text-center" style="color: var(--color-purple);">Step 4: Rate Transaction</h4>
-        
-        {{#if hasRated}}
-           <div class="text-center py-5">
+      {{!-- ================================================================= --}}
+      {{!-- COMPLETED --}}
+      {{!-- ================================================================= --}}
+      {{#if (gte currentStep 5)}}
+        <div class="text-center py-5">
              <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
-             <h3 class="mt-3">Thank You!</h3>
-             <p>You have rated this transaction.</p>
+             <h3 class="mt-3">Transaction Completed!</h3>
+             <p>Thank you for using MNGo Auction.</p>
              <a href="/" class="btn btn-outline-primary mt-3">Back to Home</a>
-           </div>
-        {{else}}
-           <form action="/order/process/step4" method="POST">
-             <input type="hidden" name="order_id" value="{{orderId}}">
-             
-             <div class="d-flex justify-content-center gap-4 mb-4">
-                <input type="radio" class="btn-check" name="point" id="like" value="1" autocomplete="off" required>
-                <label class="btn btn-outline-success rounded-circle p-3 d-flex flex-column align-items-center" for="like" style="width: 100px; height: 100px;">
-                  <i class="bi bi-hand-thumbs-up-fill fs-1"></i>
-                  <span>+1 Point</span>
-                </label>
-
-                <input type="radio" class="btn-check" name="point" id="dislike" value="-1" autocomplete="off">
-                <label class="btn btn-outline-danger rounded-circle p-3 d-flex flex-column align-items-center" for="dislike" style="width: 100px; height: 100px;">
-                  <i class="bi bi-hand-thumbs-down-fill fs-1"></i>
-                  <span>-1 Point</span>
-                </label>
-             </div>
-
-             <div class="mb-3">
-               <label class="form-label fw-bold">Comment (Required)</label>
-               <textarea class="form-control" name="comment" rows="4" placeholder="Describe your experience..." required minlength="10"></textarea>
-               <small class="text-muted">Please provide details about the product quality and delivery time.</small>
-             </div>
-
-             <div class="text-end">
-               <button type="submit" class="btn btn-purple btn-lg w-100">Submit Review</button>
-             </div>
-           </form>
-           
-           <div class="text-center mt-3">
-             <a href="/" class="text-decoration-none text-muted">Skip rating</a>
-           </div>
-        {{/if}}
+        </div>
       {{/if}}
 
     </div>
   </div>
 </div>
 
-
 {{#section 'js'}}
 <script src="https://releases.transloadit.com/uppy/v3.23.0/uppy.min.js"></script>
 
 <script>
-  // Hàm khởi tạo Uppy (Reuse logic từ create.handlebars )
   function initUppy(containerId, outputInputId) {
     if (!document.querySelector(containerId)) return;
 
     const uppy = new Uppy.Uppy({
       restrictions: {
-        maxNumberOfFiles: 1, // Chỉ cho up 1 ảnh minh chứng
+        maxNumberOfFiles: 1, 
         allowedFileTypes: ['image/*']
       }
     })
@@ -214,22 +211,20 @@
       hideUploadButton: true
     })
     .use(Uppy.XHRUpload, {
-      endpoint: '/seller/upload/temp', // Tái sử dụng endpoint upload ảnh tạm [cite: 524]
+      endpoint: '/transaction/upload/temp', // Reuse endpoint upload temp
       fieldName: 'imgs',
     });
 
     uppy.on('file-added', (file) => { uppy.upload(); });
 
     uppy.on('upload-success', (file, response) => {
-      // Gán tên file vào input hidden để submit form
       document.querySelector(outputInputId).value = response.body.filename;
     });
   }
 
-  // Khởi tạo tùy theo bước hiện tại
   document.addEventListener('DOMContentLoaded', function() {
-    initUppy('#uppy-payment', '#paymentImage'); // Cho Step 1 (Buyer)
-    initUppy('#uppy-shipping', '#shippingImage'); // Cho Step 2 (Seller)
+    initUppy('#uppy-payment', '#paymentImage');   // Step 2
+    initUppy('#uppy-shipping', '#shippingImage'); // Step 3
   });
 </script>
 {{/section}}

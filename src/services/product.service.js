@@ -145,8 +145,13 @@ export function add(product) {
 
 // Detail functions
 export function getProductById(product_id) {
-    return db('product')
-        .where('product_id', product_id).first();
+    return db('product as p')
+        .leftJoin('bid as b', 'p.product_id', 'b.product_id')
+        .select('p.*')
+        .count('b.bid_id as bid_count')
+        .where('p.product_id', product_id)
+        .groupBy('p.product_id')
+        .first();
 }
 
 export function getSellerById(seller_id) {
@@ -208,9 +213,13 @@ export async function getCommentsWithReplies(product_id) {
 }
 
 export function getRelatedProducts(category_id, limit) {
-    return db('product')
-        .where('category_id', category_id)
-        .select()
+    return db('product as p')
+        .leftJoin('bid as b', 'p.product_id', 'b.product_id')
+        .leftJoin('app_user as u', 'p.leader_id', 'u.user_id') 
+        .where('p.category_id', category_id)
+        .select('p.*', 'u.full_name as leader_name')
+        .count('b.bid_id as bid_count')
+        .groupBy('p.product_id', 'u.full_name')
         .limit(limit);
 }
 
@@ -219,10 +228,16 @@ export function placeBid(bidData) {
 }
 
 export function findWonItems(userId) {
-    return db('product')
-        .where('status', 'ended')
-        .andWhere('leader_id', userId)
-        .orderBy('end_time', 'desc');
+    return db('product as p')
+        .leftJoin('transaction as t', 'p.product_id', 't.product_id') 
+        .where('p.status', 'ended')
+        .andWhere('p.leader_id', userId)
+        .select(
+            'p.*', 
+            't.status as transaction_status',
+            't.transaction_id'
+        )
+        .orderBy('p.end_time', 'desc');
 }
 
 export function search(keyword, sortBy = null) {

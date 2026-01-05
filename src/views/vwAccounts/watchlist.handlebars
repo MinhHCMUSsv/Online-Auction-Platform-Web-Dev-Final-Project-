@@ -102,7 +102,18 @@
 {{/section}}
 
 
-<h3 class="mb-4 fw-bold text-primary">Watchlist</h3>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="fw-bold text-primary mb-0">Watchlist</h3>
+  
+  <form action="/profile/watchlist/search" method="GET" class="d-flex" style="width: 300px;">
+    <div class="input-group">
+        <input class="form-control rounded-start-pill border-end-0" type="search" name="q" placeholder="Search in watchlist..." required>
+        <button class="btn border border-start-0 rounded-end-pill bg-white" type="submit">
+            <i class="bi bi-search text-muted"></i>
+        </button>
+    </div>
+  </form>
+</div>
 
 {{#if watchlist.length}}
 <div class="row g-3">
@@ -140,13 +151,13 @@
         <p class="product-meta mb-1 small text-muted">
           <span class="fw-bold text-primary fs-5">
             {{#if this.current_price}}
-            ${{formatCurrency this.current_price}}
+            {{formatCurrency this.current_price}}
             {{else}}
-            ${{formatCurrency this.start_price}}
+            {{formatCurrency this.start_price}}
             {{/if}}
           </span>
           <br>
-          <span>Buy it now: <span class="fw-bold text-primary">{{#if this.buy_now_price}}${{formatCurrency
+          <span>Buy it now: <span class="fw-bold text-primary">{{#if this.buy_now_price}}{{formatCurrency
               this.buy_now_price}}
               {{else}} None {{/if}}</span></span><br>
           <span>Listed: {{formatDate this.created_at "DD/MM/YYYY HH:mm"}}</span><br>

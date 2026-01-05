@@ -90,13 +90,24 @@
           </span>
         </td>
 
-        <td class="price-text">${{formatCurrency this.current_price}}</td>
+        <td class="price-text">{{formatCurrency this.current_price}}</td>
 
         <td class="text-end pe-3">
-          {{#if this.is_paid}}
-          <i class="bi bi-check-circle-fill icon-success"></i>
+          {{#if this.is_success}}
+            {{!-- Trạng thái 2: Success --}}
+            <i class="bi bi-check-circle-fill icon-success" title="Success"></i>
+          
+          {{else if this.can_pay}}
+            {{!-- Trạng thái null: Chưa thanh toán -> Hiện nút Pay --}}
+            <a href="/transaction?product_id={{this.product_id}}" class="btn-pay">Pay</a>
+          
           {{else}}
-          <a href="/checkout?id={{this.product_id}}" class="btn-pay">Pay</a>
+            {{!-- Trạng thái 0 (Cancelled) hoặc 1 (Processing) -> Hiện text hoặc icon khác --}}
+            {{#if (eq this.status_text 'Cancelled')}}
+                <i class="bi bi-x-circle-fill text-danger" title="Cancelled"></i>
+            {{else}}
+                <i class="bi bi-hourglass-split text-warning" title="Processing"></i>
+            {{/if}}
           {{/if}}
         </td>
 

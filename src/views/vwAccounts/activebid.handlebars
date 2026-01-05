@@ -135,9 +135,9 @@
         <p class="product-meta mb-1 small text-muted">
           <span class="fw-bold text-primary fs-5">
             {{#if this.current_price}}
-            ${{formatCurrency this.current_price}}
+            {{formatCurrency this.current_price}}
             {{else}}
-            ${{formatCurrency this.start_price}}
+            {{formatCurrency this.start_price}}
             {{/if}}
           </span>
           <br>
@@ -145,7 +145,7 @@
           <span>Buy it now:
             <span class="fw-bold text-primary">
               {{#if this.buy_now_price}}
-              ${{formatCurrency this.buy_now_price}}
+              {{formatCurrency this.buy_now_price}}
               {{else}}
               None
               {{/if}}

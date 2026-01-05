@@ -53,7 +53,8 @@ router.post('/create', async function (req, res) {
         bid_step: stepPrice,
         buy_now_price: buyNowPrice,
         seller_id: user.user_id,
-        is_auto_extend: req.body.isAutoExtend === '1'
+        is_auto_extend: req.body.isAutoExtend === '1',
+        is_accepted: req.body.permission === '1'
     };
 
     const ret = await productService.add(newProduct);

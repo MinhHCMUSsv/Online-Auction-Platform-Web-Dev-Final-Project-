@@ -43,7 +43,7 @@
       });
     }
 
-    $('#frmProfile').on('submit', function (e) {
+    $('#frmProfile').on('submit', async function (e) {
       const isChangingPass = !$('#passwordFields').hasClass('d-none');
 
       if (isChangingPass) {
@@ -77,6 +77,42 @@
             });
             return;
           }
+        }
+      }
+
+      const currentEmail = '{{user.email}}'; 
+      const newEmail = $('input[name="email"]').val().trim();
+
+      if (!newEmail) {
+        Swal.fire({ icon: 'warning', text: 'Email cannot be empty.' });
+        return;
+      }
+
+      if (newEmail !== currentEmail) {
+        try {
+            Swal.fire({
+                title: 'Checking email...',
+                didOpen: () => { Swal.showLoading() }
+            });
+
+            const response = await fetch(`/email-available?email=${newEmail}`);
+            const isAvailable = await response.json();
+            Swal.close();
+
+            if (isAvailable === false) { 
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Email Already Exists',
+                    text: 'This email is already registered. Please use another one.',
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
+            }
+
+        } catch (error) {
+            console.error(error);
+            Swal.fire({ icon: 'error', text: 'Cannot validate email. Please try again later.' });
+            return;
         }
       }
     });
@@ -242,8 +278,7 @@
       <div class="row settings-row">
         <div class="col-sm-3 info-label">Email</div>
         <div class="col-sm-9">
-          <input type="email" class="form-control" name="email" value="{{user.email}}" readonly
-            style="background-color: #e9ecef;">
+          <input type="email" class="form-control" name="email" value="{{user.email}}" required>
         </div>
       </div>
 
@@ -257,14 +292,14 @@
       <div class="row settings-row">
         <div class="col-sm-3 info-label">Address</div>
         <div class="col-sm-9">
-          <input type="text" class="form-control" name="address" value="{{user.address}}">
+          <input type="text" class="form-control" name="address" value="{{user.address}}" required>
         </div>
       </div>
 
       <div class="row settings-row">
         <div class="col-sm-3 info-label">Date of Birth</div>
         <div class="col-sm-9">
-          <input type="date" class="form-control" name="dob" value="{{formatDate user.dob 'YYYY-MM-DD'}}">
+          <input type="date" class="form-control" name="dob" value="{{formatDate user.dob 'YYYY-MM-DD'}}" required>
         </div>
       </div>
 

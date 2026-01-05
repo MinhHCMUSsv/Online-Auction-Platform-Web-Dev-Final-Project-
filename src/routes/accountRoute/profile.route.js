@@ -22,11 +22,11 @@ router.get('/', function (req, res) {
 
 router.post('/', async function (req, res) {
     const user = req.session.authUser;
-    const { full_name, address, dob, old_password, new_password, confirm_new_password } = req.body;
+    const { email, full_name, address, dob, old_password, new_password, confirm_new_password } = req.body;
 
     const entity = {
         user_id: user.user_id,
-        email: user.email,
+        email: email,
         full_name: full_name,
         address: address,
         dob: dob || null
@@ -41,6 +41,13 @@ router.post('/', async function (req, res) {
             err_message: msg
         });
     };
+
+    if (email !== user.email) {
+        const existingUser = await userService.findByEmail(email);
+        if (existingUser) {
+            return renderError('Email is already taken by another user.');
+        }
+    }
 
     if (new_password) {
         if (new_password !== confirm_new_password) {
@@ -60,6 +67,7 @@ router.post('/', async function (req, res) {
 
     await userService.patch(entity);
 
+    req.session.authUser.email = entity.email;
     req.session.authUser.full_name = entity.full_name;
     req.session.authUser.address = entity.address;
     req.session.authUser.dob = entity.dob;
@@ -108,6 +116,28 @@ router.get('/watchlist', async function (req, res) {
     });
 });
 
+router.get('/watchlist/search', async function (req, res) {
+    const user = req.session.authUser;
+    const query = req.query.q || '';
+
+    if (!query) {
+        return res.redirect('/profile/watchlist');
+    }
+
+    const keyword = query.replace(/ /g, '&');
+    
+    const list = await watchlistService.search(user.user_id, keyword);
+
+    res.render('vwAccounts/watchlistSearch', {
+        layout: 'account-layout',
+        title: `Search Watchlist: ${query}`,
+        activeNav: 'Watchlist',
+        watchlist: list,
+        empty: list.length === 0,
+        query: query
+    });
+});
+
 router.get('/active', async function (req, res) {
     const user = req.session.authUser;
     let list = await bidService.findActiveBidsByUserId(user.user_id);
@@ -126,20 +156,35 @@ router.get('/won', async function (req, res) {
     let list = await productService.findWonItems(userId);
 
     list = list.map(item => {
-        // [TODO]: Bạn thay logic này bằng trường thật trong DB
-        // Ví dụ: const isPaid = item.payment_status === 1;
+        const status = item.transaction_status;
         
-        // Hiện tại mình random 50/50 để bạn test giao diện
-        const isPaid = Math.random() < 0.5; 
+        let statusText = 'Waiting Payment';
+        let canPay = true; // Biến cờ để quyết định có hiện nút Pay hay không
+        let isSuccess = false; // Biến cờ để hiện dấu tích xanh
+
+        // Logic trạng thái theo yêu cầu: 0: Hủy, 1: Chờ, 2: Thành công
+        if (status === 2) {
+            statusText = 'Success';
+            canPay = false;
+            isSuccess = true;
+        } else if (status === 1) {
+            statusText = 'Processing'; // Đã thanh toán, đang chờ xác nhận
+            canPay = true; // Không cho thanh toán lại
+            isSuccess = false; // Chưa thành công hẳn
+        } else {
+            statusText = 'Cancelled';
+            canPay = false; // Đã hủy thì không cho thanh toán nữa (tùy nghiệp vụ)
+            isSuccess = false;
+        }
 
         return {
             ...item,
-            // Tạo thêm trường status_text để hiện chữ
-            status_text: isPaid ? 'Success' : 'Waiting payment',
-            // Tạo thêm trường is_paid để hiện nút Pay hoặc dấu tích
-            is_paid: isPaid
+            status_text: statusText,
+            can_pay: canPay,
+            is_success: isSuccess
         };
     });
+    console.log('won items:', list);
 
     res.render('vwAccounts/wonitem', {
         layout: 'account-layout',
