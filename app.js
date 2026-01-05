@@ -3,7 +3,7 @@ import { engine } from 'express-handlebars';
 import hbs_helpers from 'handlebars-helpers';
 import expressHandlebarsSections from 'express-handlebars-sections';
 import session from 'express-session';
-import { isAuth, isAdmin, isUpgradePending } from './src/middlewares/auth.mdw.js';
+import { isAuth, isSeller, isAdmin, isUpgradePending, isBanned } from './src/middlewares/auth.mdw.js';
 import moment from 'moment';
 
 import authRouter from './src/routes/accountRoute/auth.route.js';
@@ -18,6 +18,8 @@ import passport from './src/utils/passport.js';
 import commonRouter from './src/routes/accountRoute/common.route.js';
 import profileRouter from './src/routes/accountRoute/profile.route.js';
 import menuRouter from './src/routes/accountRoute/menu.route.js';
+
+import transactionRouter from './src/routes/transaction.route.js'
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -62,6 +64,16 @@ app.engine('handlebars', engine({
             }
             // C. CÒN LÂU (Trên 3 ngày) -> Hiện ngày tháng cụ thể
             return dateObj.format(format);
+        },
+        formatCurrency: function (value) {
+            const number = Number(value);
+            if (isNaN(number)) {
+                return '0';
+            }
+            return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(number);
         }
     }
      
@@ -81,11 +93,11 @@ app.use(passport.session());
 app.use(function (req, res, next) {
     res.locals.isAuthenticated = req.session.isAuthenticated;
     res.locals.authUser = req.session.authUser;
-
     res.locals.fatherCategories = req.session.fatherCategories || [];
     next();
 });
 
+app.use(isBanned);
 app.use(isUpgradePending);
 
 app.use('/', commonRouter);
@@ -94,7 +106,9 @@ app.use('/auth', authRouter);
 
 app.use('/profile', isAuth, profileRouter);
 
-app.use('/seller', sellerRouter);
+app.use('/seller', isAuth, isSeller, sellerRouter);
+
+app.use('/transaction', transactionRouter);
 
 app.use('/admin/categories', adminCategoryRouter);
 app.use('/admin/products', adminProductRouter);

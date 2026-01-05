@@ -8,7 +8,7 @@
     // Tìm cái thẻ cha chứa sản phẩm này (để xóa khỏi giao diện)
     const $cardColumn = $btn.closest('.watchlist-item');
 
-    $.post('/products/watchlist/toggle', { product_id: productId }, function (data) {
+    $.post('/menu/watchlist/toggle', { product_id: productId }, function (data) {
       if (data.success) {
         if (data.isAdded === false) {
           // Nếu kết quả trả về là đã XÓA (isAdded = false)
@@ -100,15 +100,27 @@
         </div>
 
         <p class="mb-1 small">
-          <span class="fw-semibold">Bidder Name</span><br>
+          <span>{{#if this.current_bidder_name}}Highest Bidder: {{this.current_bidder_name}}{{else}}No
+            Bids{{/if}}</span><br>
         </p>
 
         <p class="product-meta mb-1 small text-muted">
-          <span>Buy it now: <span class="fw-bold text-primary">{{#if this.buy_now_price}}${{this.buy_now_price}}
+          <span class="fw-bold text-primary fs-5">
+            {{#if this.current_price}}
+            ${{formatCurrency this.current_price}}
+            {{else}}
+            ${{formatCurrency this.start_price}}
+            {{/if}}
+          </span>
+          <br>
+          <span>Buy it now: <span class="fw-bold text-primary">{{#if this.buy_now_price}}${{formatCurrency
+              this.buy_now_price}}
               {{else}} None {{/if}}</span></span><br>
-          <span>Listed: {{formatDate this.start_time "DD/MM/YYYY HH:mm"}}</span><br> <span>Time left: {{formatAuctionTime
+          <span>Listed: {{formatDate this.created_at "DD/MM/YYYY HH:mm"}}</span><br>
+          <span>Time left:
+            {{formatAuctionTime
             this.end_time "DD/MM/YYYY HH:mm"}}</span><br>
-          <span>Bids: 0</span>
+          <span>Bids: {{this.bid_count}}</span>
         </p>
 
         <div class="mt-2">
@@ -123,9 +135,16 @@
 
 <nav aria-label="Page navigation" class="mt-4">
   <ul class="pagination justify-content-center">
+    {{#if prevPage}}
+    <li class="page-item">
+      <a class="page-link" href="?page={{prevPage}}">Previous</a>
+    </li>
+    {{else}}
     <li class="page-item disabled">
       <a class="page-link">Previous</a>
     </li>
+    {{/if}}
+
     {{#each pageNumbers}}
     {{#if isCurrent}}
     <li class="page-item active"><a class="page-link" href="javascript:;">{{value}}</a></li>
@@ -133,9 +152,17 @@
     <li class="page-item"><a class="page-link" href="?page={{value}}">{{value}}</a></li>
     {{/if}}
     {{/each}}
+
+    {{#if nextPage}}
     <li class="page-item">
-      <a class="page-link" href="#">Next</a>
+      <a class="page-link" href="?page={{nextPage}}">Next</a>
     </li>
+    {{else}}
+    <li class="page-item disabled">
+      <a class="page-link">Next</a>
+    </li>
+    {{/if}}
+
   </ul>
 </nav>
 
