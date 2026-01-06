@@ -7,7 +7,6 @@ import { generateOTP } from '../../utils/genOTP.js';
 
 import * as homeService from '../../services/home.service.js';
 import * as userService from '../../services/user.service.js';
-import * as settingService from '../../services/setting.service.js';
 import * as watchlistService from '../../services/watchlist.service.js';
 
 const router = express.Router();
@@ -227,6 +226,7 @@ router.post('/signin', async function (req, res) {
     if (user.role === 2) {
         url = '/admin/users';
         req.session.isAdmin = true;
+        delete req.session.retUrl;
     }
     else {
         url = '/';

@@ -16,7 +16,6 @@ router.get('/google/callback',
     
     let user = await userService.findByGoogleId(googleId);
 
-    // Đã từng đăng nhập bằng Google -> Cho vào luôn
     if (user) {
         if (user.status === 2) {
             return res.render('vwAccounts/signin', {
@@ -29,11 +28,8 @@ router.get('/google/callback',
         req.session.isAuthenticated = true;
         req.session.authUser = user;
     } 
-    // Chưa từng đăng nhập bằng Google
     else {
-        // Kiểm tra email có được dùng để đăng ký chưa
         let existingUser = await userService.findByEmail(email);
-        // Chưa có email thì tạo mới luôn
         if (!existingUser) {
             const newUser = {
                 full_name: fullName,
@@ -47,7 +43,6 @@ router.get('/google/callback',
             const newUserId = result[0].user_id;
             existingUser = { ...newUser, user_id: newUserId };
         }
-        // Thêm vào user_auth_provider
         await userService.addAuthProvider({
             user_id: existingUser.user_id,
             provider_user_id: googleId,
@@ -57,7 +52,6 @@ router.get('/google/callback',
         req.session.authUser = existingUser;
     }
 
-    // Determine redirect URL based on user role
     let defaultUrl = '/';
     if (req.session.authUser && req.session.authUser.role === 2) {
         defaultUrl = '/admin/categories';
@@ -88,7 +82,6 @@ router.get('/facebook/callback',
     
     let user = await userService.findByFacebookId(fbId);
 
-    // Đã từng đăng nhập bằng Facebook -> Cho vào luôn
     if (user) {
         if (user.status === 2) {
             return res.render('vwAccounts/signin', {
@@ -101,11 +94,8 @@ router.get('/facebook/callback',
         req.session.isAuthenticated = true;
         req.session.authUser = user;
     } 
-    // Chưa từng đăng nhập bằng Google
     else {
-        // Kiểm tra email có được dùng để đăng ký chưa
         let existingUser = await userService.findByEmail(email);
-        // Chưa có email thì tạo mới luôn
         if (!existingUser) {
             const newUser = {
                 full_name: fullName,
@@ -119,7 +109,6 @@ router.get('/facebook/callback',
             const newUserId = result[0].user_id;
             existingUser = { ...newUser, user_id: newUserId };
         }
-        // Thêm vào user_auth_provider
         await userService.addAuthProvider({
             user_id: existingUser.user_id,
             provider_user_id: fbId,
@@ -129,7 +118,6 @@ router.get('/facebook/callback',
         req.session.authUser = existingUser;
     }
 
-    // Determine redirect URL based on user role
     let defaultUrl = '/';
     if (req.session.authUser && req.session.authUser.role === 2) {
         defaultUrl = '/admin/categories';

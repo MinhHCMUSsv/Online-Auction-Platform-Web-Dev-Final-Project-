@@ -57,7 +57,7 @@ export const sendOTP = async function (toEmail, otp) {
     return await sendMailBase(toEmail, subject, htmlContent);
 };
 
-export const sendBidSuccessfullyNotification = async function (toEmail, productName, bidAmount) {
+export const sendBidSuccessfullyNotification = async function (toEmail, productName, bidAmount, product_id) {
     const subject = "MNGo Auction - Bidding Successfully!";
     const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 8px;">
@@ -70,7 +70,7 @@ export const sendBidSuccessfullyNotification = async function (toEmail, productN
                 <p style="margin: 5px 0 0 0;"><strong>Your bid:</strong> ${formatCurrency(bidAmount)}</p>
             </div>
             <div style="text-align: center; margin: 20px 0;">
-                <a href="${process.env.BASE_URL}/menu" style="background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                <a href="${process.env.BASE_URL}/menu/detail?product_id=${product_id}" style="background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
                     View Auction
                 </a>
             </div>
@@ -83,7 +83,7 @@ export const sendBidSuccessfullyNotification = async function (toEmail, productN
     return await sendMailBase(toEmail, subject, htmlContent);
 };
 
-export const sendOutbidNotification = async function (toEmail, productName) {
+export const sendOutbidNotification = async function (toEmail, productName, product_id) {
     const subject = "MNGo Auction - You've Been Outbid";
     const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 8px;">
@@ -96,7 +96,7 @@ export const sendOutbidNotification = async function (toEmail, productName) {
             </div>
             <p>Don't let this opportunity slip away! You can place a new bid to regain the lead.</p>
             <div style="text-align: center; margin: 20px 0;">
-                <a href="${process.env.BASE_URL}/menu" style="background-color: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                <a href="${process.env.BASE_URL}/menu/detail?product_id=${product_id}" style="background-color: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
                     Bid Again
                 </a>
             </div>
@@ -123,7 +123,7 @@ export const sendPriceUpdateNotification = async function (toEmail, productName,
             </div>
             <p>Your item is gaining attention! Higher bids mean more profit for you.</p>
             <div style="text-align: center; margin: 20px 0;">
-                <a href="${process.env.BASE_URL}/menu" style="background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                <a href="${process.env.BASE_URL}/menu/detail?product_id=${product_id}" style="background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
                     View Your Item
                 </a>
             </div>
