@@ -237,7 +237,7 @@ router.post('/place-bid', async function (req, res) {
                     (async function() {
                         try {
                             const previousLeaderInfo = await userService.getUserById(currentLeaderId);
-                            await sendOutbidNotification(previousLeaderInfo.email, product.name);
+                            await sendOutbidNotification(previousLeaderInfo.email, product.name, product.product_id);
                             console.log('Outbid notification sent to:', previousLeaderInfo.email);
                         } catch (mailError) {
                             console.error('Background Email Error (Outbid):', mailError);
@@ -253,8 +253,8 @@ router.post('/place-bid', async function (req, res) {
                 try {
                     const sellerInfo = await userService.getUserById(product.seller_id);
                     const bidderInfo = await userService.getUserById(bidderId);
-                    await sendBidSuccessfullyNotification(bidderInfo.email, product.name, finalBidAmount);
-                    await sendPriceUpdateNotification(sellerInfo.email, product.name, finalBidAmount);
+                    await sendBidSuccessfullyNotification(bidderInfo.email, product.name, finalBidAmount, product.product_id);
+                    await sendPriceUpdateNotification(sellerInfo.email, product.name, finalBidAmount, product.product_id);
                     console.log('Bid notification emails sent successfully');
                 } catch (mailError) {
                     console.error('Background Email Error (Bid Notification):', mailError);
