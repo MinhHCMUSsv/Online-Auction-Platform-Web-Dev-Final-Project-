@@ -350,7 +350,7 @@
 <div class="rating-card">
   <!-- Header -->
   <div class="rating-header">
-    {{#if (eq role 0)}}
+    {{#if (eq authUser.user_id transaction.buyer_id)}}
       <h3><i class="bi bi-star-fill me-2"></i>Rate the Seller</h3>
       <p>Share your experience with the seller of this item</p>
     {{else}}
@@ -365,9 +365,15 @@
       <i class="bi bi-check-circle-fill"></i>
       <h4>You have already submitted your rating!</h4>
       <p>Thank you for your feedback. It helps build trust in our community.</p>
-      <a href="javascript:history.back()" class="btn btn-back-rating mt-3">
+      {{#if (eq authUser.user_id transaction.buyer_id)}}
+      <a href="/profile/won" class="btn btn-back-rating mt-3">
         <i class="bi bi-arrow-left me-2"></i>Back
       </a>
+      {{else}}
+      <a href="/seller/finished-auctions" class="btn btn-back-rating mt-3">
+        <i class="bi bi-arrow-left me-2"></i>Back
+      </a>
+      {{/if}}
     </div>
   {{else}}
     <!-- Product Info -->
@@ -387,14 +393,14 @@
     <!-- Rating Target -->
     <div class="rating-target">
       <div class="avatar">
-        {{#if (eq role 0)}}
+        {{#if (eq authUser.user_id transaction.buyer_id)}}
           {{#if transaction.seller_name}}{{transaction.seller_name.[0]}}{{else}}S{{/if}}
         {{else}}
           {{#if transaction.buyer_name}}{{transaction.buyer_name.[0]}}{{else}}B{{/if}}
         {{/if}}
       </div>
       <div>
-        {{#if (eq role 0)}}
+        {{#if (eq authUser.user_id transaction.buyer_id)}}
           <div class="name">{{transaction.seller_name}}</div>
           <span class="role-badge"><i class="bi bi-shop me-1"></i>Seller</span>
         {{else}}
@@ -408,7 +414,7 @@
     <form id="ratingForm" action="/profile/rating" method="POST">
       <input type="hidden" name="transaction_id" value="{{transaction.transaction_id}}">
       <input type="hidden" name="product_id" value="{{transaction.product_id}}">
-      {{#if (eq role 0)}}
+      {{#if (eq authUser.user_id transaction.buyer_id)}}
         <input type="hidden" name="rater_id" value="{{authUser.user_id}}">
         <input type="hidden" name="ratee_id" value="{{transaction.seller_id}}">
       {{else}}
