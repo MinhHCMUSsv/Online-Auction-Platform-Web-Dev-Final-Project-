@@ -43,7 +43,7 @@
 
 <div class="container-fluid px-4 py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold text-primary m-0">
+        <h3 class="fw-bold m-0" style="color: #FF8C00;">
             <i class="bi bi-lightning-charge-fill"></i> My Active Auctions
         </h3>
     </div>
@@ -53,7 +53,7 @@
         <i class="bi bi-inbox fs-1 d-block mb-3"></i>
         <h5>You have no active auctions.</h5>
         <p>Start selling your items now!</p>
-        <a href="/seller/create" class="btn btn-primary mt-2">Post a Product</a>
+        <a href="/seller/create" class="btn mt-2" style="background-color: #FF8C00; color: white;">Post a Product</a>
     </div>
     {{else}}
 
@@ -83,7 +83,7 @@
                     </p>
 
                     <p class="product-meta mb-1 small text-muted">
-                        <span class="fw-bold text-primary fs-5">
+                        <span class="fw-bold fs-5" style="color: #FF8C00;">
                             {{#if current_price}}
                             {{formatCurrency current_price}}
                             {{else}}
@@ -93,7 +93,7 @@
                         <br>
 
                         <span>Buy it now:
-                            <span class="fw-bold text-primary">
+                            <span class="fw-bold" style="color: #FF8C00;">
                                 {{#if this.buy_now_price}}
                                 {{formatCurrency this.buy_now_price}}
                                 {{else}}
@@ -112,7 +112,9 @@
 
                     <div class="mt-2">
                         <a href="/menu/detail?product_id={{this.product_id}}"
-                            class="btn btn-sm btn-outline-primary w-100">
+                            class="btn btn-sm w-100" style="border: 1px solid #FF8C00; color: #FF8C00;"
+                            onmouseover="this.style.backgroundColor='#FF8C00';this.style.color='white';"
+                            onmouseout="this.style.backgroundColor='transparent';this.style.color='#FF8C00';">
                             Details
                         </a>
                     </div>

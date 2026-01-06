@@ -11,9 +11,81 @@
     integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
   <style>
+    :root {
+      --color-primary: #FF8C00;
+      --color-primary-hover: #e67e00;
+    }
+
     #mainNav .nav-pills .nav-link {
       width: 110px;
       text-align: center;
+      font-weight: 500;
+      color: #495057;
+      transition: all 0.2s ease;
+      border-radius: 25px;
+      padding: 8px 16px;
+    }
+
+    #mainNav .nav-pills .nav-link:hover {
+      color: var(--color-primary);
+      background-color: rgba(255, 140, 0, 0.1);
+    }
+
+    #mainNav .nav-pills .nav-link.active {
+      background-color: var(--color-primary);
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 4px 12px rgba(255, 140, 0, 0.35);
+    }
+
+    .btn-orange {
+      background-color: var(--color-primary);
+      color: white;
+      border: none;
+    }
+
+    .btn-orange:hover {
+      background-color: var(--color-primary-hover);
+      color: white;
+    }
+
+    /* Custom Pagination Styles */
+    .pagination {
+      gap: 5px;
+    }
+
+    .pagination .page-item .page-link {
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      color: #6c757d;
+      font-weight: 600;
+      background-color: #f8f9fa;
+      transition: all 0.2s ease;
+    }
+
+    .pagination .page-item .page-link:hover {
+      background-color: var(--color-primary);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(255, 140, 0, 0.3);
+    }
+
+    .pagination .page-item.active .page-link {
+      background-color: var(--color-primary);
+      color: white;
+      box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4);
+    }
+
+    .pagination .page-item.disabled .page-link {
+      background-color: #e9ecef;
+      color: #adb5bd;
+      cursor: not-allowed;
+    }
+
+    .pagination .page-item:first-child .page-link,
+    .pagination .page-item:last-child .page-link {
+      border-radius: 8px;
     }
 
     html {
@@ -44,10 +116,10 @@
           <li class="nav-item"><a class="nav-link {{#if (eq activeNav 'Home')}}active{{/if}}" href="/">Home</a></li>
           <li class="nav-item"><a class="nav-link {{#if (eq activeNav 'Menu')}}active{{/if}}" href="/menu">Menu</a></li>
           <li class="nav-item">
-            <a class="nav-link" href="/profile/watchlist">Watchlist</a>
+            <a class="nav-link {{#if (eq activeNav 'Watchlist')}}active{{/if}}" href="/profile/watchlist">Watchlist</a>
           </li> 
           <li class="nav-item">
-            <a class="nav-link" href="/profile">Account</a>
+            <a class="nav-link {{#if (eq activeNav 'Account')}}active{{/if}}" href="/profile">Account</a>
           </li>
         </ul>
 
@@ -57,7 +129,7 @@
             <div class="text-end me-2">
               <div class="fw-bold text-dark" style="font-size: 1.1rem;">{{authUser.full_name}}</div>
               <div class="d-flex align-items-center justify-content-end" style="font-size: 0.9rem;">
-                <span class="text-muted me-2">Points: {{authUser.points}} / {{authUser.positive_point}}</span>
+                <span class="text-muted me-2">Points: {{authUser.positive_point}}/{{authUser.points}}</span>
                 {{#if (eq authUser.role 1)}}
                 <span class="badge rounded-pill bg-success">Seller</span>
                 {{else}}
@@ -71,7 +143,7 @@
             </div>
           </div>
           {{else}}
-          <a class="btn btn-danger rounded-pill" href="/signin">Sign In</a>
+          <a class="btn btn-orange rounded-pill" href="/signin">Sign In</a>
           {{/if}}
         </div>
 

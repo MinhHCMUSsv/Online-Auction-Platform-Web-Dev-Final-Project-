@@ -15,7 +15,8 @@ router.get('/', async function(req, res) {
     res.render('vwAdmin/categories', { 
         categories: categoriesWithChildren,
         activeAdmin: 'categories',
-        layout: 'admin-layout'
+        layout: 'admin-layout',
+        title: 'Categories Management'
     });
 });
 

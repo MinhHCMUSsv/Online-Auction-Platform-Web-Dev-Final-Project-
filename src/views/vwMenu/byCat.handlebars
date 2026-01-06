@@ -73,6 +73,29 @@
     transition: 0.2s;
   }
 
+  /* Custom dropdown active state - Orange theme */
+  .dropdown-item.active,
+  .dropdown-item:active {
+    background-color: #FF8C00;
+    color: white;
+  }
+
+  .dropdown-item:hover {
+    background-color: rgba(255, 140, 0, 0.1);
+    color: #FF8C00;
+  }
+
+  .dropdown-item.active:hover {
+    background-color: #e67e00;
+    color: white;
+  }
+
+  /* Form control focus - Orange theme */
+  .form-control:focus {
+    border-color: #FF8C00;
+    box-shadow: 0 0 0 0.25rem rgba(255, 140, 0, 0.25);
+  }
+
   /* 4. Style cho child categories */
   .child-category-item {
     transition: all 0.2s;
@@ -94,9 +117,9 @@
   }
 
   .child-category-item.active {
-    background-color: #0d6efd;
+    background-color: #FF8C00;
     color: white;
-    border-color: #0d6efd;
+    border-color: #FF8C00;
   }
 
   .child-categories-container {
@@ -144,7 +167,7 @@
       <form class="flex-grow-1" action="/menu/search" method="GET">
         <div class="input-group">
           <input type="text" class="form-control" placeholder="Search..." name="q">
-          <button class="btn btn-primary px-4" type="submit">
+          <button class="btn btn-primary px-4" type="submit" style="background-color: #FF8C00; border-color: #FF8C00;">
             <i class="bi bi-search me-1"></i> Search
           </button>
         </div>
@@ -281,7 +304,7 @@
           </p>
 
           <p class="product-meta mb-1 small text-muted">
-            <span class="fw-bold text-primary fs-5">
+            <span class="fw-bold fs-5" style="color: #FF8C00;">
               {{#if this.current_price}}
               {{formatCurrency this.current_price}}
               {{else}}
@@ -289,7 +312,7 @@
               {{/if}}
             </span>
             <br>
-            <span>Buy it now: <span class="fw-bold text-primary">{{#if this.buy_now_price}}{{formatCurrency
+            <span>Buy it now: <span class="fw-bold" style="color: #FF8C00;">{{#if this.buy_now_price}}{{formatCurrency
                 this.buy_now_price}}
                 {{else}}
                 None {{/if}}</span></span><br>
@@ -299,7 +322,10 @@
           </p>
 
           <div class="mt-2">
-            <a href="/menu/detail?product_id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">Details</a>
+            <a href="/menu/detail?product_id={{this.product_id}}" class="btn btn-sm w-100"
+               style="border: 1px solid #FF8C00; color: #FF8C00;"
+               onmouseover="this.style.backgroundColor='#FF8C00';this.style.color='white';"
+               onmouseout="this.style.backgroundColor='transparent';this.style.color='#FF8C00';">Details</a>
           </div>
         </div>
 
@@ -308,7 +334,7 @@
     {{/each}}
     
     <nav aria-label="...">
-      <ul class="pagination">
+      <ul class="pagination justify-content-center">
         {{#if prevPage}}
         <li class="page-item">
           {{#if childSlug}}

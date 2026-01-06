@@ -35,6 +35,7 @@ router.post('/', async function (req, res) {
     const renderError = function (msg) {
         return res.render('vwAccounts/profile', {
             layout: 'account-layout',
+            title: 'Account Settings',
             activeNav: 'AccountSettings',
             showSettings: true,
             user: user,
@@ -74,6 +75,7 @@ router.post('/', async function (req, res) {
 
     res.render('vwAccounts/profile', {
         layout: 'account-layout',
+        title: 'Account Settings',
         activeNav: 'AccountSettings',
         showSettings: true,
         user: req.session.authUser,
@@ -277,6 +279,7 @@ router.get('/rating', async function (req, res) {
         role: role,
         alreadyRated: !!existingRating,
         layout: 'account-layout',
+        title: 'Rate Transaction',
         activeNav: 'Rating'
     });
 });

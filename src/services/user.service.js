@@ -131,6 +131,14 @@ export function findNextHighestBidder(banUser) {
         .first();
 }
 
+export function getOldBidderInfo(userId) {
+    return db('bid as b')
+        .orderBy('b.max_auto_bid', 'desc')
+        .where('b.bidder_id', userId)
+        .select('b.*')
+        .first();
+}
+
 export function getUserRating(userId) {
     return db('app_user')
         .where('user_id', userId)

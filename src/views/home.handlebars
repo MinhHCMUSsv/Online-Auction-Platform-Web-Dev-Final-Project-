@@ -80,7 +80,7 @@
         width: 40px;
         height: 40px;
         border-radius: 50% !important;
-        background-color: #0d6efd !important;
+        background-color: #FF8C00 !important;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         color: #fff !important;
         font-size: 24px !important;
@@ -92,7 +92,7 @@
     }
 
     .owl-nav button:hover {
-        background-color: #0b5ed7 !important;
+        background-color: #e67e00 !important;
         opacity: 1;
         color: #fff !important;
     }
@@ -184,7 +184,7 @@
             </p>
 
             <p class="product-meta mb-1 small text-muted">
-                <span class="fw-bold text-primary fs-5">
+                <span class="fw-bold fs-5" style="color: #FF8C00;">
                     {{#if current_price}}
                     {{formatCurrency current_price}}
                     {{else}}
@@ -192,7 +192,7 @@
                     {{/if}}
                 </span>
                 <br>
-                <span>Buy it now: <span class="fw-bold text-primary">{{#if
+                <span>Buy it now: <span class="fw-bold" style="color: #FF8C00;">{{#if
                         buy_now_price}}{{formatCurrency buy_now_price}}{{else}}None{{/if}}</span></span><br>
 
                 <span>Listed: {{formatDate created_at "DD/MM/YYYY HH:mm"}}</span><br>
@@ -202,7 +202,9 @@
 
             <div class="mt-2">
                 <a href="/menu/detail?product_id={{product_id}}"
-                    class="btn btn-sm btn-outline-primary w-100">Details</a>
+                    class="btn btn-sm w-100" style="border: 1px solid #FF8C00; color: #FF8C00;"
+                    onmouseover="this.style.backgroundColor='#FF8C00';this.style.color='white';"
+                    onmouseout="this.style.backgroundColor='transparent';this.style.color='#FF8C00';">Details</a>
             </div>
         </div>
     </div>

@@ -13,7 +13,7 @@ import {
     sendFinalSellerNotification
 } from '../../utils/email.js';
 
-import { sendBidderRejectedNotification, sendOutbidNotification, sendBidSuccessfullyNotification, sendPriceUpdateNotification } from '../../utils/email.js';
+import { sendBidderRejectedNotification, sendOutbidNotification, sendBidSuccessfullyNotification, sendPriceUpdateNotification, sendNextWinningNotification} from '../../utils/email.js';
 
 const router = express.Router();
 
@@ -122,7 +122,7 @@ router.get('/detail', async function (req, res) {
     }
 
     res.render('vwMenu/detail', {
-        title: 'Detail',
+        title: product.name,
         product: product,
         seller: seller,
         bidder: bidder,
@@ -254,7 +254,7 @@ router.post('/place-bid', async function (req, res) {
                     const sellerInfo = await userService.getUserById(product.seller_id);
                     const bidderInfo = await userService.getUserById(bidderId);
                     await sendBidSuccessfullyNotification(bidderInfo.email, product.name, finalBidAmount);
-                    await sendPriceUpdateNotification(sellerInfo.email, product.name, finalBidAmount, inputMaxAutoBid, bidderInfo.name);
+                    await sendPriceUpdateNotification(sellerInfo.email, product.name, finalBidAmount);
                     console.log('Bid notification emails sent successfully');
                 } catch (mailError) {
                     console.error('Background Email Error (Bid Notification):', mailError);
@@ -470,7 +470,9 @@ router.post('/append-description', async function (req, res) {
             return res.status(404).send('Product not found');
         }
         if (String(product.seller_id) !== String(user_id)) {
-            return res.render('vwError/403');
+            return res.render('vwError/403', {
+                title: 'Access Denied'
+            });
         }
         const entity = {
             product_id: product_id,
@@ -621,6 +623,7 @@ router.get('/search', async function (req, res) {
     
     if (query.length === 0) {
         return res.render('vwMenu/search', {
+            title: 'Search',
             products: [],
             empty: true,
             query: query,
@@ -635,6 +638,7 @@ router.get('/search', async function (req, res) {
     products = await productService.mapProductsWithNewFlag(products);
 
     res.render('vwMenu/search', {
+        title: `Search: ${query}`,
         products: products,
         query: query,
         empty: products.length === 0,
@@ -646,7 +650,7 @@ router.get('/search', async function (req, res) {
 // Check if user is banned from bidding on a product
 router.get('/check-ban', async function (req, res) {
     try {
-        const banUse = { 
+        const banUser = { 
             product_id: req.body.product_id,
             bidder_id: req.body.bidder_id
         };
@@ -667,11 +671,24 @@ router.post('/reject-bidder', async function (req, res) {
         const sellerId = req.session.authUser.user_id;
         
         // Verify seller owns the product
-        const product = await productService.getProductById(product_id);
+        const product = await productService.getProduct(product_id);
         if (!product || product.seller_id !== sellerId) {
             return res.status(403).json({ 
                 success: false, 
                 message: 'You are not authorized to reject bidders for this product.' 
+            });
+        }
+        
+        // Check if bidder is already banned
+        const banCheck = await userService.checkBanUser({
+            product_id: product_id,
+            bidder_id: bidder_id
+        });
+        
+        if (banCheck) {
+            return res.status(400).json({
+                success: false,
+                message: 'This bidder has already been rejected from this auction.'
             });
         }
         
@@ -687,7 +704,7 @@ router.post('/reject-bidder', async function (req, res) {
         }
         
         // Check if bidder is currently the leader
-        const wasLeader = (product.leader_id === parseInt(bidder_id));
+        const wasLeader = (product.leader_id === bidder_id);
         
         // Add to ban list
         const banUser = {
@@ -700,19 +717,30 @@ router.post('/reject-bidder', async function (req, res) {
         // If banned user was the leader, find next highest bidder
         if (wasLeader) {
             const nextBidder = await userService.findNextHighestBidder(banUser);
-                
+            
             if (nextBidder) {
+                // There's another bidder, update product with new leader
+                const oldBidder = await userService.getOldBidderInfo(product.leader_id);
+                const current_price = Math.min(Number(oldBidder.bid_amount), Number(nextBidder.bid_amount));
+                
                 // Update product with new leader
                 await productService.updateCurrentPriceAndLeader(product_id, {
-                    current_price: nextBidder.bid_amount,
+                    current_price: current_price,
                     leader_id: nextBidder.bidder_id,
                     leader_max: nextBidder.max_auto_bid
                 });
                 
-                // Send email to new leader
-                await sendWinningNotification(nextBidder.email, product.name, nextBidder.bid_amount);
+                // Send email to new leader in background
+                (async function() {
+                    try {
+                        await sendNextWinningNotification(nextBidder.email, product.name, nextBidder.bid_amount);
+                        console.log('Next winning notification sent to:', nextBidder.email);
+                    } catch (mailError) {
+                        console.error('Background Email Error (Next Winner):', mailError);
+                    }
+                })();
             } else {
-                // No other bidders, reset to starting price
+                // No other bidders, reset to starting price (product has only 1 bidder who got kicked)
                 await productService.updateCurrentPriceAndLeader(product_id, {
                     current_price: null,
                     leader_id: null,
@@ -721,12 +749,19 @@ router.post('/reject-bidder', async function (req, res) {
             }
         }
         
-        // Send rejection email to banned bidder
-        await sendBidderRejectedNotification(
-            bidder.email,
-            product.name,
-            seller.full_name
-        );
+        // Send rejection email in background (fire and forget)
+        (async function() {
+            try {
+                await sendBidderRejectedNotification(
+                    bidder.email,
+                    product.name,
+                    seller.full_name
+                );
+                console.log('Rejection notification sent to:', bidder.email);
+            } catch (mailError) {
+                console.error('Background Email Error (Reject Bidder):', mailError);
+            }
+        })();
         
         res.json({ success: true });
         
@@ -816,7 +851,6 @@ router.get('/:slug', async function (req, res) {
 
     let list = await productService.findPageByParentID(cat_id, limit, offset, sortBy);
     list = await productService.mapProductsWithNewFlag(list);
-    console.log(list);
 
     if (req.session.isAuthenticated) {
         const user_id = req.session.authUser.user_id;
@@ -864,8 +898,6 @@ router.get('/:parentSlug/:childSlug', async function (req, res) {
     const childCategoryId = await categoriesService.getCategory(childSlug);
     const childCategory = await categoriesService.getCategoryBySlug(childSlug);
 
-    console.log('Child Category ID:', childCategoryId);
-    console.log('Child Category Details:', childCategory);
     // Get parent category info
     const currentParent = await categoriesService.getCategoryById(childCategory.parent_id);
     const childCategories = await categoriesService.getChildCategories(childCategory.parent_id);
@@ -904,6 +936,7 @@ router.get('/:parentSlug/:childSlug', async function (req, res) {
     }
 
     res.render('vwMenu/byCat', {
+        title: childSlug,
         products: list,
         activeNav: 'Menu',
         childCategories: childCategories,

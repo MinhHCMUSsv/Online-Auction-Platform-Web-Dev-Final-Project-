@@ -8,6 +8,7 @@ router.get('/', async function (req, res) {
     const config = await settingService.getSettings();
     res.render('vwAdmin/setting', {
         layout: 'admin-layout',
+        title: 'System Settings',
         activeAdmin: 'settings',
         config: config
     });

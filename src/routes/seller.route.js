@@ -59,7 +59,6 @@ router.post('/create', async function (req, res) {
 
     const ret = await productService.add(newProduct);
     const productId = ret[0].product_id;
-    console.log('New Product ID:', productId);
 
     const uploadedImages = JSON.parse(req.body.uploadedImages || '[]');
 

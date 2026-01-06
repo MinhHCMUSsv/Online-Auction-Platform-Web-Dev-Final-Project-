@@ -45,6 +45,7 @@ router.get('/', async function(req, res) {
             upgradeRequests: upgradeRequests,
             activeAdmin: 'users',
             layout: 'admin-layout',
+            title: 'Users Management',
             pagination: {
                 currentPage: page,
                 totalPages: totalPages,
@@ -69,7 +70,8 @@ router.get('/upgrade', async function(req, res) {
     res.render('vwAdmin/upgrade', { 
         upgradeRequests: list,
         activeNav: 'upgrade',
-        layout: 'admin-layout'
+        layout: 'admin-layout',
+        title: 'Upgrade Requests'
     });
 });
 

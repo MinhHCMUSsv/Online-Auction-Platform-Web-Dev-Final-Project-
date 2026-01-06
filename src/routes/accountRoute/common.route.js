@@ -77,6 +77,7 @@ router.post('/signup', async function (req, res) {
         if (!googleData.success) {
             return res.render('vwAccounts/signup', {
                 layout: 'auth-layout',
+                title: 'Sign Up',
                 err_message: 'Captcha verification failed. Please confirm you are not a robot.'
             });
         }
@@ -84,6 +85,7 @@ router.post('/signup', async function (req, res) {
         console.log('Captcha Error:', error);
         return res.render('vwAccounts/signup', {
             layout: 'auth-layout',
+            title: 'Sign Up',
             err_message: 'Error connecting to Captcha verification.'
         });
     }
@@ -191,12 +193,14 @@ router.post('/signin', async function (req, res) {
     if (!user) {
         return res.render('vwAccounts/signin', {
             layout: 'auth-layout',
+            title: 'Sign In',
             err_message: 'Invalid email or password.'
         });
     }
     if (user.status === 2) {
         return res.render('vwAccounts/signin', {
             layout: 'auth-layout',
+            title: 'Sign In',
             isBanned: true,
             err_message: 'Your account has been banned by the administrator.'
         });
@@ -210,6 +214,7 @@ router.post('/signin', async function (req, res) {
     if (!result) {
         return res.render('vwAccounts/signin', {
             layout: 'auth-layout',
+            title: 'Sign In',
             err_message: 'Invalid email or password.'
         });
     }
@@ -251,7 +256,8 @@ router.post('/signout', function (req, res) {
 
 router.get('/forgot-password', function (req, res) {
     res.render('vwAccounts/forgot', {
-        layout: 'auth-layout'
+        layout: 'auth-layout',
+        title: 'Forgot Password'
     });
 });
 
@@ -260,8 +266,9 @@ router.post('/forgot-password', async function (req, res) {
 
     const user = await userService.findByEmail(email);
     if (!user) {
-        return res.render('vwAccount/forgot', {
+        return res.render('vwAccounts/forgot', {
             layout: 'auth-layout',
+            title: 'Forgot Password',
             err_message: 'This email is not registered!'
         });
     }
@@ -280,6 +287,7 @@ router.post('/forgot-password', async function (req, res) {
     } else {
         res.render('vwAccounts/forgot', {
             layout: 'auth-layout',
+            title: 'Forgot Password',
             err_message: 'Cannot send email. Please try again later.'
         });
     }
@@ -321,7 +329,8 @@ router.get('/reset', function (req, res) {
     }
 
     res.render('vwAccounts/reset', { 
-        layout: 'auth-layout'
+        layout: 'auth-layout',
+        title: 'Reset Password'
     });
 });
 
@@ -336,6 +345,7 @@ router.post('/reset', async function (req, res) {
     if (password !== confirm_password) {
         return res.render('vwAccounts/reset', {
             layout: 'auth-layout',
+            title: 'Reset Password',
             err_message: 'Confirm password does not match!'
         });
     }
@@ -354,6 +364,7 @@ router.post('/reset', async function (req, res) {
 
     res.render('vwAccounts/signin', {
         layout: 'auth-layout',
+        title: 'Sign In',
         success_message: 'Password reset successfully! Please login.'
     });
 });

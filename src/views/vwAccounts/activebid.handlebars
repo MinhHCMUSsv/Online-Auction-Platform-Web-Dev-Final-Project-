@@ -60,8 +60,8 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    background: #0d6efd;
-    /* Màu xanh dương cho active bid */
+    background: #FF8C00;
+    /* Màu cam cho active bid */
     color: white;
     padding: 4px 12px;
     border-radius: 20px;
@@ -92,7 +92,7 @@
 </style>
 {{/section}}
 
-<h3 class="mb-4 fw-bold text-primary">Active Bids</h3>
+<h3 class="mb-4 fw-bold" style="color: #FF8C00;">Active Bids</h3>
 
 {{#if activeBids.length}}
 <div class="row g-3">
@@ -133,7 +133,7 @@
         </p>
 
         <p class="product-meta mb-1 small text-muted">
-          <span class="fw-bold text-primary fs-5">
+          <span class="fw-bold fs-5" style="color: #FF8C00;">
             {{#if this.current_price}}
             {{formatCurrency this.current_price}}
             {{else}}
@@ -143,7 +143,7 @@
           <br>
 
           <span>Buy it now:
-            <span class="fw-bold text-primary">
+            <span class="fw-bold" style="color: #FF8C00;">
               {{#if this.buy_now_price}}
               {{formatCurrency this.buy_now_price}}
               {{else}}
@@ -161,7 +161,10 @@
         </p>
 
         <div class="mt-2">
-          <a href="/menu/detail?product_id={{this.product_id}}" class="btn btn-sm btn-outline-primary w-100">
+          <a href="/menu/detail?product_id={{this.product_id}}" class="btn btn-sm w-100" 
+             style="border: 1px solid #FF8C00; color: #FF8C00;"
+             onmouseover="this.style.backgroundColor='#FF8C00';this.style.color='white';"
+             onmouseout="this.style.backgroundColor='transparent';this.style.color='#FF8C00';">
             Details
           </a>
         </div>
@@ -176,6 +179,6 @@
 <div class="alert alert-info text-center py-5">
   <i class="bi bi-tag fs-1 d-block mb-3"></i>
   <h5>You haven't placed any bids yet.</h5>
-  <a href="/menu" class="btn btn-primary mt-2">Start Bidding</a>
+  <a href="/menu" class="btn mt-2" style="background-color: #FF8C00; color: white;">Start Bidding</a>
 </div>
 {{/if}}
