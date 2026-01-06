@@ -714,8 +714,15 @@ router.post('/reject-bidder', async function (req, res) {
                     leader_max: nextBidder.max_auto_bid
                 });
                 
-                // Send email to new leader
-                await sendNextWinningNotification(nextBidder.email, product.name, nextBidder.bid_amount);
+                // Send email to new leader in background
+                (async function() {
+                    try {
+                        await sendNextWinningNotification(nextBidder.email, product.name, nextBidder.bid_amount);
+                        console.log('Next winning notification sent to:', nextBidder.email);
+                    } catch (mailError) {
+                        console.error('Background Email Error (Next Winner):', mailError);
+                    }
+                })();
             } else {
                 // No other bidders, reset to starting price
                 await productService.updateCurrentPriceAndLeader(product_id, {
@@ -726,12 +733,19 @@ router.post('/reject-bidder', async function (req, res) {
             }
         }
         
-        // Send rejection email to banned bidder
-        await sendBidderRejectedNotification(
-            bidder.email,
-            product.name,
-            seller.full_name
-        );
+        // Send rejection email in background (fire and forget)
+        (async function() {
+            try {
+                await sendBidderRejectedNotification(
+                    bidder.email,
+                    product.name,
+                    seller.full_name
+                );
+                console.log('Rejection notification sent to:', bidder.email);
+            } catch (mailError) {
+                console.error('Background Email Error (Reject Bidder):', mailError);
+            }
+        })();
         
         res.json({ success: true });
         
