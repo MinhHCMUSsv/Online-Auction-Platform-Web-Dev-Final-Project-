@@ -163,7 +163,7 @@ export function getProduct(product_id) {
 export function getSellerById(seller_id) {
     return db('app_user')
         .where('user_id', seller_id)
-        .select('full_name as seller_name', 'points as seller_point', 'email as seller_email')
+        .select('full_name as seller_name', 'points as seller_point', 'email as seller_email', 'positive_point')
         .first();
 }
 

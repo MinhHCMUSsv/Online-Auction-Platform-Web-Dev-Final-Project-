@@ -35,6 +35,7 @@ router.post('/', async function (req, res) {
     const renderError = function (msg) {
         return res.render('vwAccounts/profile', {
             layout: 'account-layout',
+            title: 'Account Settings',
             activeNav: 'AccountSettings',
             showSettings: true,
             user: user,
@@ -74,6 +75,7 @@ router.post('/', async function (req, res) {
 
     res.render('vwAccounts/profile', {
         layout: 'account-layout',
+        title: 'Account Settings',
         activeNav: 'AccountSettings',
         showSettings: true,
         user: req.session.authUser,
@@ -159,38 +161,41 @@ router.get('/won', async function (req, res) {
         const status = item.transaction_status;
         
         let statusText = 'Waiting Payment';
-        let canPay = true; // Biến cờ để quyết định có hiện nút Pay hay không
-        let isSuccess = false; // Biến cờ để hiện dấu tích xanh
+        let canPay = false; 
+        let canRate = false;
+        let isSuccess = false; 
 
-        // Logic trạng thái theo yêu cầu: 0: Hủy, 1: Chờ, 2: Thành công
         if (status === 2) {
             statusText = 'Success';
+            isSuccess = true; // Để hiện dấu tích xanh
+            canRate = true;   // Để hiện nút Rate (nếu cần)
             canPay = false;
-            isSuccess = true;
-        } else if (status === 1) {
-            statusText = 'Processing'; // Đã thanh toán, đang chờ xác nhận
-            canPay = true; // Không cho thanh toán lại
-            isSuccess = false; // Chưa thành công hẳn
-        } else {
+        } 
+        else if (status === 0) {
             statusText = 'Cancelled';
-            canPay = false; // Đã hủy thì không cho thanh toán nữa (tùy nghiệp vụ)
-            isSuccess = false;
+            canPay = false;
+        } 
+        else {
+            // Status = 1 hoặc null (Chưa thanh toán hoặc Đang xử lý)
+            statusText = 'Processing';
+            canPay = true; // Bật cờ này để hiện nút Pay bên Handlebars
         }
 
         return {
             ...item,
             status_text: statusText,
             can_pay: canPay,
+            can_rate: canRate,
             is_success: isSuccess
         };
     });
-    console.log('won items:', list);
 
     res.render('vwAccounts/wonitem', {
         layout: 'account-layout',
         title: 'Won Items',
         activeNav: 'WonItems',
-        wonItems: list
+        wonItems: list,
+        empty: list.length === 0
     });
 });
 
@@ -274,6 +279,7 @@ router.get('/rating', async function (req, res) {
         role: role,
         alreadyRated: !!existingRating,
         layout: 'account-layout',
+        title: 'Rate Transaction',
         activeNav: 'Rating'
     });
 });

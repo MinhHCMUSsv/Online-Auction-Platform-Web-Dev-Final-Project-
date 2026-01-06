@@ -8,7 +8,8 @@ export function findByUserId(userId, limit, offset) {
         .where('w.user_id', userId)
         .select('p.*', 'u.full_name as current_bidder_name')
         .count('b.bid_id as bid_count') 
-        .groupBy('p.product_id', 'u.full_name');
+        .groupBy('p.product_id', 'u.full_name')
+        .orderBy('p.product_id', 'desc');
 
     if (limit) {
         query = query.limit(limit).offset(offset);

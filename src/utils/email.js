@@ -3,6 +3,16 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// Helper function to format currency
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
+};
+
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -57,7 +67,7 @@ export const sendBidSuccessfullyNotification = async function (toEmail, productN
             <p>Great news! You are bidding successfully for:</p>
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
                 <h3 style="color: #0d6efd; margin: 0;">${productName}</h3>
-                <p style="margin: 5px 0 0 0;"><strong>Your bid:</strong> $${bidAmount}</p>
+                <p style="margin: 5px 0 0 0;"><strong>Your bid:</strong> ${formatCurrency(bidAmount)}</p>
             </div>
             <div style="text-align: center; margin: 20px 0;">
                 <a href="${process.env.BASE_URL}/menu" style="background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
@@ -109,7 +119,7 @@ export const sendPriceUpdateNotification = async function (toEmail, productName,
             <p>Great news! Someone has placed a new bid on your auction item:</p>
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
                 <h3 style="color: #0d6efd; margin: 0;">${productName}</h3>
-                <p style="margin: 5px 0 0 0;"><strong>Current price:</strong> $${currentPrice}</p>
+                <p style="margin: 5px 0 0 0;"><strong>Current price:</strong> ${formatCurrency(currentPrice)}</p>
             </div>
             <p>Your item is gaining attention! Higher bids mean more profit for you.</p>
             <div style="text-align: center; margin: 20px 0;">
@@ -136,7 +146,7 @@ export const sendNextWinningNotification = async function (toEmail, productName,
             <p>Fantastic news! You are now the highest bidder for:</p>
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
                 <h3 style="color: #0d6efd; margin: 0;">${productName}</h3>
-                <p style="margin: 5px 0 0 0;"><strong>Your bid:</strong> $${bidAmount}</p>
+                <p style="margin: 5px 0 0 0;"><strong>Your bid:</strong> ${formatCurrency(bidAmount)}</p>
             </div>  
             <div style="text-align: center; margin: 20px 0;">
                 <a href="${process.env.BASE_URL}/menu" style="background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
@@ -222,7 +232,7 @@ export const sendFinalWinnerNotification = async function (toEmail, productName,
             <p>Fantastic news! You are the winning bidder for:</p>
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
                 <h3 style="color: #0d6efd; margin: 0;">${productName}</h3>
-                <p style="margin: 5px 0 0 0;"><strong>Final price:</strong> $${finalPrice}</p>
+                <p style="margin: 5px 0 0 0;"><strong>Final price:</strong> ${formatCurrency(finalPrice)}</p>
             </div>
             <p>Please proceed to complete the payment and arrange for the delivery of your item.</p>
             <div style="text-align: center; margin: 20px 0;">
@@ -273,7 +283,7 @@ export const sendFinalSellerNotification = async function (toEmail, productName,
             <p>Congratulations! Your auction item has been sold:</p>
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
                 <h3 style="color: #0d6efd; margin: 0;">${productName}</h3>
-                <p style="margin: 5px 0 0 0;"><strong>Final price:</strong> $${finalPrice}</p>
+                <p style="margin: 5px 0 0 0;"><strong>Final price:</strong> ${formatCurrency(finalPrice)}</p>
                 <p style="margin: 5px 0 0 0;"><strong>Winning bidder:</strong> ${winnerName}</p>
             </div>  
             <p>Please contact the winning bidder to arrange payment and delivery of your item.</p>

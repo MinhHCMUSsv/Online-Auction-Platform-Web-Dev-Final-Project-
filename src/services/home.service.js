@@ -10,7 +10,7 @@ export async function findTopPrice(limit = 5) {
         .count('b.bid_id as bid_count')
         .where('p.status', 'active')
         .groupBy('p.product_id', 'u.full_name')
-        .orderBy('p.current_price', 'desc')
+        .orderByRaw('CAST(p.current_price AS NUMERIC) DESC NULLS LAST')
         .limit(limit);
     
     return mapProductsWithNewFlag(products);

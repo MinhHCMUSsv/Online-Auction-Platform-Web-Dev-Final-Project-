@@ -170,8 +170,6 @@ router.post('/signin', async function (req, res) {
         url = '/';
     }
 
-    console.log(url);
-
     const retUrl = req.session.retUrl || url;
     delete req.session.retUrl;
 

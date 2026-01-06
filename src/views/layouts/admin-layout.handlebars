@@ -165,6 +165,45 @@
         .admin-sidebar::-webkit-scrollbar-thumb:hover {
             background: #a0aec0;
         }
+
+        /* Custom Pagination Styles */
+        .pagination {
+            gap: 5px;
+        }
+
+        .pagination .page-item .page-link {
+            border: none;
+            border-radius: 8px;
+            padding: 8px 14px;
+            color: #6c757d;
+            font-weight: 600;
+            background-color: #f8f9fa;
+            transition: all 0.2s ease;
+        }
+
+        .pagination .page-item .page-link:hover {
+            background-color: var(--accent);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255, 140, 0, 0.3);
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: var(--accent);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4);
+        }
+
+        .pagination .page-item.disabled .page-link {
+            background-color: #e9ecef;
+            color: #adb5bd;
+            cursor: not-allowed;
+        }
+
+        .pagination .page-item:first-child .page-link,
+        .pagination .page-item:last-child .page-link {
+            border-radius: 8px;
+        }
     </style>
 
     {{{_sections.css}}}

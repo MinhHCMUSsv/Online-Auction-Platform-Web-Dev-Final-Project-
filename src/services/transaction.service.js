@@ -12,8 +12,9 @@ export function getAllInfoTransaction(productId) {
     return db('transaction as t')
         .join('app_user as seller', 't.seller_id', 'seller.user_id')
         .join('app_user as bidder', 't.buyer_id', 'bidder.user_id')
+        .join('product as p', 't.product_id', 'p.product_id')
         .select(
-            't.*', 'seller.full_name as seller_name', 'bidder.full_name as buyer_name')
+            't.*', 'p.name', 'seller.full_name as seller_name', 'bidder.full_name as buyer_name')
         .where('t.product_id', productId)
         .first();
 }

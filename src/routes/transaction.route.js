@@ -83,7 +83,7 @@ router.get('/', async function (req, res) {
 
     res.render('transaction', {
         layout: 'transaction-layout',
-        title: 'Transaction Status',
+        title: `Transaction: ${product.name}`,
         product: product,
         orderData: transaction,
         orderId: transaction.transaction_id,

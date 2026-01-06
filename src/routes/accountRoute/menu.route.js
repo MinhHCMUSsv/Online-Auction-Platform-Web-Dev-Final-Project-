@@ -122,7 +122,7 @@ router.get('/detail', async function (req, res) {
     }
 
     res.render('vwMenu/detail', {
-        title: 'Detail',
+        title: product.name,
         product: product,
         seller: seller,
         bidder: bidder,
@@ -141,7 +141,8 @@ router.post('/place-bid', async function (req, res) {
     try {
         const productId = req.body.product_id;
         const bidderId = req.body.bidder_id; // Đảm bảo chuyển về kiểu số hoặc khớp với DB
-        const inputMaxAutoBid = Number(req.body.max_auto_bid);
+        const rawValue = req.body.max_auto_bid.replace(/,/g, '');
+        const inputMaxAutoBid = Number(rawValue);
 
         // Check if user is banned from bidding on this product
         const banUser = { 
@@ -469,7 +470,9 @@ router.post('/append-description', async function (req, res) {
             return res.status(404).send('Product not found');
         }
         if (String(product.seller_id) !== String(user_id)) {
-            return res.render('vwError/403');
+            return res.render('vwError/403', {
+                title: 'Access Denied'
+            });
         }
         const entity = {
             product_id: product_id,
@@ -620,6 +623,7 @@ router.get('/search', async function (req, res) {
     
     if (query.length === 0) {
         return res.render('vwMenu/search', {
+            title: 'Search',
             products: [],
             empty: true,
             query: query,
@@ -634,6 +638,7 @@ router.get('/search', async function (req, res) {
     products = await productService.mapProductsWithNewFlag(products);
 
     res.render('vwMenu/search', {
+        title: `Search: ${query}`,
         products: products,
         query: query,
         empty: products.length === 0,
@@ -674,6 +679,19 @@ router.post('/reject-bidder', async function (req, res) {
             });
         }
         
+        // Check if bidder is already banned
+        const banCheck = await userService.checkBanUser({
+            product_id: product_id,
+            bidder_id: bidder_id
+        });
+        
+        if (banCheck) {
+            return res.status(400).json({
+                success: false,
+                message: 'This bidder has already been rejected from this auction.'
+            });
+        }
+        
         // Get bidder and seller info for email
         const bidder = await userService.getUserById(bidder_id);
         const seller = await userService.getUserById(sellerId);
@@ -697,16 +715,14 @@ router.post('/reject-bidder', async function (req, res) {
         await userService.banUser(banUser);
         
         // If banned user was the leader, find next highest bidder
-        console.log('Was leader:', wasLeader);
         if (wasLeader) {
             const nextBidder = await userService.findNextHighestBidder(banUser);
-            const oldBidder = await userService.getOldBidderInfo(product.leader_id);
             
-            console.log('current_price:', oldBidder.bid_amount);
-            console.log('Next bidder:', nextBidder.bid_amount);
-            const current_price = Math.min(Number(oldBidder.bid_amount), Number(nextBidder.bid_amount));
-            console.log('Current price after rejection:', current_price);
             if (nextBidder) {
+                // There's another bidder, update product with new leader
+                const oldBidder = await userService.getOldBidderInfo(product.leader_id);
+                const current_price = Math.min(Number(oldBidder.bid_amount), Number(nextBidder.bid_amount));
+                
                 // Update product with new leader
                 await productService.updateCurrentPriceAndLeader(product_id, {
                     current_price: current_price,
@@ -724,7 +740,7 @@ router.post('/reject-bidder', async function (req, res) {
                     }
                 })();
             } else {
-                // No other bidders, reset to starting price
+                // No other bidders, reset to starting price (product has only 1 bidder who got kicked)
                 await productService.updateCurrentPriceAndLeader(product_id, {
                     current_price: null,
                     leader_id: null,
@@ -835,7 +851,6 @@ router.get('/:slug', async function (req, res) {
 
     let list = await productService.findPageByParentID(cat_id, limit, offset, sortBy);
     list = await productService.mapProductsWithNewFlag(list);
-    console.log(list);
 
     if (req.session.isAuthenticated) {
         const user_id = req.session.authUser.user_id;
@@ -883,8 +898,6 @@ router.get('/:parentSlug/:childSlug', async function (req, res) {
     const childCategoryId = await categoriesService.getCategory(childSlug);
     const childCategory = await categoriesService.getCategoryBySlug(childSlug);
 
-    console.log('Child Category ID:', childCategoryId);
-    console.log('Child Category Details:', childCategory);
     // Get parent category info
     const currentParent = await categoriesService.getCategoryById(childCategory.parent_id);
     const childCategories = await categoriesService.getChildCategories(childCategory.parent_id);
@@ -923,6 +936,7 @@ router.get('/:parentSlug/:childSlug', async function (req, res) {
     }
 
     res.render('vwMenu/byCat', {
+        title: childSlug,
         products: list,
         activeNav: 'Menu',
         childCategories: childCategories,

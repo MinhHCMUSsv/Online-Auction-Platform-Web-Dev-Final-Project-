@@ -21,6 +21,7 @@ router.get('/google/callback',
         if (user.status === 2) {
             return res.render('vwAccounts/signin', {
                 layout: 'auth-layout',
+                title: 'Sign In',
                 isBanned: true,
                 err_message: 'Your Google account is linked to a banned user.'
             });
@@ -92,6 +93,7 @@ router.get('/facebook/callback',
         if (user.status === 2) {
             return res.render('vwAccounts/signin', {
                 layout: 'auth-layout',
+                title: 'Sign In',
                 isBanned: true,
                 err_message: 'Your Facebook account is linked to a banned user.'
             });
