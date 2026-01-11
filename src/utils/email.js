@@ -14,11 +14,16 @@ const formatCurrency = (amount) => {
 };
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
     auth: {
         user: process.env.EMAIL_USER, 
         pass: process.env.EMAIL_PASSWORD
-    }
+    },
+    connectionTimeout: 10000, 
+    greetingTimeout: 5000,
+    socketTimeout: 10000
 });
 
 // Hàm cơ sở để gửi email (dùng chung cho mọi chức năng)
