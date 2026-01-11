@@ -95,7 +95,7 @@
 
         try {
             // Gọi server
-            const response = await fetch(`/account/resend-otp?email=${email}`);
+            const response = await fetch(`/resend-otp?email=${email}`);
 
             // Kiểm tra nếu server lỗi 500 (crash)
             if (!response.ok) {

@@ -13,7 +13,16 @@ import {
     sendFinalSellerNotification
 } from '../../utils/email.js';
 
-import { sendBidderRejectedNotification, sendOutbidNotification, sendBidSuccessfullyNotification, sendPriceUpdateNotification, sendNextWinningNotification} from '../../utils/email.js';
+import { 
+    sendBidderRejectedNotification, 
+    sendOutbidNotification, 
+    sendBidSuccessfullyNotification, 
+    sendPriceUpdateNotification, 
+    sendNextWinningNotification
+} from '../../utils/email.js';
+
+import dotenv from 'dotenv';
+dotenv.config();
 
 const router = express.Router();
 
@@ -488,7 +497,7 @@ router.post('/append-description', async function (req, res) {
 
                 if (emailList.length > 0) {
                     const emails = emailList.map(item => item.email);
-                    const productLink = `${req.protocol}://${req.get('host')}/menu/detail?product_id=${product_id}`;
+                    const productLink = `${process.env.BASE_URL}/menu/detail?product_id=${product_id}`;
 
                     await sendDescriptionUpdateNotification(
                         emails,
@@ -532,7 +541,7 @@ router.post('/comment', async function (req, res) {
                 const sellerId = product.seller_id;
                 const productName = product.name;
                 // Tạo link sản phẩm
-                const productLink = `${req.protocol}://${req.get('host')}/menu/detail?product_id=${product_id}`;
+                const productLink = `${process.env.BASE_URL}/menu/detail?product_id=${product_id}`;
 
                 if (user.user_id == sellerId) {
                     // === TRƯỜNG HỢP 1: SELLER TRẢ LỜI ===
