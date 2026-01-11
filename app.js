@@ -158,5 +158,5 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, function() {
-    console.log('Server is running on http://localhost:' + PORT);
+    console.log(`Server is running at ${process.env.BASE_URL || 'http://localhost:' + PORT}`);
 });
